@@ -1,0 +1,34 @@
+name: Build Page
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Hugo setup
+        uses: peaceiris/actions-hugo@v2.4.13
+        with:
+          extended: true
+          
+      - name: Build
+        run: hugo -D
+
+      - name: GitHub Pages
+        uses: crazy-max/ghaction-github-pages@v2.4.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          target_branch: pages
+          build_dir: public/
+          fqdn: www.mooody.me
