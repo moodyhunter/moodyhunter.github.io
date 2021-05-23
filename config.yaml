@@ -1,4 +1,4 @@
-baseurl: https://www.mooody.me
+baseurl: https://www.mooody.me/
 languageCode: en-us
 theme: hugo-theme-stack
 paginate: 5
@@ -9,6 +9,9 @@ disqusShortname: hugo-theme-stack
 
 # GA Tracking ID
 googleAnalytics:
+
+staticDir:
+    - static
 
 # Theme i18n support
 # Available values: en, fr, id, ja, ko, pt-br, zh-cn, es, de, nl
@@ -23,11 +26,11 @@ params:
         - post
     featuredImageField: image
     rssFullContent: true
-    favicon:
+    favicon: /favicon.ico
 
     footer:
         since: 2021
-        customText:
+        customText: Mooooooooooooooooooooy
 
     dateFormat:
         published: Jan 02, 2006
@@ -38,34 +41,22 @@ params:
         subtitle: What is the breaking news?
         avatar:
             local: true
-            src: img/avatar.png
+            src: avatar.png
 
     article:
-        math: false
+        math: true
         license:
             enabled: true
             default: Licensed under CC BY-NC-SA 4.0
 
     comments:
         enabled: true
-        provider: disqus
+        provider: utterances
 
         utterances:
-            repo:
+            repo: moodyhunter/moodyhunter.github.io
             issueTerm: pathname
-            label:
-
-        remark42:
-            host:
-            site:
-            locale:
-
-        vssue:
-            platform:
-            owner:
-            repo:
-            clientId:
-            clientSecret:
+            label: comments
 
     widgets:
         enabled:
@@ -77,7 +68,7 @@ params:
             limit: 5
 
         tagCloud:
-            limit: 10
+            limit: 15
 
     opengraph:
         twitter:
