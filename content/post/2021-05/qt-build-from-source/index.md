@@ -1,6 +1,7 @@
 ---
 title: "从源码编译 Qt6 for WASM - Part 1"
 date: '2021-05-24'
+image: qt.png
 ---
 
 ## 1. Qt6
