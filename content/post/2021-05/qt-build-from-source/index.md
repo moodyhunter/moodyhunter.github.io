@@ -65,7 +65,7 @@ $ git clone https://github.com/qt/qt5 --recursive # 使用 recursive 把所有 s
 拿来评论区的编译参数，稍微改了改，就变成了
 
 ```bash
-$ cmake \
+cmake \                                                                                                                                    1⏎ 2s
   -GNinja \
   -DFEATURE_developer_build=ON \
   -DFEATURE_headersclean=OFF \
@@ -73,9 +73,10 @@ $ cmake \
   -DWARNINGS_ARE_ERRORS=OFF \
   -DBUILD_EXAMPLES=OFF \
   -DBUILD_TESTING=OFF \
-  -DQT_HOST_PATH=/ \
-  -DCMAKE_TOOLCHAIN_FILE=/opt/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
-  ~/Work/qt5/qtbase
+  -DCMAKE_INSTALL_PREFIX=~Work/qt-build/wasm-installed \
+  ~/Work/qt5/qtbase/ \
+  -DCMAKE_TOOLCHAIN_FILE=~/.local/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
+  -DQT_HOST_PATH=/
 ```
 Qt 的 CMake Configure 过程异常地耗时，于是漫长的等待开始了
 
