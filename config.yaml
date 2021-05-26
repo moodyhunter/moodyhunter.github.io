@@ -54,7 +54,7 @@ params:
         provider: utterances
 
         utterances:
-            repo: moodyhunter/moodyhunter.github.io
+            repo: moodyhunter/BlogComments
             issueTerm: pathname
             label: comments
 
