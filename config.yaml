@@ -38,7 +38,7 @@ params:
 
     sidebar:
         emoji: ❤️
-        subtitle: What is the breaking news?
+        subtitle: What's the breaking news?
         avatar:
             local: true
             src: avatar.png
