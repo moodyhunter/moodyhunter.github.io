@@ -3,7 +3,8 @@ title: "Tools"
 slug: "tools"
 menu:
     main:
-        pre: link
+        params:
+            icon: link
 comments:
     enabled: false
 ---

@@ -10,7 +10,8 @@ lastmod: '2021-05-24'
 menu:
     main: 
         weight: -10
-        pre: user
+        params:
+          icon: user
 ---
 
 ~~想个好记的名字真的很难 OK?~~
