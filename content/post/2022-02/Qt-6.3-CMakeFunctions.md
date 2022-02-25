@@ -1,7 +1,6 @@
 ---
 title: "Qt 6.3 中的一些 CMake 函数"
 date: 2022-02-24T22:56:28Z
-draft: true
 ---
 
 # 写在前面
