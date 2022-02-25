@@ -17,6 +17,8 @@ comments:
 
 - Qt 编译脚本
   - https://github.com/moodyhunter/QtBuildScript
+  ![Look at me](https://github.com/moodyhunter/QtBuildScript/raw/main/images/build-android-demo.png)
 
 - 自用 Fish Shell Prompt
   - https://github.com/moodyhunter/Oven
+  ![Look at me](https://github.com/moodyhunter/Oven/raw/main/images/prompt_screenshot.png)
