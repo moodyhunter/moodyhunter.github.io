@@ -33,7 +33,9 @@ Project ERROR: failed to parse default search paths from compiler output
 78:     # load from the cache
 ```
 
-很明显是一个 qmake 变量 "解引用": `某些东西.COMPILER_MACROS`，根据报错能看出 `那些东西` 应该是 `QMAKE_CXX`，于是继续向上翻：
+很明显是一个 qmake 变量 "`某些东西.COMPILER_MACROS`" 的解引用（取值）。
+
+根据报错能看出 `某些东西` 应该是 `QMAKE_CXX`，于是继续向上翻：
 
 ```qmake
 66: for (v, vars) {
