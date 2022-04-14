@@ -3,7 +3,7 @@ title: "记一次 debug qmake"
 date: 2022-04-14T00:32:37+01:00
 ---
 
-> 原本想甩锅 Qt，但后来发现~~小丑竟是 qemu~~
+> 原本想甩锅 Qt，但后来发现~~小丑竟是 qemu~~ :)
 
 ## 正片开始
 
@@ -62,7 +62,7 @@ Project ERROR: failed to parse default search paths from compiler output
 我还特地打了引号，避免输出的是个空格然后消失在 Konsole 大海中，结果发现这个 `var` 里啥也
 没有。
 
-> 咋就是空的了
+> 咋就成空的了？
 
 继续向上翻，整段代码被包在了一个 `isEmpty($${target_prefix}.COMPILER_MACROS) {`
 分支，说明这个变量为空，其实是在预期情况内。紧接着是两个分支：`msvc` 和 `gcc|ghs` 很明显
