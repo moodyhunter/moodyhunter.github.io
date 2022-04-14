@@ -16,7 +16,7 @@ qalculate-qt:
 Project ERROR: failed to parse default search paths from compiler output
 ```
 
-打包机扔出了这么个错误，深受 qmake 其害的我看到这就准备开 [bugreports.qt.io](https://bugreports.qt.io) 
+打包机扔出了这么个错误，深受 qmake 其害的我看到这就准备开 [bugreports.qt.io](https://bugreports.qt.io)
 
 但是转头一想：肯定群里的大佬早就看到了这个问题，应该已经在 WIP 了吧，于是在群消息记录里搜了一下，
 发现果然早在上个月 24 号（两周前左右）就在讨论这个问题了。
