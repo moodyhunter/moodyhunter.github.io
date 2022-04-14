@@ -134,7 +134,7 @@ $ c++ -E $(pwd)/data/macros.cpp 2>/dev/null
 ```
 
 那么关掉 `forkfd_pidfd` 就使 `!QT_CONFIG(forkfd_pidfd)` 为 `TRUE`，从而强制添加
-`FFD_USE_FORK` flag 给了 `ffdflags`，而这就应该是 qemu 未能实现的一个功能吧。
+`FFD_USE_FORK` flag 给了 `ffdflags`，而这就应该是避开了 qemu 未能实现的一个功能吧。
 
 另外感谢肥猫找到了对应给 qemu 的 [patch](https://patchew.org/QEMU/mvm4kadwyrm.fsf@suse.de/)，但很可惜的是没能合并。
 
