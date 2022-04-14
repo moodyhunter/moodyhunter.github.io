@@ -99,14 +99,13 @@ Project ERROR: failed to parse default search paths from compiler output
 # $$1 -E $$system_quote($$PWD/data/macros.cpp) 2>$$QMAKE_SYSTEM_NULL_DEVICE
 # 参数替换可得
 $ c++ -E $(pwd)/data/macros.cpp 2>/dev/null
-
 > # 0 "./macros.cpp"
 > # 0 "<built-in>"
 > # 0 "<command-line>"
 > # 1 "/usr/include/stdc-predef.h" 1 3 4
 > # 0 "<command-line>" 2
 > # 1 "./macros.cpp"
-
+>
 > QT_COMPILER_STDCXX = 201703L
 > # 26 "./macros.cpp"
 > QMAKE_GCC_MAJOR_VERSION = 11
