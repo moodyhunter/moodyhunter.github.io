@@ -1,6 +1,6 @@
 ---
 title: "QProcess in qemu"
-date: 2022-04-28T22:44:00+01:00
+date: 2022-04-28T15:44:00+01:00
 ---
 
 It's been a long time since my promise to publish a detailed write-up on what the hell was
