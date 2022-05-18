@@ -1,5 +1,5 @@
 ---
-title: "Android "Deploy" Qt?"
+title: "Android 'Deploy' Qt?"
 date: 2022-05-13T02:09:05+01:00
 ---
 
