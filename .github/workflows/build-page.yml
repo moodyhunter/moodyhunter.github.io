@@ -31,4 +31,4 @@ jobs:
         with:
           target_branch: pages
           build_dir: public/
-          fqdn: www.mooody.me
+          fqdn: mooody.me
