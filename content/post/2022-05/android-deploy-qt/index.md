@@ -50,16 +50,16 @@ date: 2022-05-13T02:09:05+01:00
 - 在等了半个小时以后，打开 QtCreator 并（从头）（重新）配置 Qt 环境（这种东西没必要赘述）
 - 使用以下 CMake 参数~~（这个得记，下次要考）~~ 进行 configure 并开始 build
 
-     ```cmake
-     -DCMAKE_TOOLCHAIN_FILE=/PATH/TO/VCPKG/scripts/buildsystems/vcpkg.cmake
-     -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=/PATH/TO/NDK/build/cmake/android.toolchain.cmake
-     -DVCPKG_TARGET_TRIPLET=x64-android
-     ```
+  ```cmake
+  -DCMAKE_TOOLCHAIN_FILE=/PATH/TO/VCPKG/scripts/buildsystems/vcpkg.cmake
+  -DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=/PATH/TO/NDK/build/cmake/android.toolchain.cmake
+  -DVCPKG_TARGET_TRIPLET=x64-android
+  ```
 
-     上文 CMake 参数只适用于在 QtCreator 中使用 vcpkg 和 Android toolchain，而在命令行
-     中使用 qt-cmake 则需要另一个变量
+  上文 CMake 参数只适用于在 QtCreator 中使用 vcpkg 和 Android toolchain，而在命令行
+  中使用 qt-cmake 则需要另一个变量
 
-     也就是把 `CMAKE_TOOLCHAIN_FILE` 换为 `QT_CHAINLOAD_TOOLCHAIN_FILE`
+  也就是把 `CMAKE_TOOLCHAIN_FILE` 换为 `QT_CHAINLOAD_TOOLCHAIN_FILE`
 
 随后启动 Android 虚拟机进行测试，结果 **BANG**
 
@@ -69,7 +69,7 @@ W MoodyApp: qrc:/client/api/mooody/me/qml/main.qml:5:1: module "QtGraphicalEffec
 W MoodyApp: exit app 0
 ```
 
-- 想起之前写过一篇 [`qt_add_qml_module`](https://www.mooody.me/p/qt6-porting-guide-cmake/) CMake 函数的"详"解，但现在反过来看了看，并没有着重说明 `IMPORT_PATH` 的重要性，于是打开 [Qt 文档 (dev 分支版)](https://doc-snapshots.qt.io/qt6-dev/qt-add-qml-module.html#qt6-add-qml-module)
+- 想起之前写过一篇 [`qt_add_qml_module`](https://mooody.me/p/qt6-porting-guide-cmake/) CMake 函数的"详"解，但现在反过来看了看，并没有着重说明 `IMPORT_PATH` 的重要性，于是打开 [Qt 文档 (dev 分支版)](https://doc-snapshots.qt.io/qt6-dev/qt-add-qml-module.html#qt6-add-qml-module)
 
 - 文档里说：_`IMPORT_PATH` 可以用来添加被依赖的 QML 模块的搜索路径。这里指定的位置需要包含 `qmldir` 文件来标明此文件夹代表了一个 QML 模块。_
 

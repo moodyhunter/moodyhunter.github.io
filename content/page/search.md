@@ -3,11 +3,11 @@ title: "Search"
 slug: "search"
 layout: "search"
 outputs:
-    - html
-    - json
+  - html
+  - json
 menu:
-    main:
-        weight: -80
-        params:
-            icon: search
+  main:
+    weight: -80
+    params:
+      icon: search
 ---

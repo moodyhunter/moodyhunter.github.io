@@ -14,13 +14,13 @@ jobs:
       - name: Setup repo
         uses: actions/checkout@v2
         with:
-          submodules: 'recursive'
+          submodules: "recursive"
 
       - name: Hugo setup
         uses: peaceiris/actions-hugo@v2.4.13
         with:
           extended: true
-          
+
       - name: Build
         run: hugo
 

@@ -1,6 +1,6 @@
 ---
 title: "从源码编译 Qt6 for WASM - Part 2"
-date: '2021-05-30'
+date: "2021-05-30"
 image: qt.png
 ---
 
@@ -8,7 +8,7 @@ image: qt.png
 
 - 趁着深夜停电正好能总结一下这周掉进的坑（我保证没有咕咕咕）
 
-# 1. "Qt Host Build"?
+## 1. "Qt Host Build"?
 
 你看：
 
@@ -44,7 +44,7 @@ Call Stack (most recent call first):
 
 这个可怕的事实告诉我： **我还需要编译一个 6.2 的 Linux 版 Qt**
 
-# 2. ~~To Build Qt, Build Qt First~~
+## 2. ~~To Build Qt, Build Qt First~~
 
 既然 Qt 6.1 无法满足编译的要求，那么就得整一个 6.2 版本 Native Platform 的 Qt 当 Host
 
@@ -55,22 +55,23 @@ Call Stack (most recent call first):
 > ......
 
 QtGraphicalEffects 和 Qt5Compat 里面的 GraphicalEffects 撞了 Target
+
 - 手动删掉了 qt5/qt5compat 文件夹来避免被 build
 - 或许正赶上 Qt 在进行 repo 转移，后续尝试的时候就没有出现这个错误了
 
 > **第一次尝试的时候忘记加 ccache，编译一次大概半个小时，用 ccache 能节约至少三分之一**
-> 
+>
 > Qt 的编译参数很人性化，直接一个 `-DQT_USE_CCACHE=ON` 就完事了
+>
 > - 因为在 [这个地方](https://github.com/qt/qtbase/blob/9db7cc79a26ced4997277b5c206ca15949133240/cmake/QtSetup.cmake#L217) 会自动查找 ccache
-> 
+>
 > 根据 QtCreator 的 CI 配置来看，ccache 要加一些 sloppiness 设置（比如 `time_macros`, `pch_defines` 和 `file_macro`）于是照搬了过来
 
-
-# 3. 重新编译 WASM 版本
+## 3. 重新编译 WASM 版本
 
 经过了千辛万苦，终于成功编译出了 Native Platform Qt，下面就要进行紧张刺激的 Cross-Compile 环节
 
-## 3.1 错误的编译参数
+### 3.1 错误的编译参数
 
 使用上一篇文章中的 CMake 参数，并修改对应 `QT_HOST_PATH`：
 
@@ -94,9 +95,10 @@ cmake ~/Work/qt5/qtbase/ \
 
 于是搜索相关参数： `-DFEATURE_rpath=OFF`，并清除 CMake 缓存重新编译
 
-----------
+---
 
 漫长的一个小时过去了，QtBase 模块终于编译完，心情激动直接当场 `cmake --install .` 并开始编译其他模块：
+
 - QtShaderTools
 - QtSvg
 - QtImageFormats
@@ -111,7 +113,7 @@ cmake ~/Work/qt5/qtbase/ \
 
 Qt Company 很人性化的提供了 `$QT_INSTALL_DIR/bin/qt-configure-modules` 于是直接带着源代码文件夹当作参数用就完事了
 
-```
+```bash
 $QT_INSTALL_DIR/bin/qt-configure-modules ~/Work/qt5/-MODULE_NAME-
 ```
 

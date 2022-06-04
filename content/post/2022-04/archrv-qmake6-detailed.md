@@ -33,4 +33,4 @@ steps in:
 2. forkfd thinks the kernel has correct `forkfd` syscall implementation (because it should have), and
 3. **QEMU has no support for `clone`-ing with `CLONE_PIDFD` yet (there's a [possibly abandoned patch](https://patchew.org/QEMU/mvm4kadwyrm.fsf@suse.de/))**
 
-(original blog post: [记一次-debug-qmake](https://www.mooody.me/p/记一次-debug-qmake/))
+(original blog post: [记一次-debug-qmake](https://mooody.me/p/记一次-debug-qmake/))

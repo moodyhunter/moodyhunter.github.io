@@ -1,4 +1,4 @@
-baseurl: https://www.mooody.me/
+baseurl: https://mooody.me/
 languageCode: en-us
 theme: hugo-theme-stack
 paginate: 5

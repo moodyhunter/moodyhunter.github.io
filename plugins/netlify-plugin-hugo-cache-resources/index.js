@@ -10,7 +10,6 @@ const printList = (items) => {
 }
 
 module.exports = {
-
   async onPreBuild({ utils, inputs }) {
     const path = getResourcesDir();
     const success = await utils.cache.restore(path);

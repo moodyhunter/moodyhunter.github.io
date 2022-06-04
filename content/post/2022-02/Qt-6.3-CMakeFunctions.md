@@ -3,11 +3,11 @@ title: "Qt 6.3 中的一些 CMake 函数"
 date: 2022-02-24T22:56:28Z
 ---
 
-# 写在前面
+## 写在前面
 
 今天心血来潮想写点东西，发现之前挖的各种大坑都没填好…… dbq）
 
-# 说点什么呢
+## 说点什么呢
 
 翻消息记录突然看到下面这条评论：
 
@@ -15,28 +15,28 @@ date: 2022-02-24T22:56:28Z
 
 哇） 居然在认真的看我的 Blog，~~突然有点被感动到~~。 那么今天就先来聊 Qt 6.3 中的 CMake 函数
 
-## 1. qt6_add_qml_module
+### 1. qt6_add_qml_module
 
 先来说说大名鼎鼎（？）的 `qt6_add_qml_module`：
 
 细数近期的 Qt Declarative 库中的 [commits](https://github.com/qt/qtdeclarative/blame/9b56042f8445fa8c8119cf2d980d8a1698950483/src/qml/Qt6QmlMacros.cmake) 不难发现，Qt 还在给这个本就已经很复杂的函数添加参数：`FOLLOW_FOREIGN_VERSIONING`，`SKIP_TYPE_REGISTRATION`，`NO_IMPORT_SCAN`，`NO_RESOURCE_TARGET_PATH`，`NO_PLUGIN`
 
-### 这都啥玩意？
+#### 这都啥玩意？
 
-#### a. FOLLOW_FOREIGN_VERSIONING
+##### a. FOLLOW_FOREIGN_VERSIONING
 
 > 没用过，也没看懂 Doc 在说什么
 
-#### b. SKIP_TYPE_REGISTRATION
+##### b. SKIP_TYPE_REGISTRATION
 
-震惊！这个函数居然没有对应官方文档！ 
+震惊！这个函数居然没有对应官方文档！
 
 根据相关 [commit](https://github.com/qt/qtdeclarative/commit/caa062e30a719911d88c9197c4783f5bff50f044#diff-73cbd2ad4c1d08551953953d4a049d0673d3ec1041c1e2acbd77536896c93bf0R64) 记载：
 如果指定了参数，那么生成出的 `qmldir` 文件中将不会出现任何 QML 文件中的类型。
 
 意思就是运行时 "我想手动注册自己的类型" （使用 `qmlRegister[Anonymous|Singleton]Type<T>(...)` 一类的函数）
 
-#### c. NO_IMPORT_SCAN
+##### c. NO_IMPORT_SCAN
 
 理论上只适用于静态编译的 Qt （因为 Shared Qt 是支持加载动态链接的插件的（QML 组件高强度依赖 Qt Plugin System），而静态无法进行运行时加载 DLLs）
 
@@ -46,7 +46,7 @@ QML 模块中，从而进行 「另一种形式的运行时加载」（可能会
 
 加了 `NO_IMPORT_SCAN` 就不一样了，啥也不干，全靠自己（所以完全有可能在运行时产生 `Module .... is not installed.` 错误）。
 
-#### d. NO_RESOURCE_TARGET_PATH
+##### d. NO_RESOURCE_TARGET_PATH
 
 ~~是一个偷懒小技巧~~：仅适用于 Executable Target
 
@@ -57,11 +57,11 @@ Qt 文档说：`...which may only be used if the backing target is an executable
 
 确实如此，在调用 `QQmlApplicationEngine::load(const [QUrl|QString] &)` 时，不再需要指定过于冗长的 URI 了。
 
-#### e. NO_PLUGIN
+##### e. NO_PLUGIN
 
 前一篇文似乎说过 Backing Target 和 Plugin Target 的区别，此参数会让 Qt "不再" 生成一个 Plugin Target，并且直接链接到 Backing Target
 
-## 2. QT_ANDROID_ABIS
+### 2. QT_ANDROID_ABIS
 
 经历了万水千山，从 Qt5 中加入 MultiAbi 到 Qt6 `qmake` 转 CMake 时万不得已 Drop 掉 MultiAbi
 
@@ -69,7 +69,7 @@ Qt 文档说：`...which may only be used if the backing target is an executable
 
 ~~不太干净，不想说~~
 
-## 3. qt_target_compile_qml_to_cpp
+### 3. qt_target_compile_qml_to_cpp
 
 是 `qmltc`！
 
@@ -79,11 +79,11 @@ Qt 文档说：`...which may only be used if the backing target is an executable
 
 不过还是蛮好玩的
 
-## 4. qt_standard_project_setup
+### 4. qt_standard_project_setup
 
 顾名思义：`Qt 标准项目设置`
 
-### 设置啥了？
+#### 设置啥了？
 
 1. 导入了 `GNUInstallDirs` （也就是 `CMAKE_INSTALL_??DIR`）
 2. 对非 Windows 亦或 macOS （Linux / Android / iOS / WASM / ……） 设置合理的 RPATH
@@ -92,7 +92,7 @@ Qt 文档说：`...which may only be used if the backing target is an executable
 问：怎么没有 `CMAKE_AUTORCC`？
 答：新时代了，快去用 `qt_add_resources`，别手写 `qrc` 了
 
--------
+---
 
 今天大概就罗嗦这么多，愿天下太平
 
