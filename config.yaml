@@ -107,8 +107,8 @@ menu:
 
         - identifier: grafana
           weight: 110
-          name: Grafana
-          url: https://g.mooody.me
+          name: Server Status (Grafana)
+          url: https://g.mooody.me/d/home/server-status?orgId=2
           params:
               icon: db
               newTab: true
