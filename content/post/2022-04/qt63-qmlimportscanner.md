@@ -1,6 +1,10 @@
 ---
 title: "Qt 6.3 中 QML 的坑"
 date: 2022-04-02T13:43:37+01:00
+tags:
+  - "Qt 6"
+  - "坑"
+  - "android"
 ---
 
 ## 估计是 Regression 了

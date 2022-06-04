@@ -1,6 +1,9 @@
 ---
 title: "Qt6 Porting Guide - CMake"
 date: "2021-09-20"
+tags:
+  - "Qt 6"
+  - "cmake"
 ---
 
 ~~随着 Qt6.2 进入 rc 阶段~~ (Update: 24 Feb 2022: 其实现在 6.3 都出 Beta 了)，标志着 Qt6 各模块已经趋近完整，可以看到身边越来越多的项目开始了从 Qt5 迁移到 Qt6 ~~繁重工作~~，

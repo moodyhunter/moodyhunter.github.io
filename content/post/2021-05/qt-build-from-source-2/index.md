@@ -2,6 +2,10 @@
 title: "从源码编译 Qt6 for WASM - Part 2"
 date: "2021-05-30"
 image: qt.png
+tags:
+  - "Qt 6"
+  - "cmake"
+  - "wasm"
 ---
 
 ~~时间过得好快，自从上次发 post 已经过了一周~~

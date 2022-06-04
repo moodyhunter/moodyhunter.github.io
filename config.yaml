@@ -1,14 +1,9 @@
 baseurl: https://mooody.me/
 languageCode: en-us
 theme: hugo-theme-stack
-paginate: 5
+paginate: 8
 title: Moody's Front Page
-
-# Change it to your Disqus shortname before using
-disqusShortname: hugo-theme-stack
-
-# GA Tracking ID
-googleAnalytics:
+hasCJKLanguage: true
 
 staticDir:
     - static
@@ -59,24 +54,16 @@ params:
             label: comments
 
     widgets:
-        enabled:
-            - search
-            - archives
-            - tag-cloud
-
-        archives:
-            limit: 5
-
-        tagCloud:
-            limit: 15
-
-    # opengraph:
-    #     twitter:
-    #         # Your Twitter username
-    #         site:
-
-    #         # Available values: summary, summary_large_image
-    #         card: summary_large_image
+        homepage:
+            - type: search
+            - type: archives
+              params:
+                  limit: 5
+            - type: tag-cloud
+              params:
+                  limit: 10
+        page:
+            - type: toc
 
     defaultImage:
         opengraph:
@@ -86,7 +73,8 @@ params:
 
     colorScheme:
         toggle: true
-        default: auto
+        default: dark
+
     imageProcessing:
         cover:
             enabled: true
@@ -98,11 +86,72 @@ params:
 ### To remove about, archive and search page menu item, remove `menu` field from their FrontMatter
 menu:
     main:
-        - identifier: home
+        - identifier: 0-home
+          weight: -100
           name: Home
           url: /
-          weight: -100
-          params.icon: home
+          params:
+              icon: home
+              newTab: false
+
+        - name: ─────────────────
+          weight: 100
+          url: "#"
+
+        - identifier: archrv-mirror
+          weight: 105
+          name: ArchRV Mirror
+          url: https://archrv.mooody.me
+          params:
+              icon: download
+
+        - identifier: grafana
+          weight: 110
+          name: Grafana
+          url: https://g.mooody.me
+          params:
+              icon: db
+              newTab: true
+
+        - identifier: dashboard
+          weight: 120
+          name: MoodyAPI
+          url: https://dash.mooody.me
+          params:
+              icon: settings
+              newTab: true
+
+        - identifier: gitea
+          weight: 130
+          name: Peronal Git
+          url: https://git.mooody.me
+          params:
+              icon: git
+              newTab: true
+
+    social:
+        - identifier: github
+          weight: 110
+          name: GitHub
+          url: https://github.com/moodyhunter
+          params:
+              icon: brand-github
+
+        - identifier: nextcloud
+          weight: 120
+          name: NextCloud
+          url: https://nextcloud.mooody.me
+          params:
+              icon: cloud
+              newTab: true
+
+        - identifier: mailme
+          weight: 140
+          name: MailMe
+          url: mailto://mooodyhunter@outlook.com
+          params:
+              icon: at
+              newTab: true
 
 related:
     includeNewer: true
@@ -116,5 +165,15 @@ related:
           weight: 200
 
 markup:
+    tableOfContents:
+        endLevel: 4
+        ordered: true
+        startLevel: 2
     highlight:
         noClasses: false
+        codeFences: true
+        guessSyntax: true
+        lineNoStart: 1
+        lineNos: true
+        lineNumbersInTable: true
+        tabWidth: 4

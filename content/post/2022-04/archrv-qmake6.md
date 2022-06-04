@@ -1,6 +1,11 @@
 ---
 title: "记一次 debug qmake"
 date: 2022-04-14T00:32:37+01:00
+tags:
+  - "Qt 6"
+  - "qmake"
+  - "ArchRV"
+  - "坑"
 ---
 
 > 原本想甩锅 Qt，但后来发现~~小丑竟是 qemu~~ :)

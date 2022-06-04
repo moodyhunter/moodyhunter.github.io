@@ -1,6 +1,11 @@
 ---
-title: "QProcess in qemu"
+title: "QProcess in Qemu - A Detailed Explanation"
+slug: "qProcess-in-qemu"
 date: 2022-04-28T15:44:00+01:00
+tags:
+  - "Qt 6"
+  - "qmake"
+  - "ArchRV"
 ---
 
 It's been a long time since my promise to publish a detailed write-up on what the hell was

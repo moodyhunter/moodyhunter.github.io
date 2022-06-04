@@ -2,6 +2,10 @@
 title: "从源码编译 Qt6 for WASM - Part 1"
 date: "2021-05-24"
 image: qt.png
+tags:
+  - "Qt 6"
+  - "cmake"
+  - "wasm"
 ---
 
 ## 1. Qt6
