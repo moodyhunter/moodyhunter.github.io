@@ -1,6 +1,6 @@
 baseurl: https://mooody.me/
 languageCode: en-us
-theme: hugo-theme-stack
+theme: hugo-coder
 paginate: 8
 title: Moody's Front Page
 hasCJKLanguage: true
@@ -8,6 +8,7 @@ hasCJKLanguage: true
 staticDir:
     - static
 
+dateFormat: "January 2, 2006"
 # Theme i18n support
 # Available values: en, fr, id, ja, ko, pt-br, zh-cn, es, de, nl
 DefaultContentLanguage: en

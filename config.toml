@@ -1,0 +1,151 @@
+baseURL = "https://mooody.me"
+defaultContentLanguage = "cn"
+enableEmoji = true
+languageCode = "cn"
+paginate = 20
+theme = "hugo-coder"
+title = "Moody's"
+
+[markup.highlight]
+lineNos = true
+style = 'dracula'
+tabWidth = 4
+
+[params]
+author = "Moody"
+avatarURL = "avatar.png"
+dateFormat = "January 2, 2006"
+description = "Moody's Site"
+info = ["What's going on there?"]
+keywords = "blog,personal"
+license = '<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA-4.0</a>'
+since = 2021
+
+colorScheme = "auto"
+customCSS = []
+customJS = []
+customSCSS = []
+hideColorSchemeToggle = false
+maxSeeAlsoItems = 5
+
+[params.utterances]
+issueTerm = "pathname"
+label = "comments"
+repo = "moodyhunter/BlogComments"
+
+[params.csp]
+childsrc = ["'self'"]
+fontsrc = ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net/"]
+formaction = ["'self'", "https://utteranc.es"]
+framesrc = ["'self'", "https://utteranc.es"]
+imgsrc = ["'self'", "https://utteranc.es"]
+objectsrc = ["'none'"]
+prefetchsrc = ["'self'", "https://utteranc.es"]
+scriptsrc = ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net/", "https://utteranc.es/"]
+stylesrc = ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com/", "https://cdn.jsdelivr.net/", "https://utteranc.es"]
+
+# connect-src directive - defines valid targets for to XMLHttpRequest (AJAX), WebSockets or EventSource
+connectsrc = ["'self'", "https://utteranc.es"]
+
+[taxonomies]
+author = "authors"
+category = "categories"
+series = "series"
+tag = "tags"
+
+[[params.social]]
+icon = "fa fa-2x fa-github"
+name = "Github"
+url = "https://github.com/moodyhunter"
+weight = 1
+
+[[params.social]]
+icon = "fa fa-2x fa-envelope"
+name = "Gitlab"
+url = "mailto:me@mooody.me"
+weight = 2
+
+[[params.social]]
+icon = "fa fa-2x fa-telegram"
+name = "Medium"
+url = "javascript:alert('https://t.me/$SHA1(\"mooody\")[:16]')"
+weight = 3
+
+[[params.social]]
+icon = "fa fa-2x fa-gear"
+name = "MoodyAPI"
+target = "_blank"
+url = "https://dash.mooody.me"
+weight = 4
+
+[[params.social]]
+icon = "fa fa-2x fa-rss"
+name = "RSS"
+rel = "alternate"
+type = "application/rss+xml"
+url = "https://mooody.me/index.xml"
+weight = 5
+
+[languages.en]
+languageName = ":uk:"
+
+[languages.cn]
+languageName = ":cn:"
+
+[[languages.en.menu.main]]
+name = "Home"
+url = "/"
+weight = -1
+
+[[languages.en.menu.main]]
+name = "Blog Posts"
+url = "../posts/"
+weight = 1
+
+[[languages.en.menu.main]]
+name = "Friends"
+url = "friends/"
+weight = 2
+
+[[languages.en.menu.main]]
+name = "About"
+url = "about/"
+weight = 3
+
+[[languages.en.menu.main]]
+name = "Server Status"
+target = "_blank"
+url = "https://g.mooody.me/d/home/server-status?orgId=2"
+weight = 4
+
+[languages.cn.params]
+author = "Moody"
+description = "一些中文简介"
+info = ["最近在做什么？"]
+keywords = "blog,personal,中文,个人"
+
+[[languages.cn.menu.main]]
+name = "主页"
+url = "/"
+weight = -1
+
+[[languages.cn.menu.main]]
+name = "文章"
+url = "posts/"
+weight = 1
+
+[[languages.cn.menu.main]]
+name = "友链"
+url = "friends/"
+weight = 2
+
+[[languages.cn.menu.main]]
+name = "我"
+url = "about/"
+weight = 3
+
+[[languages.cn.menu.main]]
+name = "服务状态"
+target = "_blank"
+url = "https://g.mooody.me/d/home/server-status?orgId=2"
+weight = 4
