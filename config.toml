@@ -67,9 +67,9 @@ url = "https://github.com/moodyhunter"
 weight = 1
 
 [[params.social]]
-icon = "fa fa-2x fa-envelope"
-name = "Gitlab"
-url = "mailto:me@mooody.me"
+icon = "fa fa-2x fa-book"
+name = "Blogs"
+url = "/posts"
 weight = 2
 
 [[params.social]]
@@ -79,10 +79,9 @@ url = "javascript:alert('https://t.me/$SHA1(\"mooody\")[:16]')"
 weight = 3
 
 [[params.social]]
-icon = "fa fa-2x fa-gear"
-name = "MoodyAPI"
-target = "_blank"
-url = "https://dash.mooody.me"
+icon = "fa fa-2x fa-envelope"
+name = "Gitlab"
+url = "mailto:me@mooody.me"
 weight = 4
 
 [[params.social]]
