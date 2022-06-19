@@ -21,12 +21,19 @@ keywords = "blog,personal"
 license = '<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA-4.0</a>'
 since = 2021
 
-colorScheme = "auto"
+colorScheme = "dark"
 customCSS = []
 customJS = []
-customSCSS = []
-hideColorSchemeToggle = false
+customSCSS = ["scss/cards.scss"]
+hideColorSchemeToggle = true
 maxSeeAlsoItems = 5
+# To enable inline assets
+enableInlineShortcodes = true
+
+[markup]
+[markup.goldmark]
+[markup.goldmark.renderer]
+unsafe = true
 
 [params.utterances]
 issueTerm = "pathname"
@@ -38,7 +45,7 @@ childsrc = ["'self'"]
 fontsrc = ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net/"]
 formaction = ["'self'", "https://utteranc.es"]
 framesrc = ["'self'", "https://utteranc.es"]
-imgsrc = ["'self'", "https://utteranc.es"]
+imgsrc = ["'self'", "https:"]
 objectsrc = ["'none'"]
 prefetchsrc = ["'self'", "https://utteranc.es"]
 scriptsrc = ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net/", "https://utteranc.es/"]
@@ -104,7 +111,7 @@ weight = 1
 
 [[languages.en.menu.main]]
 name = "Friends"
-url = "friends/"
+url = "../friends/"
 weight = 2
 
 [[languages.en.menu.main]]
