@@ -9,5 +9,9 @@
 Not a Qt Core Dev
 {{< /card >}}
 
+{{< card name="sh1marin" domain="sh1mar.in" avatar="https://avatars.githubusercontent.com/u/30021675">}}
+我单推 moody，贴贴 moody！
+{{< /card >}}
+
 </div>
 </div>

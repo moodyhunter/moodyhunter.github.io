@@ -48,7 +48,7 @@ framesrc = ["'self'", "https://utteranc.es"]
 imgsrc = ["'self'", "https:"]
 objectsrc = ["'none'"]
 prefetchsrc = ["'self'", "https://utteranc.es"]
-scriptsrc = ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net/", "https://utteranc.es/"]
+scriptsrc = ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net/", "https://utteranc.es/", "https://static.cloudflareinsights.com/"]
 stylesrc = ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com/", "https://cdn.jsdelivr.net/", "https://utteranc.es"]
 
 # connect-src directive - defines valid targets for to XMLHttpRequest (AJAX), WebSockets or EventSource
