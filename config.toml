@@ -38,7 +38,7 @@ unsafe = true
 [params.utterances]
 issueTerm = "pathname"
 label = "comments"
-repo = "moodyhunter/BlogComments"
+repo = "moodyhunter/moodyhunter.github.io"
 
 [params.csp]
 childsrc = ["'self'"]
