@@ -17,5 +17,9 @@ Not a Qt Core Dev
 「 一個你知道的地方，和一個沒有酒的故事 ｜ 言文 」
 {{< /card >}}
 
+{{< card name="Coelacanthus" domain="blog.coelacanthus.moe" avatar="https://blog.coelacanthus.moe/icon.png">}}
+Moody 的朋友里最菜的一个
+{{< /card >}}
+
 </div>
 </div>
