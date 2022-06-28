@@ -75,7 +75,7 @@ weight = 2
 [[params.social]]
 icon = "fa fa-2x fa-telegram"
 name = "Medium"
-url = "javascript:alert('https://t.me/$SHA1(\"mooody\")[:16]')"
+url = "javascript:alert('https://t.me/$SHA1(\"moody\")[:16]')"
 weight = 3
 
 [[params.social]]
