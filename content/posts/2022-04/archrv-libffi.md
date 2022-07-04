@@ -8,7 +8,7 @@ tags:
 
 > EXPAND MY INTEGER!
 
-很多人看到 `BuggyFFI` 会很不解：“什么 FFI，你再说什么？”
+很多人看到 `BuggyFFI` 会很不解："什么 FFI，你在说什么？"
 
 我说的是 [`libffi`](https://github.com/libffi/libffi)
 
@@ -23,7 +23,7 @@ tags:
 - TLDR：测试炸了
 - AKA：位于 `./testsuite/libffi.call/strlen.c` 处的单元测试代码第 32 行：
 
-```c
+```C++
 30:  s = "a";
 31:  ffi_call(&cif, FFI_FN(my_strlen), &rint, values);
 32:  CHECK(rint == 1);
@@ -52,6 +52,8 @@ int main (void)
   CHECK(rint == 1);
 }
 ```
+
+## 观测
 
 经过两分钟的代码观测，从以上代码块 L12 来看，`rint` 是一个 `ffi_arg` 类型的变量，经过阅读 header 可以得知，`ffi_arg` 是一个 64 位无符号整数类型：
 
@@ -204,7 +206,6 @@ static void unmarshal_atom(call_builder *cb, int type, void *data) {
         case FFI_TYPE_SINT32: *(uint32_t *)data = value; break;
 #if __SIZEOF_POINTER__ == 8
         case FFI_TYPE_UINT64: *(uint64_t *)data = value; break;
-        // 正常情况下应该调用此 case：
         case FFI_TYPE_SINT64: *(uint64_t *)data = value; break;
 #endif
         case FFI_TYPE_POINTER: *(size_t *)data = value; break;
@@ -213,4 +214,51 @@ static void unmarshal_atom(call_builder *cb, int type, void *data) {
 }
 ```
 
-先写到这，剩下的过段时间再说（遇到了另一个奇怪问题）
+注意 `data` 是指向 `ffi_arg` 类型的指针，也就是一个 64 位无符号整数，但在实际的调用中：
+
+```bash
+(gdb) s
+192         switch (type) {
+(gdb) s
+198             case FFI_TYPE_SINT32: *(uint32_t *)data = value; break;
+(gdb) p type
+$1 = 10
+```
+
+被当作是一个指向 `uint32_t` 的指针了，在接下来的写入操作中，只写入了 32 bits 的数据。
+
+根据 `switch` 可以清楚得知：`type` 变量在此处的值为 10，对应的宏是 `FFI_TYPE_SINT32` 而不是我们预期的 `FFI_TYPE_UINT64`。
+
+通过查阅相关 man page 可以得知，在使用 libffi 调用函数时，负责接收函数返回值的类型（`rint` 的类型）需要至少 `sizeof(ffi_arg)` 大小
+（也就是 `FFI_TYPE_UINT64` 或 `FFI_TYPE_SINT64`）。
+
+### 结论
+
+此处 RISC-V port 的 libffi 内部并未合理处理 「被调用函数」 返回值不足 `sizeof(ffi_arg)` 的情况。导致向一块 64bits 内存（调用方）写入了
+32bits 的数字（被调用方）：
+
+可以看到高位部分包含之前未初始化的垃圾数据，只有低位被写入了 1：
+
+```txt
+调用前 rint = 72057593903531392 也就是 0xFFFFFFF7FD4580
+调用后 rint = 72057589742960641 也就是 0xFFFFFF00000001
+```
+
+## 修
+
+那么现在就要修改代码，使其使用正确的返回值类型，发现已经有人 PR：\
+<https://github.com/libffi/libffi/pull/680>
+
+这个 PR 添加了判断「被调用函数返回值类型」的符号性\
+并根据系统 bits 数，规范地选用 `FFI_TYPE_{S,U}INT{32,64}` 中的其中一种。
+
+所以现在只需要将其 [backport](https://github.com/felixonmars/archriscv-packages/pull/1182) 回我们正在使用的版本即可。
+
+## 思考
+
+在后期调试的过程中，我忘记看 manual page，不清楚「函数返回值 convention」 （也就是，显式规定返回值：需要至少能放下一个 `ffi_arg` 这一部分）。
+使得后续 debug 过程遇到阻碍，在后续的工作中要注意查阅相关文档。
+
+以及，他们自己不跑单元测试的吗？
+
+这篇文章咕咕咕了大概俩月才终于写完 :） 🎉🎉🎉
