@@ -9,9 +9,7 @@ tags:
 
 > EXPAND MY INTEGER!
 
-很多人看到 `BuggyFFI` 会很不解："什么 FFI，你在说什么？"
-
-我说的是 [`libffi`](https://github.com/libffi/libffi)
+[`libffi`](https://github.com/libffi/libffi)
 
 ## libffi 是什么？
 
@@ -22,7 +20,7 @@ tags:
 ## libffi 怎么了？
 
 - TLDR：测试炸了
-- AKA：位于 `./testsuite/libffi.call/strlen.c` 处的单元测试代码第 32 行：
+- or, 单元测试文件 `./testsuite/libffi.call/strlen.c` 第 32 行
 
 ```C++
 30:  s = "a";
@@ -30,7 +28,7 @@ tags:
 32:  CHECK(rint == 1);
 ```
 
-的 `CHECK` 失败了，顾名思义就是 `rint` 不等于 `1` 了。
+的 `CHECK` 失败了（ `rint` 不等于 `1` 了）
 
 ## libffi 测试为什么炸了？
 
@@ -64,13 +62,13 @@ typedef unsigned long ffi_arg;
 typedef   signed long ffi_sarg;
 ```
 
-首先经过 `gdb` 在对应的 main 函数打断点并尝试复现问题：
+首先使用 `gdb` 在对应的 main 函数打断点并尝试复现问题：
 
 ```bash
 Breakpoint 1, main () at ./strlen.c:16
 (gdb) n // 狂躁的几次 n
 (gdb) p rint
-# 这个 rint 在调用前是一个没经过 0 初始化的变量
+# 从 c 源码可以看出，这个 rint 在调用前是一个没经过 0 初始化的变量
 # 因此内存里面有脏东西很正常
 $1 = 72057593903531392
 
