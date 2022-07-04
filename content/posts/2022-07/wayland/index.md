@@ -6,7 +6,6 @@ tags:
   - "Wayland"
   - "Linux"
   - "坑"
-  - "NVIDIA"
 ---
 
 # 我也是 Wayland 用户了！

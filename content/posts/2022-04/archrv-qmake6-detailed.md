@@ -5,6 +5,7 @@ date: "2022-04-28T15:44:00+01:00"
 tags:
   - "Qt 6"
   - "qmake"
+  - "Linux"
   - "ArchRV"
 ---
 

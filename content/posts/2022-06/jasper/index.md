@@ -6,7 +6,7 @@ tags:
   - "Qt"
   - "JasPer"
   - "Crashes"
-  - "Arch Linux"
+  - "Linux"
 ---
 
 # **放假了!**

@@ -4,6 +4,7 @@ date: "2022-04-14T00:32:37+01:00"
 tags:
   - "Qt 6"
   - "qmake"
+  - "Linux"
   - "ArchRV"
   - "坑"
 ---

@@ -5,6 +5,7 @@ tags:
   - "Qt 6"
   - "坑"
   - "android"
+  - "Linux"
 ---
 
 ## 估计是 Regression 了

@@ -5,6 +5,7 @@ tags:
   - "Qt 6"
   - "CMake"
   - "Android"
+  - "Linux"
   - "坑"
 ---
 

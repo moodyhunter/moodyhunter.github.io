@@ -21,11 +21,11 @@ keywords = "blog,personal"
 license = '<a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA-4.0</a>'
 since = 2021
 
-colorScheme = "dark"
+colorScheme = "auto"
 customCSS = []
 customJS = []
 customSCSS = ["scss/cards.scss"]
-hideColorSchemeToggle = true
+hideColorSchemeToggle = false
 maxSeeAlsoItems = 5
 # To enable inline assets
 enableInlineShortcodes = true
