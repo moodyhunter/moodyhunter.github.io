@@ -13,7 +13,7 @@ tabWidth = 4
 
 [params]
 author = "Moody"
-avatarURL = "avatar.png"
+avatarURL = "images/avatar.png"
 dateFormat = "January 2, 2006"
 description = "Moody's Site"
 info = ["What's going on there?"]
@@ -25,8 +25,12 @@ colorScheme = "auto"
 customCSS = []
 customJS = []
 customSCSS = ["scss/cards.scss"]
+favicon_16 = "images/favicon.ico"
+favicon_32 = "images/favicon.ico"
 hideColorSchemeToggle = false
 maxSeeAlsoItems = 5
+touchIcon = "images/favicon.ico"
+
 # To enable inline assets
 enableInlineShortcodes = true
 
