@@ -1,0 +1,17 @@
+.spoiler {
+    transition: .3s;
+}
+
+.colorscheme-dark .spoiler {
+    background-color: white;
+    color: white;
+}
+
+.colorscheme-light .spoiler {
+    background-color: black;
+    color: black;
+}
+
+.spoiler:hover {
+    background-color: transparent;
+}

@@ -10,4 +10,4 @@ tags:
 
 # 我也是 Wayland 用户了！
 
-TODO
+今天从 X11 迁移到了 Wayland，我也是 Wayland 用户了！

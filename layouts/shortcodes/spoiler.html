@@ -1,0 +1,9 @@
+{{ with $.Inner }}
+<span class="spoiler" title="你知道的太多了">
+    {{ if eq $.Page.File.Ext "md" }}
+    {{ $.Inner | markdownify }}
+    {{ else }}
+    {{ $.Inner | htmlUnescape | safeHTML }}
+    {{ end }}
+</span>
+{{ end }}

@@ -24,7 +24,7 @@ since = 2021
 colorScheme = "auto"
 customCSS = []
 customJS = []
-customSCSS = ["scss/cards.scss"]
+customSCSS = ["scss/cards.scss", "scss/spoiler.scss"]
 favicon_16 = "images/favicon.ico"
 favicon_32 = "images/favicon.ico"
 hideColorSchemeToggle = false
@@ -93,7 +93,7 @@ icon = "fa fa-2x fa-rss"
 name = "RSS"
 rel = "alternate"
 type = "application/rss+xml"
-url = "https://mooody.me/index.xml"
+url = "/index.xml"
 weight = 5
 
 [languages.en]
