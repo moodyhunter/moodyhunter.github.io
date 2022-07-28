@@ -25,5 +25,9 @@ Moody 的朋友里最菜的一个
 更菜！
 {{</card>}}
 
+{{<card name="cubercsl" domain="cubercsl.site" avatar="https://avatars.githubusercontent.com/u/22931465">}}
+蔡队！
+{{</card>}}
+
 </div>
 </div>
