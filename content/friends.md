@@ -29,5 +29,9 @@ Moody 的朋友里最菜的一个
 蔡队！
 {{</card>}}
 
+{{<card name="FantasqueX" domain="fantac.at" avatar="https://avatars.githubusercontent.com/u/46747123">}}
+FX 大强强
+{{</card>}}
+
 </div>
 </div>
