@@ -22,7 +22,7 @@ Moody 的朋友里最菜的一个
 {{</card>}}
 
 {{<card name="Flex Zhong" domain="blog.chungzh.cn" avatar="https://avatars.githubusercontent.com/u/42088872">}}
-很强！
+更菜！
 {{</card>}}
 
 </div>
