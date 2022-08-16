@@ -21,7 +21,7 @@ Not a Qt Core Dev
 Moody 的朋友里最菜的一个
 {{</card>}}
 
-{{<card name="Flex Zhong" domain="blog.chungzh.cn" avatar="https://avatars.githubusercontent.com/u/42088872">}}
+{{<card name="Zirnc" domain="blog.chungzh.cn" avatar="https://avatars.githubusercontent.com/u/42088872">}}
 更菜！
 {{</card>}}
 
