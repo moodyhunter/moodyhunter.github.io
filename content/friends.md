@@ -33,5 +33,9 @@ Moody 的朋友里最菜的一个
 FX 大强强
 {{</card>}}
 
+{{<card name="秋のかえで" domain="blog.akinokae.de" avatar="https://avatars.githubusercontent.com/u/26006258">}}
+I wanna eat moody
+{{</card>}}
+
 </div>
 </div>
