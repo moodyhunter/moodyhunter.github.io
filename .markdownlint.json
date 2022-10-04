@@ -2,7 +2,8 @@
     "no-inline-html": {
         "allowed_elements": [
             "card",
-            "div"
+            "div",
+            "spoiler"
         ]
     }
 }
