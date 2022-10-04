@@ -45,24 +45,62 @@ label = "comments"
 repo = "moodyhunter/moodyhunter.github.io"
 
 [params.csp]
-childsrc = ["'self'"]
-fontsrc = ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net/"]
-formaction = ["'self'", "https://utteranc.es"]
-framesrc = ["'self'", "https://utteranc.es"]
-imgsrc = ["'self'", "https:"]
-objectsrc = ["'none'"]
-prefetchsrc = ["'self'", "https://utteranc.es"]
-scriptsrc = ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net/", "https://utteranc.es/", "https://static.cloudflareinsights.com/"]
-stylesrc = ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com/", "https://cdn.jsdelivr.net/", "https://utteranc.es"]
-
-# connect-src directive - defines valid targets for to XMLHttpRequest (AJAX), WebSockets or EventSource
-connectsrc = ["'self'", "https://utteranc.es"]
+childsrc = [
+  "'self'",
+]
+connectsrc = [
+  "'self'",
+  "https://utteranc.es",
+  "https://uksouth-1.in.applicationinsights.azure.com",
+]
+fontsrc = [
+  "'self'",
+  "https://fonts.gstatic.com",
+  "https://cdn.jsdelivr.net",
+]
+formaction = [
+  "'self'",
+  "https://utteranc.es",
+]
+framesrc = [
+  "'self'",
+  "https://utteranc.es",
+]
+imgsrc = [
+  "'self'",
+  "https:",
+]
+objectsrc = [
+  "'none'",
+]
+prefetchsrc = [
+  "'self'",
+  "https://utteranc.es",
+]
+scriptsrc = [
+  "'self'",
+  "'unsafe-inline'",
+  "https://cdn.jsdelivr.net",
+  "https://utteranc.es",
+  "https://static.cloudflareinsights.com",
+  "https://js.monitor.azure.com",
+]
+stylesrc = [
+  "'self'",
+  "'unsafe-inline'",
+  "https://fonts.googleapis.com",
+  "https://cdn.jsdelivr.net",
+  "https://utteranc.es",
+]
 
 [taxonomies]
 author = "authors"
 category = "categories"
 series = "series"
 tag = "tags"
+
+[params.applicationInsights]
+connectionString = "InstrumentationKey=5a5bbde5-faba-4982-8376-789e51b32d12;IngestionEndpoint=https://uksouth-1.in.applicationinsights.azure.com/;LiveEndpoint=https://uksouth.livediagnostics.monitor.azure.com/"
 
 [[params.social]]
 icon = "fa fa-2x fa-github"
