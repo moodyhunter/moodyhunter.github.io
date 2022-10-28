@@ -12,6 +12,7 @@ tags:
 时光荏苒，[Qt6 发布](https://www.qt.io/blog/qt-6.0-released) 已经是去年的事情，截止到写文章的时候 Qt 6.1 都已经发布很久
 
 Qt5 和 6 之间一个重大的改变就是 Build System 从 qmake 转向了 CMake （太好了！），而后者有更多的 C/C++ 项目支持。
+
 ![在 GitHub 搜索 qmake](search-qmake.png) ![在 GitHub 搜索 CMake](search-cmake.png)
 
 （这数量级之差不用我多说啥了吧）
