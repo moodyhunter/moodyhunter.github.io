@@ -1,22 +1,16 @@
 <div class="a-box">
-    <div class="img-container">
-        <div class="img-inner">
-            <img src='{{ $.Get "avatar" }}'>
-        </div>
+  <div class="img-container">
+    <div class="img-inner">
+      <img src='{{ $.Get "avatar" }}' />
     </div>
-    <div class="text-container">
-        <h3>{{ $.Get "name" }}</h3>
-        <a href='https://{{ $.Get "domain" }}'>{{ $.Get "domain" }}</a>
-        {{ with $.Inner }}
-        <div>
-            <i>
-                {{ if eq $.Page.File.Ext "md" }}
-                {{ $.Inner | markdownify }}
-                {{ else }}
-                {{ $.Inner | htmlUnescape | safeHTML }}
-                {{ end }}
-            </i>
-        </div>
-        {{ end }}
+  </div>
+  <div class="text-container">
+    <h3>{{ $.Get "name" }}</h3>
+    <a href='https://{{ $.Get "domain" }}'>{{ $.Get "domain" }}</a>
+    {{ with $.Inner }}
+    <div>
+      <i>"{{ $.Inner | markdownify }}"</i>
     </div>
+    {{ end }}
+  </div>
 </div>
