@@ -9,7 +9,7 @@
     <a href='https://{{ $.Get "domain" }}'>{{ $.Get "domain" }}</a>
     {{ with $.Inner }}
     <div>
-      <i>"{{ $.Inner | markdownify }}"</i>
+      <span>"{{ $.Inner | markdownify }}"</span>
     </div>
     {{ end }}
   </div>
