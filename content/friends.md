@@ -37,5 +37,9 @@ FX 大强强
 I wanna eat moody
 {{</card>}}
 
+{{<card name="Yuuta Liang" domain="blog.yuuta.moe" avatar="https://blog.yuuta.moe/images/avatar.jpg">}}
+Moody 大强强 🥰
+{{</card>}}
+
 </div>
 </div>
