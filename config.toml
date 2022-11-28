@@ -115,6 +115,12 @@ url = "/posts"
 weight = 2
 
 [[params.social]]
+icon = "fa fa-2x fa-telegram"
+name = "Medium"
+url = "https://t.me/void_start"
+weight = 3
+
+[[params.social]]
 icon = "fa fa-2x fa-envelope"
 name = "Gitlab"
 url = "mailto:me@mooody.me"
