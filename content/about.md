@@ -2,14 +2,18 @@
 
 ~~想个好记的名字真的很难~~
 
-- He/him, 一个时而中文时而英文的人
-- 是 [The University of Warwick](https://warwick.ac.uk) 的 CS 学生
-- C++, C, Go, Python, QML, JS, ~~fish-shell~~ VisualBasic, C#, Haskell...
-- ~~QtCreator _yyds_~~ VSCode 也还好
-- My Wakatime Page: <https://wakatime.com/@moodyhunter>
+- He/Him
+- [The University of Warwick](https://warwick.ac.uk) CS 大三
+- C++/C, 写过 Qt
+- Arch Linux 当主力用了将近 5 年
+- Wakatime <https://wakatime.com/@moodyhunter> 统计
+- [GitHub](https://github.com/moodyhunter)
 
-## 这里会发些什么呢？
+## 项目
 
-- 可能会发一些 Qt
-- 可能会发一些 ArchRV！
-- 可能还会发一些别的（不过目前没想到能有啥）
+- [mooody.me](https://mooody.me) 现在这个
+- [MOS](https://github.com/moodyhunter/MOS) 一个简单的操作系统（是咱大三项目）
+  - <https://mooody.me/MOS> 是文档
+- [MoodyAPI](https://github.com/moodyhunter/MoodyAPI) 一系列
+  {{<spoiler>}}灵车{{</spoiler>}} API，包括一个灯，和一个装在 RPi 上的
+  摄像头
