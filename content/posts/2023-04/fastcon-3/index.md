@@ -21,7 +21,7 @@ Fastcon BLE 协议本身。
 
 ## Fastcon BLE 协议
 
-Fastcon BLE 是由 broadlink 公司（<https://ibroadlink.com>）于 2021 年推出的一款基于蓝牙的
+Fastcon BLE 是由 broadlink 公司（<https://www.ibroadlink.com>）于 2021 年推出的一款基于蓝牙的
 通信协议。协议本身似乎有专利注册或版权保护。（因此，本文不得用于商业用途）
 
 下文记录我对手中这只 BLE 灯的观察结果，以及我对 Fastcon BLE 协议的理解，以下内容可能随时过时，
