@@ -10,6 +10,8 @@ tags:
   - "Bluetooth"
 ---
 
+**本文内容不得用于商业用途**
+
 ## 前情提要
 
 [MoodyAPI](https://github.com/moodyhunter/MoodyAPI) 里面有一个组件 `LightController`

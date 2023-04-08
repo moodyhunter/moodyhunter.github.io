@@ -11,6 +11,8 @@ tags:
   - "ARM64"
 ---
 
+**本文内容不得用于商业用途**
+
 ## 上回书说到……
 
 _4.6 重写 `Parse BLE Broadcast` 和 `Send Start Scan` 花费了我整整一周的时间。_
