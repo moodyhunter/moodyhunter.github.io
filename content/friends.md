@@ -41,5 +41,9 @@ I wanna eat moody
 Moody 大强强 🥰
 {{</card>}}
 
+{{<card name="hiifong" domain="hiif.ong" avatar="https://hiif.ong/logo.png">}}
+Hi 👋, I'm hiifong!
+{{</card>}}
+
 </div>
 </div>
