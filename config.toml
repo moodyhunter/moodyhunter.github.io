@@ -1,7 +1,7 @@
 baseURL = "https://mooody.me"
-defaultContentLanguage = "zh"
+defaultContentLanguage = "zh-cn"
 enableEmoji = true
-languageCode = "zh"
+languageCode = "zh-cn"
 paginate = 20
 theme = "hugo-coder"
 title = "Moody's"
@@ -137,7 +137,7 @@ weight = 5
 [languages.en]
 languageName = ":uk:"
 
-[languages.zh]
+[languages.zh-cn]
 languageName = ":cn:"
 
 [[languages.en.menu.main]]
@@ -166,33 +166,33 @@ target = "_blank"
 url = "https://g.mooody.me/d/home/server-status?orgId=2"
 weight = 4
 
-[languages.zh.params]
+[languages.zh-cn.params]
 author = "Moody"
 description = "一些中文简介"
 info = ["最近在做什么？"]
 keywords = "blog,personal,中文,个人"
 
-[[languages.zh.menu.main]]
+[[languages.zh-cn.menu.main]]
 name = "主页"
 url = "/"
 weight = -1
 
-[[languages.zh.menu.main]]
+[[languages.zh-cn.menu.main]]
 name = "文章"
 url = "posts/"
 weight = 1
 
-[[languages.zh.menu.main]]
+[[languages.zh-cn.menu.main]]
 name = "友链"
 url = "friends/"
 weight = 2
 
-[[languages.zh.menu.main]]
+[[languages.zh-cn.menu.main]]
 name = "我"
 url = "about/"
 weight = 3
 
-[[languages.zh.menu.main]]
+[[languages.zh-cn.menu.main]]
 name = "服务状态"
 target = "_blank"
 url = "https://g.mooody.me/d/home/server-status?orgId=2"
