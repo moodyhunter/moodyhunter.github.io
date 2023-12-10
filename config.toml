@@ -102,31 +102,31 @@ tag = "tags"
 [params.applicationInsights]
 connectionString = "InstrumentationKey=5a5bbde5-faba-4982-8376-789e51b32d12;IngestionEndpoint=https://uksouth-1.in.applicationinsights.azure.com/;LiveEndpoint=https://uksouth.livediagnostics.monitor.azure.com/"
 
-[[params.social]]
+[[params.socials]]
 icon = "fa fa-2x fa-github"
 name = "Github"
 url = "https://github.com/moodyhunter"
 weight = 1
 
-[[params.social]]
+[[params.socials]]
 icon = "fa fa-2x fa-book"
 name = "Blogs"
 url = "/posts"
 weight = 2
 
-[[params.social]]
+[[params.socials]]
 icon = "fa fa-2x fa-telegram"
 name = "Medium"
 url = "https://t.me/void_start"
 weight = 3
 
-[[params.social]]
+[[params.socials]]
 icon = "fa fa-2x fa-envelope"
 name = "Gitlab"
 url = "mailto:me@mooody.me"
 weight = 4
 
-[[params.social]]
+[[params.socials]]
 icon = "fa fa-2x fa-rss"
 name = "RSS"
 rel = "alternate"
