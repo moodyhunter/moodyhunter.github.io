@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Wayland on Moody&#39;s</title>
+    <link>https://mooody.me/tags/wayland/</link>
+    <description>Recent content in Wayland on Moody&#39;s</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Tue, 04 Oct 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://mooody.me/tags/wayland/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>与 Wayland 的第 N&#43;2 次亲密互动</title>
+      <link>https://mooody.me/posts/2022-10/me-vs-wayland-2/</link>
+      <pubDate>Tue, 04 Oct 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-10/me-vs-wayland-2/</guid>
+      <description>&lt;h1 id=&#34;又一篇-wayland-水文&#34;&gt;
+  又一篇 Wayland 水文
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%8f%88%e4%b8%80%e7%af%87-wayland-%e6%b0%b4%e6%96%87&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h1&gt;
+&lt;p&gt;从 X11 （再次）迁移到 Wayland 已经两三周了，这次是真的不愿回去了&lt;/p&gt;
+&lt;h2 id=&#34;相比于上次的更新&#34;&gt;
+  相比于上次的更新
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e7%9b%b8%e6%af%94%e4%ba%8e%e4%b8%8a%e6%ac%a1%e7%9a%84%e6%9b%b4%e6%96%b0&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;krunner 不会莫名其妙无法启动了&lt;/li&gt;
+&lt;li&gt;微信已经可以从 Wayland 下的 Dolphin 拖动文件到聊天窗口了（不知道是 wine 还是 KDE 的 credit）&lt;/li&gt;
+&lt;li&gt;VSCode / VMWare 屏幕不会闪烁了&lt;/li&gt;
+&lt;li&gt;Global Application Menu 已经可以使用 Meta 键调出&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;wayland-下的其他问题&#34;&gt;
+  Wayland 下的其他问题
+  &lt;a class=&#34;heading-link&#34; href=&#34;#wayland-%e4%b8%8b%e7%9a%84%e5%85%b6%e4%bb%96%e9%97%ae%e9%a2%98&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;latte-dock 已经不像之前那样无法启动了，但偶尔会出现 coredump，目前还不知道原因&lt;/li&gt;
+&lt;li&gt;Flameshot 仍然无法截图&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;以及小记一次-debug-kwin&#34;&gt;
+  以及……小记一次 debug kwin
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e4%bb%a5%e5%8f%8a%e5%b0%8f%e8%ae%b0%e4%b8%80%e6%ac%a1-debug-kwin&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;我的屏幕布局:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;screen-layout.png&#34; alt=&#34;screen_layout&#34;&gt;&lt;/p&gt;
+&lt;p&gt;为方便起见，将屏幕从左到右，从上到下依次编号为 1、2、3。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;ASUSTek: 1&lt;/li&gt;
+&lt;li&gt;Arzopa 4K: 2&lt;/li&gt;
+&lt;li&gt;内置屏: 3&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;上图可见 Arzopa 屏幕是高分屏，自从切换到 Wayland 后我在 KDE 的设置中将其缩放为 200%。但在使用过程中遇到一个奇怪的问题，见下图：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;screen-border.png&#34; alt=&#34;screen-border&#34;&gt;&lt;/p&gt;
+&lt;p&gt;只有 Qt 窗口在深红色区域时，才会被绘制为 HiDPI 的样子，而在左下角区域（但并未出屏幕范围）的窗口则会使用 1080p 渲染，并进行 2x 缩放，导致模糊。&lt;/p&gt;
+&lt;h3 id=&#34;定位问题&#34;&gt;
+  定位问题
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%ae%9a%e4%bd%8d%e9%97%ae%e9%a2%98&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;首先我使用的是 Qt 与 GTK 程序渲染的对比，发现只有 Qt 程序会在「窗口完全进入高分屏后」才使用 HiDPI 渲染。相比之下 GTK 程序的行为是：只要
+窗口的任意一部分进入高分屏，就会使用 HiDPI 渲染，其他未在高分屏上的部分，仍然使用 HiDPI 渲染，但进行 down scale。&lt;/p&gt;
+&lt;p&gt;所以我首先怀疑是 Qt 的问题。&lt;/p&gt;
+&lt;p&gt;经过从专业群友 c10s 处进行深度学习后，我得知了可以使用 &lt;code&gt;WAYLAND_DEBUG=1&lt;/code&gt; 来开启 Wayland 的 debug 信息。于是先使用
+&lt;code&gt;WAYLAND_DEBUG=1 konsole&lt;/code&gt; 对 Konsole 窗口进行 debug。&lt;/p&gt;
+&lt;p&gt;随后我发现：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;wl_output-border.png&#34; alt=&#34;wl_output-border&#34;&gt;&lt;/p&gt;
+&lt;p&gt;注：仅列出了部分边界处的 wayland 信息，&lt;del&gt;问号处不重要&lt;/del&gt;。&lt;/p&gt;
+&lt;p&gt;其中：（数字代表 &lt;code&gt;wl_output&lt;/code&gt; 区域，理论上 &lt;code&gt;wl_output&lt;/code&gt; 代表一个屏幕）&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;strong&gt;&lt;em&gt;N&lt;/em&gt;&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;+ 1&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;+ 2&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;+ 3&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;+ 4&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;+ 5&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;+ 6&lt;/strong&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;00&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;离 1&lt;/td&gt;
+&lt;td&gt;进 1&lt;/td&gt;
+&lt;td&gt;进 1&lt;/td&gt;
+&lt;td&gt;离 1&lt;/td&gt;
+&lt;td&gt;离 3 / 进 2&lt;/td&gt;
+&lt;td&gt;离 2 / 进 3&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;06&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;离 1&lt;/td&gt;
+&lt;td&gt;进 1&lt;/td&gt;
+&lt;td&gt;进 1&lt;/td&gt;
+&lt;td&gt;离 1&lt;/td&gt;
+&lt;td&gt;离 2&lt;/td&gt;
+&lt;td&gt;进 2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;12&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;进 1&lt;/td&gt;
+&lt;td&gt;离 1&lt;/td&gt;
+&lt;td&gt;离 3&lt;/td&gt;
+&lt;td&gt;进 3&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;根据上表现象计算，会得出一些很有意思的现象：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;14、15 区域内，窗口不属于任何屏幕（这不应该）&lt;/li&gt;
+&lt;li&gt;2、3、12 区域内，窗口属于 1、2 两个屏幕（这也不应该）&lt;/li&gt;
+&lt;li&gt;8、9 小矩形区域内，窗口属于 1、3 两个屏幕（这更不应该）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;由此可见，Wayland 混成器发送的是错误的信息：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;通过边界的大概位置可以看出：kwin 在判断窗口与屏幕 intersection 时疑似忘记计算屏幕朝向了。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;修复问题&#34;&gt;
+  修复问题
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e4%bf%ae%e5%a4%8d%e9%97%ae%e9%a2%98&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;遂写了&lt;a href=&#34;https://invent.kde.org/moodyhunter/kwin/-/commit/6ee442d1d1b5b70e3e06a7528d470c4ea1537042&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;此 patch&lt;/a&gt;，在计算
+&lt;code&gt;Display::outputsIntersecting(const QRect &amp;amp;rect)&lt;/code&gt; 时考虑屏幕朝向。&lt;/p&gt;
+&lt;p&gt;经过此 patch 后，问题得到了修复。&lt;/p&gt;
+&lt;h3 id=&#34;后续&#34;&gt;
+  后续
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%90%8e%e7%bb%ad&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;发现 kwin 上游已经在 master 分支提交了此问题的更合理修复：&lt;a href=&#34;https://invent.kde.org/plasma/kwin/-/commit/25466f9546dc9a2752708f4b1216088f1f0b7ef3&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;commit 1&lt;/a&gt;
+和 &lt;a href=&#34;https://invent.kde.org/plasma/kwin/-/commit/ed49d7c59bb3cc0983d2fe86973aaf8169266e1a?page=2#1120118b5c63d781de321067fb32acbd40cbc74f_315_283&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;commit 2&lt;/a&gt;，
+但仍未 release、外加改动过多，目前临时使用了我自己的 patch。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>与 Wayland 的第 N&#43;1 次亲密互动（退坑重制版）</title>
+      <link>https://mooody.me/posts/2022-07/me-vs-wayland-revisited/</link>
+      <pubDate>Mon, 04 Jul 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-07/me-vs-wayland-revisited/</guid>
+      <description>&lt;h1 id=&#34;我也是-wayland-用户了-退了谢谢&#34;&gt;
+  &lt;del&gt;我也是 Wayland 用户了！&lt;/del&gt; 退了谢谢
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%88%91%e4%b9%9f%e6%98%af-wayland-%e7%94%a8%e6%88%b7%e4%ba%86-%e9%80%80%e4%ba%86%e8%b0%a2%e8%b0%a2&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h1&gt;
+&lt;p&gt;&lt;a href=&#34;../me-vs-wayland//&#34; &gt;就在三天之前，……&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;bye-from-copilot.png&#34; alt=&#34;?&#34;&gt;&lt;/p&gt;
+&lt;span class=&#34;spoiler&#34; title=&#34;你知道的太多了&#34;
+  &gt;我就退了谢谢。&lt;/span
+&gt;
+&lt;p&gt;在切换到 Wayland 前，我对他充满了满心憧憬，因为我有个 4K 屏幕而 X11 下（似乎）对多屏不同 DPI 的支持不是很好。&lt;/p&gt;
+&lt;p&gt;自从 2021 年底左右，我就一次又一次地切换到 Wayland 进行体验，即使每次都有一些新的 bug 被修复，但当时的整体感觉仍然不好。&lt;/p&gt;
+&lt;p&gt;直到前几天（四天前）我又一次尝试 Wayland，第一天下来，虽然体验到了一些 glitch，但整体还算可以接受。Wayland 带来的 4K 高分屏支持、高刷新率支持都是顶级的加分项。&lt;/p&gt;
+&lt;h2 id=&#34;退坑&#34;&gt;
+  退坑
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e9%80%80%e5%9d%91&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;但从第二天开始，各种各样的问题就浮现出来：&lt;/p&gt;
+&lt;h3 id=&#34;vscode-无法使用输入法&#34;&gt;
+  VSCode 无法使用输入法
+  &lt;a class=&#34;heading-link&#34; href=&#34;#vscode-%e6%97%a0%e6%b3%95%e4%bd%bf%e7%94%a8%e8%be%93%e5%85%a5%e6%b3%95&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;我要写 blog 啊，没有中文输入法怎么行？&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;🍊：怎么用不了输入法&lt;/p&gt;
+&lt;p&gt;Ian：ozone&lt;/p&gt;
+&lt;p&gt;🍊：所以怎么办&lt;/p&gt;
+&lt;p&gt;Ian：在别的地方输入，然后 cut paste&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Chromium 上游的 &lt;a href=&#34;https://chromium-review.googlesource.com/c/chromium/src/&amp;#43;/3015331&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;code&gt;text_input_manager_v3&lt;/code&gt; 支持&lt;/a&gt;
+Code Review 仍然在进行中，尚未合并。因此下游电子垃圾们只能慢慢等着（或者 XWayland）。直接导致 Chromium / Chrome / VSCode 在
+native Wayland 环境下根本无法使用输入法。&lt;/p&gt;
+&lt;p&gt;注：Chromium / Chrome 可以通过使用 &lt;code&gt;--gtk-version=4&lt;/code&gt; 启用 GTK4，通过构造一个假的（没错）GTK 窗口进行 &amp;ldquo;伪造&amp;rdquo; 输入法支持&lt;/p&gt;
+&lt;p&gt;有关输入法的更多内容，请戳 &lt;a href=&#34;https://www.csslayer.info/wordpress/fcitx-dev/chrome-state-of-input-method-on-wayland/&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Chrome/Chromium 今日 Wayland 输入法支持现状&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;（内容引用于 2022 年 7 月，届时可能会更新，请留意）&lt;/p&gt;
+&lt;h3 id=&#34;krunner-经常性无法调出&#34;&gt;
+  KRunner 经常性无法调出
+  &lt;a class=&#34;heading-link&#34; href=&#34;#krunner-%e7%bb%8f%e5%b8%b8%e6%80%a7%e6%97%a0%e6%b3%95%e8%b0%83%e5%87%ba&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;不知道什么原因。在经过一段时间之后，我就无法使用 &lt;code&gt;Alt + Space&lt;/code&gt; 呼出 KRunner。&lt;br&gt;
+本人是 KRunner 重度用户，每次出现这种情况后需要使用&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;systemctl --user restart plasma-krunner.service
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;重启服务才能重新恢复正常，但过一段时间之后，问题仍会出现。&lt;/p&gt;
+&lt;p&gt;Such a bummer.&lt;/p&gt;
+&lt;h3 id=&#34;global-application-menu-无法使用-meta-键hahahugoshortcode24s1hbhb打开&#34;&gt;
+  Global Application Menu 无法使用 Meta 键&lt;span class=&#34;spoiler&#34; title=&#34;你知道的太多了&#34;
+  &gt;（Windows 徽标键）&lt;/span
+&gt;打开
+  &lt;a class=&#34;heading-link&#34; href=&#34;#global-application-menu-%e6%97%a0%e6%b3%95%e4%bd%bf%e7%94%a8-meta-%e9%94%aehahahugoshortcode24s1hbhb%e6%89%93%e5%bc%80&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;同样是个不知道什么原因的问题。无法进行更多的分析。&lt;/p&gt;
+&lt;h3 id=&#34;flameshot-无法正常使用&#34;&gt;
+  Flameshot 无法正常使用
+  &lt;a class=&#34;heading-link&#34; href=&#34;#flameshot-%e6%97%a0%e6%b3%95%e6%ad%a3%e5%b8%b8%e4%bd%bf%e7%94%a8&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;虽然说可以不用 Flameshot，但已经习惯了他的 annotation，换用 Spectacle 还是挺不适应的。&lt;/p&gt;
+&lt;h3 id=&#34;latte-dock-彻底无法启动&#34;&gt;
+  Latte Dock 彻底无法启动
+  &lt;a class=&#34;heading-link&#34; href=&#34;#latte-dock-%e5%bd%bb%e5%ba%95%e6%97%a0%e6%b3%95%e5%90%af%e5%8a%a8&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;同样，我不知道什么原因，在终端添加 &lt;code&gt;-d&lt;/code&gt; debug 输出也并无有用的消息，gdb 现实为在 &lt;code&gt;poll()&lt;/code&gt; 但没时间调查具体在 &lt;code&gt;poll&lt;/code&gt; 什么。&lt;/p&gt;
+&lt;h3 id=&#34;vscode--vmware-屏幕闪烁&#34;&gt;
+  VSCode / VMWare 屏幕闪烁
+  &lt;a class=&#34;heading-link&#34; href=&#34;#vscode--vmware-%e5%b1%8f%e5%b9%95%e9%97%aa%e7%83%81&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;俩闭源软件也没什么好调查的&lt;/p&gt;
+&lt;h3 id=&#34;wine-无法拖动文件进出&#34;&gt;
+  Wine 无法拖动文件进出
+  &lt;a class=&#34;heading-link&#34; href=&#34;#wine-%e6%97%a0%e6%b3%95%e6%8b%96%e5%8a%a8%e6%96%87%e4%bb%b6%e8%bf%9b%e5%87%ba&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;字面意思，无法拖动文件进出。我不是 wine 开发者，故而也不知道什么原因。&lt;/p&gt;
+&lt;h3 id=&#34;辣鸡微信&#34;&gt;
+  辣鸡微信
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e8%be%a3%e9%b8%a1%e5%be%ae%e4%bf%a1&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;辣鸡微信无论是 wine Wayland 下还是 wine X11 下都十分难用，张小龙&lt;span class=&#34;spoiler&#34; title=&#34;你知道的太多了&#34;
+  &gt;阖家欢乐&lt;/span
+&gt;。&lt;/p&gt;
+&lt;h2 id=&#34;结语&#34;&gt;
+  结语
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e7%bb%93%e8%af%ad&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;以上内容均为本人观点，由于技术有限，可能无法正确排除所有问题。&lt;br&gt;
+如果有人能提供以上问题的具体原因，或解决办法，欢迎 leave a comment，我将感激不尽。&lt;/p&gt;
+&lt;p&gt;在这之前我大概只好 Stuck with X11 了。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>我与 Wayland 的第 N 次亲密互动</title>
+      <link>https://mooody.me/posts/2022-07/me-vs-wayland/</link>
+      <pubDate>Fri, 01 Jul 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-07/me-vs-wayland/</guid>
+      <description>&lt;h1 id=&#34;我也是-wayland-用户了&#34;&gt;
+  我也是 Wayland 用户了！
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%88%91%e4%b9%9f%e6%98%af-wayland-%e7%94%a8%e6%88%b7%e4%ba%86&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h1&gt;
+&lt;p&gt;今天从 X11 迁移到了 Wayland，我也是 Wayland 用户了！&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

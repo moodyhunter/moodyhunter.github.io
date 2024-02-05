@@ -1,0 +1,1471 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>坑 on Moody&#39;s</title>
+    <link>https://mooody.me/tags/%E5%9D%91/</link>
+    <description>Recent content in 坑 on Moody&#39;s</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 29 Apr 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mooody.me/tags/%E5%9D%91/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>我是如何花了一年也没写出一个 OS 的</title>
+      <link>https://mooody.me/posts/2023-05/my-os-in-one-year/</link>
+      <pubDate>Sat, 29 Apr 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mooody.me/posts/2023-05/my-os-in-one-year/</guid>
+      <description>&lt;p&gt;本文包含大量暴论，不喜轻喷&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;从去年 7 月 7 号的 &lt;a href=&#34;https://github.com/moodyhunter/MOS/commit/c3c498127db2c1c04ed3abe32d7902f562c09086&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;initial commit&lt;/a&gt;
+到现在 2023 年 4 月 29 日已经过去快一年了。&lt;/p&gt;
+&lt;p&gt;在这一年里，MOS 支持了很多功能，但又有更多没有实现的功能。&lt;/p&gt;
+&lt;p&gt;&lt;del&gt;谨此文面向读者吐槽一下&lt;/del&gt;&lt;/p&gt;
+&lt;h2 id=&#34;1-从-bootloader-开始&#34;&gt;
+  1. 从 Bootloader 开始
+  &lt;a class=&#34;heading-link&#34; href=&#34;#1-%e4%bb%8e-bootloader-%e5%bc%80%e5%a7%8b&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;2023 年了谁写 kernel 还从实模式引导扇区开始写？&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;只能说部分教程过分陈旧，或者就是拘泥于 x86 的传统不愿改变，&lt;/li&gt;
+&lt;li&gt;x86 从实模式启动到保护模式最终切长模式这个过程完全就应该有标准的规范，而不是要自己造轮子
+&lt;ul&gt;
+&lt;li&gt;谁愿写 GDT？&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;鄙人认为引导扇区里的代码就不要拿出来当做 kernel 讲&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;2-沉迷-x86-无法自拔&#34;&gt;
+  2. 沉迷 x86 无法自拔
+  &lt;a class=&#34;heading-link&#34; href=&#34;#2-%e6%b2%89%e8%bf%b7-x86-%e6%97%a0%e6%b3%95%e8%87%aa%e6%8b%94&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;Please no,&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;BIOS / EBDA：？？？exm？？？ 找这俩东西还要去从内存里搜索 magic string&lt;/li&gt;
+&lt;li&gt;神秘的 Serial COM Port IO ��&lt;/li&gt;
+&lt;li&gt;配好了 PIC 但是还是要去配 APIC&lt;/li&gt;
+&lt;li&gt;Segmentation：没用，但是用了
+&lt;ul&gt;
+&lt;li&gt;看看你的 cs 低两位是什么东西&lt;/li&gt;
+&lt;li&gt;看看你的 &lt;code&gt;fsbase&lt;/code&gt; / &lt;code&gt;gsbase&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;APIC，但是 x2APIC&lt;/li&gt;
+&lt;li&gt;RSDT，但是 XSDT
+&lt;ul&gt;
+&lt;li&gt;那如果我没 PAE，那我怎么访问 XSDT？&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;SMP：哈哈哈你随便 IPI 能启动起来算我输
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;APIC_DELIVER_MODE_INIT，然后&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;睡 50ms，然后&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;APIC_DELIVER_MODE_INIT_DEASSERT，然后&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;再睡 50ms，再然后&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;APIC_DELIVER_MODE_STARTUP，然后&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;睡 50ms，然后&lt;/li&gt;
+&lt;li&gt;又发一遍 &lt;code&gt;APIC_DELIVER_MODE_STARTUP？&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;你中断和异常一开始黏在一起就算了，还要我自己去分开？&lt;/li&gt;
+&lt;li&gt;ACPI：AML 语言的 parser 似乎只有两个&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;3-重造-path-resolver&#34;&gt;
+  3. 重造 path resolver
+  &lt;a class=&#34;heading-link&#34; href=&#34;#3-%e9%87%8d%e9%80%a0-path-resolver&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;早期写的 path resolution 完全是错误的，直到后来要支持 symlink 才发现大量问题&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;但是这种情况下的 refcount 真的好难做&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;4-物理内存分配&#34;&gt;
+  4. 物理内存分配
+  &lt;a class=&#34;heading-link&#34; href=&#34;#4-%e7%89%a9%e7%90%86%e5%86%85%e5%ad%98%e5%88%86%e9%85%8d&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;物理内存被表示为 &lt;code&gt;pmlist_node_t&lt;/code&gt;，但是要分配这个结构体还需要分配内存，这是一个很大的问题&lt;/p&gt;
+&lt;p&gt;咋办呢&lt;/p&gt;
+&lt;h2 id=&#34;5-时间不够&#34;&gt;
+  5. 时间不够
+  &lt;a class=&#34;heading-link&#34; href=&#34;#5-%e6%97%b6%e9%97%b4%e4%b8%8d%e5%a4%9f&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;嗯&lt;/p&gt;
+&lt;h2 id=&#34;6-没了&#34;&gt;
+  6. 没了
+  &lt;a class=&#34;heading-link&#34; href=&#34;#6-%e6%b2%a1%e4%ba%86&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;span class=&#34;spoiler&#34; title=&#34;你知道的太多了&#34;
+  &gt;你看出来我就是想吐槽 x86 了吗&lt;/span
+&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>猫鼠游戏 —— 大战 Lloyds Bank App</title>
+      <link>https://mooody.me/posts/2022-12/me-vs-the-lloyds-bank-app/</link>
+      <pubDate>Sat, 24 Dec 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-12/me-vs-the-lloyds-bank-app/</guid>
+      <description>&lt;h1 id=&#34;猫鼠游戏-流水账&#34;&gt;
+  &amp;ldquo;猫鼠游戏&amp;rdquo; 流水账
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e7%8c%ab%e9%bc%a0%e6%b8%b8%e6%88%8f-%e6%b5%81%e6%b0%b4%e8%b4%a6&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h1&gt;
+&lt;p&gt;自从给手机解锁 bootloader 并启用 root 权限之后，咱的心智负担就每况愈下：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;不知道哪次什么 App 升级了新型 &lt;span class=&#34;spoiler&#34; title=&#34;你知道的太多了&#34;
+  &gt;电信诈骗&lt;/span
+&gt;(&lt;span class=&#34;spoiler&#34; title=&#34;你知道的太多了&#34;
+  &gt;root&lt;/span
+&gt;) 检测机制，
+又得花时间排错（&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;App 更新检测机制；Root 框架进行修补；App 再次更新；框架再次修补……&lt;/p&gt;
+&lt;p&gt;这似乎成了一个难以破解的死循环。&lt;/p&gt;
+&lt;p&gt;这不，事情又来了……&lt;/p&gt;
+&lt;h2 id=&#34;钱钱&#34;&gt;
+  钱钱
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e9%92%b1%e9%92%b1&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;几周前，&lt;del&gt;因为没钱吃饭&lt;/del&gt;，我打开了 Lloyds bank 的手机 app 查看余额，结果出现了一行大字：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Sorry, you can&amp;rsquo;t use this app as we&amp;rsquo;ve detected that your device has been kailbroken/rooted.
+You can still use our Mobile Banking or Internet Banking sites via your web browser.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;寄了。&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;穷途末路，Google 上搜也没搜到结果。于是开始胡乱尝试：&lt;/p&gt;
+&lt;h2 id=&#34;1-删了-magisk&#34;&gt;
+  1. 删了 Magisk
+  &lt;a class=&#34;heading-link&#34; href=&#34;#1-%e5%88%a0%e4%ba%86-magisk&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;删掉 Magisk 后观测到 app 可以正常打开，但这根本不在我的可选解决方案内。我用了 &lt;code&gt;MagiskHide Prop Config&lt;/code&gt; 换了设备
+的 fingerprint（不然 Google Pay 用不了），如果整个 Magisk 卸载的话&lt;del&gt;咱就更没法吃饭了&lt;/del&gt;。&lt;/p&gt;
+&lt;h2 id=&#34;2-又把-magisk-装回来&#34;&gt;
+  2. 又把 Magisk 装回来
+  &lt;a class=&#34;heading-link&#34; href=&#34;#2-%e5%8f%88%e6%8a%8a-magisk-%e8%a3%85%e5%9b%9e%e6%9d%a5&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;Banking App 可以没有，但是 root 和 Google Pay 不能。所以我又把 Magisk 装回来了。&lt;/p&gt;
+&lt;p&gt;在这期间就没怎么管它，直到今天。&lt;/p&gt;
+&lt;h2 id=&#34;3-shamiko&#34;&gt;
+  3. Shamiko
+  &lt;a class=&#34;heading-link&#34; href=&#34;#3-shamiko&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;经过与朋友的交谈，发现了 Shamiko。据说能 &lt;strong&gt;&lt;em&gt;Hide more trace of Zygisk&lt;/em&gt;&lt;/strong&gt;。不过因为是闭源的，那位朋友自己没尝试过，
+只是在交谈中提及了一下。&lt;/p&gt;
+&lt;p&gt;结果配置了 Shamiko 后发现仍然 app 无法正常工作。&lt;/p&gt;
+&lt;h2 id=&#34;4-island-insular&#34;&gt;
+  4. Island (Insular)
+  &lt;a class=&#34;heading-link&#34; href=&#34;#4-island-insular&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;这玩意开了个沙盒，可以给指定的 Apps 构造独立的运行环境。可惜经过了几次尝试，没能成功启动。&lt;/p&gt;
+&lt;h2 id=&#34;5-冻结重命名后的-magisk-app&#34;&gt;
+  5. 冻结重命名后的 Magisk App
+  &lt;a class=&#34;heading-link&#34; href=&#34;#5-%e5%86%bb%e7%bb%93%e9%87%8d%e5%91%bd%e5%90%8d%e5%90%8e%e7%9a%84-magisk-app&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;XDA forum 里有推荐冻结住 Magisk Manager，但测试过后仍未果。&lt;/p&gt;
+&lt;h2 id=&#34;6-hide-my-applist&#34;&gt;
+  6. Hide My Applist
+  &lt;a class=&#34;heading-link&#34; href=&#34;#6-hide-my-applist&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;新的曙光出现了！&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://forum.xda-developers.com/t/how-to-bypass-lloyds-and-santander-root-detection.3837206/post-87849927&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://forum.xda-developers.com/t/how-to-bypass-lloyds-and-santander-root-detection.3837206/post-87849927&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;就在 Dec 12 （一周前），有人成功使用 &lt;code&gt;Hide My Applist&lt;/code&gt; 修复了这个问题，那我也来试试。&lt;/p&gt;
+&lt;p&gt;发现仍然不行。&lt;/p&gt;
+&lt;h2 id=&#34;7-仍然是-hide-my-applist&#34;&gt;
+  7. 仍然是 Hide My Applist
+  &lt;a class=&#34;heading-link&#34; href=&#34;#7-%e4%bb%8d%e7%84%b6%e6%98%af-hide-my-applist&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;在仔细研究了它的 Hide My Applist 配置以后，我发现他用的是 blacklist 模式，也就是仅从 applist 里移除某些 apps，
+咱闲来无事，就想：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;我 tm 干脆给你整个白名单&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;于是把 Lloyds Bank 对应的规则改为了白名单模式，仅让其能检测到一些系统应用。&lt;/p&gt;
+&lt;p&gt;重启手机，发现竟然能打开了！&lt;/p&gt;
+&lt;h2 id=&#34;收尾&#34;&gt;
+  收尾
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%94%b6%e5%b0%be&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;Lloyds Bank 在本月 8 号发了一个&lt;a href=&#34;https://www.apkmirror.com/apk/lloyds-banking-group-plc/lloyds-bank-mobile-banking/&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;新版&lt;/a&gt;，
+名曰 104.03。就是这个版本他们 &lt;em&gt;&amp;ldquo;fixed some bugs and added &lt;strong&gt;security updates&lt;/strong&gt;.&amp;rdquo;&lt;/em&gt; 导致 app 打不开。&lt;/p&gt;
+&lt;p&gt;至于为什么改成白名单就能正常工作……估计是还新增检测了一些别的应用吧？&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;不管怎么说，我终于能看到我的个位数余额了&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;把 Magisk Manager 重命名成了 Bank，记录此次事件：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;./home.png&#34; alt=&#34;home&#34;&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>与 Wayland 的第 N&#43;2 次亲密互动</title>
+      <link>https://mooody.me/posts/2022-10/me-vs-wayland-2/</link>
+      <pubDate>Tue, 04 Oct 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-10/me-vs-wayland-2/</guid>
+      <description>&lt;h1 id=&#34;又一篇-wayland-水文&#34;&gt;
+  又一篇 Wayland 水文
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%8f%88%e4%b8%80%e7%af%87-wayland-%e6%b0%b4%e6%96%87&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h1&gt;
+&lt;p&gt;从 X11 （再次）迁移到 Wayland 已经两三周了，这次是真的不愿回去了&lt;/p&gt;
+&lt;h2 id=&#34;相比于上次的更新&#34;&gt;
+  相比于上次的更新
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e7%9b%b8%e6%af%94%e4%ba%8e%e4%b8%8a%e6%ac%a1%e7%9a%84%e6%9b%b4%e6%96%b0&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;krunner 不会莫名其妙无法启动了&lt;/li&gt;
+&lt;li&gt;微信已经可以从 Wayland 下的 Dolphin 拖动文件到聊天窗口了（不知道是 wine 还是 KDE 的 credit）&lt;/li&gt;
+&lt;li&gt;VSCode / VMWare 屏幕不会闪烁了&lt;/li&gt;
+&lt;li&gt;Global Application Menu 已经可以使用 Meta 键调出&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;wayland-下的其他问题&#34;&gt;
+  Wayland 下的其他问题
+  &lt;a class=&#34;heading-link&#34; href=&#34;#wayland-%e4%b8%8b%e7%9a%84%e5%85%b6%e4%bb%96%e9%97%ae%e9%a2%98&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;latte-dock 已经不像之前那样无法启动了，但偶尔会出现 coredump，目前还不知道原因&lt;/li&gt;
+&lt;li&gt;Flameshot 仍然无法截图&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;以及小记一次-debug-kwin&#34;&gt;
+  以及……小记一次 debug kwin
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e4%bb%a5%e5%8f%8a%e5%b0%8f%e8%ae%b0%e4%b8%80%e6%ac%a1-debug-kwin&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;我的屏幕布局:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;screen-layout.png&#34; alt=&#34;screen_layout&#34;&gt;&lt;/p&gt;
+&lt;p&gt;为方便起见，将屏幕从左到右，从上到下依次编号为 1、2、3。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;ASUSTek: 1&lt;/li&gt;
+&lt;li&gt;Arzopa 4K: 2&lt;/li&gt;
+&lt;li&gt;内置屏: 3&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;上图可见 Arzopa 屏幕是高分屏，自从切换到 Wayland 后我在 KDE 的设置中将其缩放为 200%。但在使用过程中遇到一个奇怪的问题，见下图：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;screen-border.png&#34; alt=&#34;screen-border&#34;&gt;&lt;/p&gt;
+&lt;p&gt;只有 Qt 窗口在深红色区域时，才会被绘制为 HiDPI 的样子，而在左下角区域（但并未出屏幕范围）的窗口则会使用 1080p 渲染，并进行 2x 缩放，导致模糊。&lt;/p&gt;
+&lt;h3 id=&#34;定位问题&#34;&gt;
+  定位问题
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%ae%9a%e4%bd%8d%e9%97%ae%e9%a2%98&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;首先我使用的是 Qt 与 GTK 程序渲染的对比，发现只有 Qt 程序会在「窗口完全进入高分屏后」才使用 HiDPI 渲染。相比之下 GTK 程序的行为是：只要
+窗口的任意一部分进入高分屏，就会使用 HiDPI 渲染，其他未在高分屏上的部分，仍然使用 HiDPI 渲染，但进行 down scale。&lt;/p&gt;
+&lt;p&gt;所以我首先怀疑是 Qt 的问题。&lt;/p&gt;
+&lt;p&gt;经过从专业群友 c10s 处进行深度学习后，我得知了可以使用 &lt;code&gt;WAYLAND_DEBUG=1&lt;/code&gt; 来开启 Wayland 的 debug 信息。于是先使用
+&lt;code&gt;WAYLAND_DEBUG=1 konsole&lt;/code&gt; 对 Konsole 窗口进行 debug。&lt;/p&gt;
+&lt;p&gt;随后我发现：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;wl_output-border.png&#34; alt=&#34;wl_output-border&#34;&gt;&lt;/p&gt;
+&lt;p&gt;注：仅列出了部分边界处的 wayland 信息，&lt;del&gt;问号处不重要&lt;/del&gt;。&lt;/p&gt;
+&lt;p&gt;其中：（数字代表 &lt;code&gt;wl_output&lt;/code&gt; 区域，理论上 &lt;code&gt;wl_output&lt;/code&gt; 代表一个屏幕）&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;strong&gt;&lt;em&gt;N&lt;/em&gt;&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;+ 1&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;+ 2&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;+ 3&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;+ 4&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;+ 5&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;+ 6&lt;/strong&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;00&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;离 1&lt;/td&gt;
+&lt;td&gt;进 1&lt;/td&gt;
+&lt;td&gt;进 1&lt;/td&gt;
+&lt;td&gt;离 1&lt;/td&gt;
+&lt;td&gt;离 3 / 进 2&lt;/td&gt;
+&lt;td&gt;离 2 / 进 3&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;06&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;离 1&lt;/td&gt;
+&lt;td&gt;进 1&lt;/td&gt;
+&lt;td&gt;进 1&lt;/td&gt;
+&lt;td&gt;离 1&lt;/td&gt;
+&lt;td&gt;离 2&lt;/td&gt;
+&lt;td&gt;进 2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;12&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;进 1&lt;/td&gt;
+&lt;td&gt;离 1&lt;/td&gt;
+&lt;td&gt;离 3&lt;/td&gt;
+&lt;td&gt;进 3&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;根据上表现象计算，会得出一些很有意思的现象：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;14、15 区域内，窗口不属于任何屏幕（这不应该）&lt;/li&gt;
+&lt;li&gt;2、3、12 区域内，窗口属于 1、2 两个屏幕（这也不应该）&lt;/li&gt;
+&lt;li&gt;8、9 小矩形区域内，窗口属于 1、3 两个屏幕（这更不应该）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;由此可见，Wayland 混成器发送的是错误的信息：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;通过边界的大概位置可以看出：kwin 在判断窗口与屏幕 intersection 时疑似忘记计算屏幕朝向了。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;修复问题&#34;&gt;
+  修复问题
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e4%bf%ae%e5%a4%8d%e9%97%ae%e9%a2%98&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;遂写了&lt;a href=&#34;https://invent.kde.org/moodyhunter/kwin/-/commit/6ee442d1d1b5b70e3e06a7528d470c4ea1537042&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;此 patch&lt;/a&gt;，在计算
+&lt;code&gt;Display::outputsIntersecting(const QRect &amp;amp;rect)&lt;/code&gt; 时考虑屏幕朝向。&lt;/p&gt;
+&lt;p&gt;经过此 patch 后，问题得到了修复。&lt;/p&gt;
+&lt;h3 id=&#34;后续&#34;&gt;
+  后续
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%90%8e%e7%bb%ad&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;发现 kwin 上游已经在 master 分支提交了此问题的更合理修复：&lt;a href=&#34;https://invent.kde.org/plasma/kwin/-/commit/25466f9546dc9a2752708f4b1216088f1f0b7ef3&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;commit 1&lt;/a&gt;
+和 &lt;a href=&#34;https://invent.kde.org/plasma/kwin/-/commit/ed49d7c59bb3cc0983d2fe86973aaf8169266e1a?page=2#1120118b5c63d781de321067fb32acbd40cbc74f_315_283&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;commit 2&lt;/a&gt;，
+但仍未 release、外加改动过多，目前临时使用了我自己的 patch。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>与 Wayland 的第 N&#43;1 次亲密互动（退坑重制版）</title>
+      <link>https://mooody.me/posts/2022-07/me-vs-wayland-revisited/</link>
+      <pubDate>Mon, 04 Jul 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-07/me-vs-wayland-revisited/</guid>
+      <description>&lt;h1 id=&#34;我也是-wayland-用户了-退了谢谢&#34;&gt;
+  &lt;del&gt;我也是 Wayland 用户了！&lt;/del&gt; 退了谢谢
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%88%91%e4%b9%9f%e6%98%af-wayland-%e7%94%a8%e6%88%b7%e4%ba%86-%e9%80%80%e4%ba%86%e8%b0%a2%e8%b0%a2&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h1&gt;
+&lt;p&gt;&lt;a href=&#34;../me-vs-wayland//&#34; &gt;就在三天之前，……&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;bye-from-copilot.png&#34; alt=&#34;?&#34;&gt;&lt;/p&gt;
+&lt;span class=&#34;spoiler&#34; title=&#34;你知道的太多了&#34;
+  &gt;我就退了谢谢。&lt;/span
+&gt;
+&lt;p&gt;在切换到 Wayland 前，我对他充满了满心憧憬，因为我有个 4K 屏幕而 X11 下（似乎）对多屏不同 DPI 的支持不是很好。&lt;/p&gt;
+&lt;p&gt;自从 2021 年底左右，我就一次又一次地切换到 Wayland 进行体验，即使每次都有一些新的 bug 被修复，但当时的整体感觉仍然不好。&lt;/p&gt;
+&lt;p&gt;直到前几天（四天前）我又一次尝试 Wayland，第一天下来，虽然体验到了一些 glitch，但整体还算可以接受。Wayland 带来的 4K 高分屏支持、高刷新率支持都是顶级的加分项。&lt;/p&gt;
+&lt;h2 id=&#34;退坑&#34;&gt;
+  退坑
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e9%80%80%e5%9d%91&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;但从第二天开始，各种各样的问题就浮现出来：&lt;/p&gt;
+&lt;h3 id=&#34;vscode-无法使用输入法&#34;&gt;
+  VSCode 无法使用输入法
+  &lt;a class=&#34;heading-link&#34; href=&#34;#vscode-%e6%97%a0%e6%b3%95%e4%bd%bf%e7%94%a8%e8%be%93%e5%85%a5%e6%b3%95&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;我要写 blog 啊，没有中文输入法怎么行？&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;🍊：怎么用不了输入法&lt;/p&gt;
+&lt;p&gt;Ian：ozone&lt;/p&gt;
+&lt;p&gt;🍊：所以怎么办&lt;/p&gt;
+&lt;p&gt;Ian：在别的地方输入，然后 cut paste&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Chromium 上游的 &lt;a href=&#34;https://chromium-review.googlesource.com/c/chromium/src/&amp;#43;/3015331&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;code&gt;text_input_manager_v3&lt;/code&gt; 支持&lt;/a&gt;
+Code Review 仍然在进行中，尚未合并。因此下游电子垃圾们只能慢慢等着（或者 XWayland）。直接导致 Chromium / Chrome / VSCode 在
+native Wayland 环境下根本无法使用输入法。&lt;/p&gt;
+&lt;p&gt;注：Chromium / Chrome 可以通过使用 &lt;code&gt;--gtk-version=4&lt;/code&gt; 启用 GTK4，通过构造一个假的（没错）GTK 窗口进行 &amp;ldquo;伪造&amp;rdquo; 输入法支持&lt;/p&gt;
+&lt;p&gt;有关输入法的更多内容，请戳 &lt;a href=&#34;https://www.csslayer.info/wordpress/fcitx-dev/chrome-state-of-input-method-on-wayland/&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Chrome/Chromium 今日 Wayland 输入法支持现状&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;（内容引用于 2022 年 7 月，届时可能会更新，请留意）&lt;/p&gt;
+&lt;h3 id=&#34;krunner-经常性无法调出&#34;&gt;
+  KRunner 经常性无法调出
+  &lt;a class=&#34;heading-link&#34; href=&#34;#krunner-%e7%bb%8f%e5%b8%b8%e6%80%a7%e6%97%a0%e6%b3%95%e8%b0%83%e5%87%ba&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;不知道什么原因。在经过一段时间之后，我就无法使用 &lt;code&gt;Alt + Space&lt;/code&gt; 呼出 KRunner。&lt;br&gt;
+本人是 KRunner 重度用户，每次出现这种情况后需要使用&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;systemctl --user restart plasma-krunner.service
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;重启服务才能重新恢复正常，但过一段时间之后，问题仍会出现。&lt;/p&gt;
+&lt;p&gt;Such a bummer.&lt;/p&gt;
+&lt;h3 id=&#34;global-application-menu-无法使用-meta-键hahahugoshortcode24s1hbhb打开&#34;&gt;
+  Global Application Menu 无法使用 Meta 键&lt;span class=&#34;spoiler&#34; title=&#34;你知道的太多了&#34;
+  &gt;（Windows 徽标键）&lt;/span
+&gt;打开
+  &lt;a class=&#34;heading-link&#34; href=&#34;#global-application-menu-%e6%97%a0%e6%b3%95%e4%bd%bf%e7%94%a8-meta-%e9%94%aehahahugoshortcode24s1hbhb%e6%89%93%e5%bc%80&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;同样是个不知道什么原因的问题。无法进行更多的分析。&lt;/p&gt;
+&lt;h3 id=&#34;flameshot-无法正常使用&#34;&gt;
+  Flameshot 无法正常使用
+  &lt;a class=&#34;heading-link&#34; href=&#34;#flameshot-%e6%97%a0%e6%b3%95%e6%ad%a3%e5%b8%b8%e4%bd%bf%e7%94%a8&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;虽然说可以不用 Flameshot，但已经习惯了他的 annotation，换用 Spectacle 还是挺不适应的。&lt;/p&gt;
+&lt;h3 id=&#34;latte-dock-彻底无法启动&#34;&gt;
+  Latte Dock 彻底无法启动
+  &lt;a class=&#34;heading-link&#34; href=&#34;#latte-dock-%e5%bd%bb%e5%ba%95%e6%97%a0%e6%b3%95%e5%90%af%e5%8a%a8&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;同样，我不知道什么原因，在终端添加 &lt;code&gt;-d&lt;/code&gt; debug 输出也并无有用的消息，gdb 现实为在 &lt;code&gt;poll()&lt;/code&gt; 但没时间调查具体在 &lt;code&gt;poll&lt;/code&gt; 什么。&lt;/p&gt;
+&lt;h3 id=&#34;vscode--vmware-屏幕闪烁&#34;&gt;
+  VSCode / VMWare 屏幕闪烁
+  &lt;a class=&#34;heading-link&#34; href=&#34;#vscode--vmware-%e5%b1%8f%e5%b9%95%e9%97%aa%e7%83%81&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;俩闭源软件也没什么好调查的&lt;/p&gt;
+&lt;h3 id=&#34;wine-无法拖动文件进出&#34;&gt;
+  Wine 无法拖动文件进出
+  &lt;a class=&#34;heading-link&#34; href=&#34;#wine-%e6%97%a0%e6%b3%95%e6%8b%96%e5%8a%a8%e6%96%87%e4%bb%b6%e8%bf%9b%e5%87%ba&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;字面意思，无法拖动文件进出。我不是 wine 开发者，故而也不知道什么原因。&lt;/p&gt;
+&lt;h3 id=&#34;辣鸡微信&#34;&gt;
+  辣鸡微信
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e8%be%a3%e9%b8%a1%e5%be%ae%e4%bf%a1&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;辣鸡微信无论是 wine Wayland 下还是 wine X11 下都十分难用，张小龙&lt;span class=&#34;spoiler&#34; title=&#34;你知道的太多了&#34;
+  &gt;阖家欢乐&lt;/span
+&gt;。&lt;/p&gt;
+&lt;h2 id=&#34;结语&#34;&gt;
+  结语
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e7%bb%93%e8%af%ad&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;以上内容均为本人观点，由于技术有限，可能无法正确排除所有问题。&lt;br&gt;
+如果有人能提供以上问题的具体原因，或解决办法，欢迎 leave a comment，我将感激不尽。&lt;/p&gt;
+&lt;p&gt;在这之前我大概只好 Stuck with X11 了。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>我与 Wayland 的第 N 次亲密互动</title>
+      <link>https://mooody.me/posts/2022-07/me-vs-wayland/</link>
+      <pubDate>Fri, 01 Jul 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-07/me-vs-wayland/</guid>
+      <description>&lt;h1 id=&#34;我也是-wayland-用户了&#34;&gt;
+  我也是 Wayland 用户了！
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%88%91%e4%b9%9f%e6%98%af-wayland-%e7%94%a8%e6%88%b7%e4%ba%86&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h1&gt;
+&lt;p&gt;今天从 X11 迁移到了 Wayland，我也是 Wayland 用户了！&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Android &#39;Deploy&#39; Qt?</title>
+      <link>https://mooody.me/posts/2022-05/android-deploy-qt/</link>
+      <pubDate>Fri, 13 May 2022 02:09:05 +0100</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-05/android-deploy-qt/</guid>
+      <description>&lt;h2 id=&#34;你这-androiddeployqt-可能没法正常-deploy-qt&#34;&gt;
+  你这 &lt;code&gt;androiddeployqt&lt;/code&gt; 可能没法正常 deploy Qt
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e4%bd%a0%e8%bf%99-androiddeployqt-%e5%8f%af%e8%83%bd%e6%b2%a1%e6%b3%95%e6%ad%a3%e5%b8%b8-deploy-qt&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;h3 id=&#34;一些无聊的概念&#34;&gt;
+  一些无聊的概念
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e4%b8%80%e4%ba%9b%e6%97%a0%e8%81%8a%e7%9a%84%e6%a6%82%e5%bf%b5&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Moody&amp;rsquo;s Utility Bot&lt;/em&gt; 是一个与&lt;a href=&#34;https://github.com/moodyhunter/MoodyAPI&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;此仓库&lt;/a&gt; GitHub Actions &lt;del&gt;梦幻联动&lt;/del&gt; 的 Telegram Bot&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;负责发送消息和最新 build 产物，&lt;/li&gt;
+&lt;li&gt;&lt;del&gt;同时也负责提醒蔡队起来（出处：&lt;a href=&#34;https://github.com/moodyhunter/MoodyAPI/blob/1f1d32a8c761c7c13d486cd4e7af657e838cd44f/Server/main.go#L70&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&amp;ldquo;我起来了&amp;rdquo;&lt;/a&gt;）&lt;/del&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Qt 是 ……&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;这还用介绍吗&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;QtGraphicalEffects 是 ……&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Qt5 时期的一个 Qt module，顾名思义负责 “图形特效” 比如渐变，阴影甚至 GLSL 效果&lt;/li&gt;
+&lt;li&gt;但在 Qt6 中被 deprecate 了&lt;/li&gt;
+&lt;li&gt;但我硬是强行将其 port 到 Qt6，其实是一种 “又不是不能用” 的状态&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;开端&#34;&gt;
+  《开端》？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%bc%80%e7%ab%af&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;2022 年 5 月 1 日凌晨 1 点 00 分 56 秒：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Moody&amp;rsquo;s Utils Bot:&lt;/p&gt;
+&lt;p&gt;Successfully built the client app, [File : MoodyAppMain.apk]&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;我随即下载并安装了新版 &lt;code&gt;MoodyAppMain.apk&lt;/code&gt;，&lt;del&gt;笑死&lt;/del&gt;，直接崩掉。&lt;/p&gt;
+&lt;p&gt;当时我心里很清楚这玩意已经炸了一个月了，从愚人节当天的 &lt;a href=&#34;https://github.com/moodyhunter/MoodyAPI/commit/ad042600dfed5bc44efe5fccca7888ae8247befd&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;ad042600&lt;/a&gt; 以后就全盘裂开，但这 commit 只是简单的升级了一下 Qt 版本（622 到 630），并不应该引入新的问题。&lt;/p&gt;
+&lt;p&gt;为什么那天要迁移 Build Server？ 答：之前的编译机炸了。&lt;/p&gt;
+&lt;p&gt;因为前段时间有考试，此时（五月一号）还处于考完试疯玩期间，就并没有对此进行调查。&lt;/p&gt;
+&lt;p&gt;…………&lt;/p&gt;
+&lt;h3 id=&#34;复现&#34;&gt;
+  复现
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%a4%8d%e7%8e%b0&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;意思是这个 bug 4 月 1 号的 commit 开始出现，一直咕到现在才开始修（大概是玩够了，该老老实实把 broken build 修一修了），于是我开始重新拿起 QtCreator&lt;/p&gt;
+&lt;p&gt;首先使用 QtCreator 直接编译（我都多长时间没写过 QML 了）&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;首先我得 Build 个 Qt，或者从 Qt installer 下载一份 Qt for Android，但是我有 &lt;a href=&#34;https://github.com/moodyhunter/QtBuildScript&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;QtBuildScript&lt;/a&gt;，直接 &lt;code&gt;./build-qt.fish -p android -a x86_64&lt;/code&gt; 即可编译 Qt &lt;del&gt;（什么王婆卖瓜环节）&lt;/del&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;在等了半个小时以后，打开 QtCreator 并（从头）（重新）配置 Qt 环境（这种东西没必要赘述）&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;使用以下 CMake 参数~~（这个得记，下次要考）~~ 进行 configure 并开始 build&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cmake&#34; data-lang=&#34;cmake&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-DCMAKE_TOOLCHAIN_FILE=/PATH/TO/VCPKG/scripts/buildsystems/vcpkg.cmake
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=/PATH/TO/NDK/build/cmake/android.toolchain.cmake
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-DVCPKG_TARGET_TRIPLET=x64-android
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;上文 CMake 参数只适用于在 QtCreator 中使用 vcpkg 和 Android toolchain，而在命令行
+中使用 qt-cmake 则需要另一个变量&lt;/p&gt;
+&lt;p&gt;也就是把 &lt;code&gt;CMAKE_TOOLCHAIN_FILE&lt;/code&gt; 换为 &lt;code&gt;QT_CHAINLOAD_TOOLCHAIN_FILE&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;随后启动 Android 虚拟机进行测试，结果 &lt;strong&gt;BANG&lt;/strong&gt;&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-log&#34; data-lang=&#34;log&#34;&gt;W MoodyApp: QQmlApplicationEngine failed to load component
+W MoodyApp: qrc:/client/api/mooody/me/qml/main.qml:5:1: module &amp;#34;QtGraphicalEffects&amp;#34; is not installed
+W MoodyApp: exit app 0
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;想起之前写过一篇 &lt;a href=&#34;https://mooody.me/posts/2021-09/qt6-cmake-porting-guide/&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;code&gt;qt_add_qml_module&lt;/code&gt;&lt;/a&gt; CMake 函数的&amp;quot;详&amp;quot;解，但现在反过来看了看，并没有着重说明 &lt;code&gt;IMPORT_PATH&lt;/code&gt; 的重要性，于是打开 &lt;a href=&#34;https://doc-snapshots.qt.io/qt6-dev/qt-add-qml-module.html#qt6-add-qml-module&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Qt 文档 (dev 分支版)&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;文档里说：&lt;em&gt;&lt;code&gt;IMPORT_PATH&lt;/code&gt; 可以用来添加被依赖的 QML 模块的搜索路径。这里指定的位置需要包含 &lt;code&gt;qmldir&lt;/code&gt; 文件来标明此文件夹代表了一个 QML 模块。&lt;/em&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;那看来我加一个就行？在项目里添加了 &lt;code&gt;IMPORT_PATH ${CMAKE_BINARY_DIR}&lt;/code&gt; 并重新 build，果然效果拔群！&lt;/p&gt;
+&lt;p&gt;到现在为止，程序成功地在 Android VM 中运行了。于是我又进行了一轮实体机的测试，终于成功在生产环境（一台三星手机）上成功运行起这个 APK。&lt;/p&gt;
+&lt;p&gt;最后的最后，我进行了 &lt;code&gt;git push&lt;/code&gt;，并准备休息&lt;/p&gt;
+&lt;h3 id=&#34;就这就这能水一篇文章&#34;&gt;
+  就这？就这能水一篇文章？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%b0%b1%e8%bf%99%e5%b0%b1%e8%bf%99%e8%83%bd%e6%b0%b4%e4%b8%80%e7%af%87%e6%96%87%e7%ab%a0&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;咕了一个月的 bug 仅两行代码就能修好？&lt;/p&gt;
+&lt;p&gt;别急，本文标题所说的 &lt;code&gt;androiddeployqt&lt;/code&gt; 还没出场呢&lt;/p&gt;
+&lt;p&gt;在 &lt;a href=&#34;https://github.com/moodyhunter/MoodyAPI/commit/9f6512c3fb7a94e377a2a7f55ddcb5d4ef72b75e&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;commit&lt;/a&gt; 的时候，我就暗自怀疑：&amp;ldquo;Is it simple like this?&amp;quot;，哈哈事实证明：不可能的&lt;/p&gt;
+&lt;p&gt;就在两分钟后，编译机将 CI 环境下编译完成的 APK 自动发送到了 Telegram 群，我立即安装并打开，结果竟然&lt;strong&gt;又&lt;/strong&gt;闪退了&lt;/p&gt;
+&lt;p&gt;这下我人麻了，从头顶麻到脚尖。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;我之前的开发过程中可都没出现过 CI 产物没法用的问题啊&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;刨根问底&#34;&gt;
+  刨根问底
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%88%a8%e6%a0%b9%e9%97%ae%e5%ba%95&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;大概不用讲道理，Android 上调试肯定得搬出 &lt;code&gt;adb logcat&lt;/code&gt;：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-log&#34; data-lang=&#34;log&#34;&gt;26896  4836 W MoodyApp: QQmlApplicationEngine failed to load component
+26896  4836 W MoodyApp: qrc:/client/api/mooody/me/qml/main.qml:5:1: module &amp;#34;QtGraphicalEffects&amp;#34; is not installed
+26896  4836 W MoodyApp: exit app 0
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;这怎么和上面的 output 一模一样啊，不是修好了吗？&lt;/li&gt;
+&lt;li&gt;我的 QtGraphicalEffects 又去哪了？&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;拆包解压&#34;&gt;
+  拆包（解压）
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%8b%86%e5%8c%85%e8%a7%a3%e5%8e%8b&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;p&gt;稍微理解一些 Qt/QML 的读者可能会知道，一个 QML 模块其实对应了一个（或两个，或零个）动态库，而 Android 打包
+过程中是会把这些依赖的动态库打进 APK 的。&lt;/p&gt;
+&lt;p&gt;所以为了仔细研究 APK 里的内容，我选择使用 &lt;del&gt;KDE 精品压缩文件查看器&lt;/del&gt; Ark 打开 APK 一探究竟：&lt;/p&gt;
+&lt;p&gt;（图很小，理论上可以直接右键看源文件）&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;androiddeployqt-apk-1.png&#34; alt=&#34;APK 内部&#34;&gt;&lt;/p&gt;
+&lt;p&gt;打开源文件图片以后，就可以很清晰地看到 QtGraphicalEffects 并没有在 &lt;code&gt;lib/&lt;/code&gt; 文件夹内&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;啥叫 &amp;ldquo;可以很清晰地看到 xxx 没在&amp;rdquo;？&lt;/li&gt;
+&lt;li&gt;&lt;del&gt;anyway&lt;/del&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;依赖的 so 没在 APK 包里，这肯定是某些 deployment 的问题&lt;/p&gt;
+&lt;h4 id=&#34;ci-log&#34;&gt;
+  CI Log
+  &lt;a class=&#34;heading-link&#34; href=&#34;#ci-log&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;p&gt;经过对比，CMake Configure 输出和本地 build 时的输出并无区别，Qt 版本也一致，那么问题就被缩减到了 deployment 过程上。&lt;/p&gt;
+&lt;p&gt;我使用 &lt;code&gt;cmake --build . --parallel --verbose&lt;/code&gt; 让 CMake 在 build 过程中输出详细内容，大概就是每一
+步骤运行的程序，发现 Qt 在 Android 平台的 deployment 其实是一个名为 &lt;code&gt;androiddeployqt&lt;/code&gt; 的程序进行的，
+它详细的参数是：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# 稍微 format 了一下，不然没法给人看&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# 部分内容做了 placeholder 处理，因为源目录太长了&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# BUILDDIR 表示 build 目录&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# PATH_TO_QT 表示 Qt （host 版本） 安装路径（不是 Android）&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;/PATH_TO_QT/bin/androiddeployqt &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    --input /BUILDDIR/android-MoodyAppMain-deployment-settings.json &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    --output /BUILDDIR/android-build &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    --apk /BUILDDIR/android-build/MoodyAppMain.apk &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    --depfile /BUILDDIR/android-build/MoodyAppMain.d &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    --builddir /BUILDDIR
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;可以明显看到传入参数是 &lt;code&gt;android-MoodyAppMain-deployment-settings.json&lt;/code&gt; 这只 JSON&lt;/p&gt;
+&lt;p&gt;大概是本能反应？打开了本地能用的 JSON 文件进行对比：&lt;/p&gt;
+&lt;p&gt;这种玩意一般人都看不懂吧：
+&lt;img src=&#34;androiddeployqt-diff-1.png&#34; alt=&#34;diff-1&#34;&gt;&lt;/p&gt;
+&lt;p&gt;整篇都是 path 不同导致的 diff，简直要命。所以我将 JSON 里的绝对路径改为了 &lt;code&gt;/SOURCE&lt;/code&gt;, &lt;code&gt;/BUILDDIR&lt;/code&gt; 一类的 placeholder，diff 得出以下结果：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-diff&#34; data-lang=&#34;diff&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;diff ./android-MoodyAppMain-deployment-settings.json ./json2.json
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;&lt;/span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;5c5
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#f55&#34;&gt;&amp;lt;    &amp;#34;sdkBuildToolsRevision&amp;#34;: &amp;#34;33.0.0-rc2&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f55&#34;&gt;&lt;/span&gt;---
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#50fa7b;font-weight:bold&#34;&gt;&amp;gt;    &amp;#34;sdkBuildToolsRevision&amp;#34;: &amp;#34;31.0.0&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#50fa7b;font-weight:bold&#34;&gt;&lt;/span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;16d15
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#f55&#34;&gt;&amp;lt;    &amp;#34;application-binary&amp;#34;: &amp;#34;MoodyAppMain&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f55&#34;&gt;&lt;/span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;18a18
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#50fa7b;font-weight:bold&#34;&gt;&amp;gt;    &amp;#34;application-binary&amp;#34;: &amp;#34;MoodyAppMain&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;忽略 16/18 行的顺序问题，我发现 sdk 版本出现了不一致。但在 CI 机器上安装同样版本的 Android SDK 后，
+build 出来的 APK 仍然不包含 QtGraphicalEffects 模块。&lt;/p&gt;
+&lt;h3 id=&#34;咋回事呢&#34;&gt;
+  咋回事呢？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%92%8b%e5%9b%9e%e4%ba%8b%e5%91%a2&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;检查了 &lt;code&gt;androiddeployqt&lt;/code&gt; 的参数，是不是该检查一下输出了：&lt;/p&gt;
+&lt;p&gt;似乎没有什么有意义的：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;androiddeployqt-diff-2.png&#34; alt=&#34;diff-2&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;--verbose&#34;&gt;
+  &lt;code&gt;--verbose&lt;/code&gt;？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#--verbose&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;p&gt;无意间发现 &lt;code&gt;androiddeployqt&lt;/code&gt; 有 &lt;code&gt;--verbose&lt;/code&gt; 选项，打开 verbose 后，事情出现了转机：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;androiddeployqt-diff-3.png&#34; alt=&#34;diff-3&#34;&gt;&lt;/p&gt;
+&lt;p&gt;什么叫 &lt;code&gt;is in QML root path&lt;/code&gt;，当我回去检查 &lt;code&gt;android-MoodyAppMain-deployment-settings.json&lt;/code&gt; 时发现：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;CI 环境的 build 目录在 &lt;code&gt;SOURCE/build&lt;/code&gt;，很明显 &lt;code&gt;SOURCE&lt;/code&gt; 就是 QML root path；&lt;/li&gt;
+&lt;li&gt;而本地开发环境，由于统一管理了 build 产物，默认的 &lt;code&gt;CMAKE_BINARY_DIR&lt;/code&gt; 位于 &lt;code&gt;~/.local/build_temp&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这就导致 &lt;code&gt;BUILDDIR/QtGraphicalEffects&lt;/code&gt; 在 CI 环境和开发环境处于了不同的相对位置：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;CI 环境下，位于 QML root path 子目录&lt;/li&gt;
+&lt;li&gt;开发环境下，反之，处于别的地方&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;核心问题&#34;&gt;
+  核心问题
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%a0%b8%e5%bf%83%e9%97%ae%e9%a2%98&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;位于 &lt;a href=&#34;https://github.com/qt/qtbase/blob/dev/src/tools/androiddeployqt/main.cpp#L2103&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;src/tools/androiddeployqt/main.cpp:L2011&lt;/a&gt; 调用的 &lt;code&gt;checkQmlFileInRootPaths(const Options*, const QString &amp;amp;)&lt;/code&gt; 可知：&lt;/p&gt;
+&lt;p&gt;这个函数无脑（只）检查了子目录，而并检查「即使 module 位于子目录，能否通过 import URI 导入此 module」，因此
+导致 SOURCE 下的所有 QML module 都会被认为 &amp;ldquo;位于 QML import path 内&amp;rdquo;，但事实并非如此：&lt;/p&gt;
+&lt;p&gt;这个 QML import path 不会被 deploy 到 APK 里面，那自然里面的 QML module 就全丢了：）&lt;/p&gt;
+&lt;h3 id=&#34;后续&#34;&gt;
+  后续
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%90%8e%e7%bb%ad&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;给 Qt 发了个 patch &lt;a href=&#34;https://codereview.qt-project.org/c/qt/qtbase/&amp;#43;/411805&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;qtbase@411805&lt;/a&gt;，
+希望能帮上忙，&lt;del&gt;但说实话我也不确定是否应该这样修&lt;/del&gt;&lt;/p&gt;
+&lt;h2 id=&#34;结语&#34;&gt;
+  结语
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e7%bb%93%e8%af%ad&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;睡觉，晚安&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>ArchRV - BuggyFFI</title>
+      <link>https://mooody.me/posts/2022-04/archrv-libffi/</link>
+      <pubDate>Tue, 19 Apr 2022 23:09:10 +0100</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-04/archrv-libffi/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;EXPAND MY INTEGER!&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/libffi/libffi&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;code&gt;libffi&lt;/code&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;libffi-是什么&#34;&gt;
+  libffi 是什么？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#libffi-%e6%98%af%e4%bb%80%e4%b9%88&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;A portable foreign-function interface library.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;说人话就是：&lt;a href=&#34;https://github.com/libffi/libffi#what-is-libffi&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;……算了你自己去看吧&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;libffi-怎么了&#34;&gt;
+  libffi 怎么了？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#libffi-%e6%80%8e%e4%b9%88%e4%ba%86&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;TLDR：测试炸了&lt;/li&gt;
+&lt;li&gt;or, 单元测试文件 &lt;code&gt;./testsuite/libffi.call/strlen.c&lt;/code&gt; 第 32 行&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C++&#34; data-lang=&#34;C++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bd93f9&#34;&gt;30&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;:&lt;/span&gt;  s &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;&amp;#34;a&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bd93f9&#34;&gt;31&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;:&lt;/span&gt;  ffi_call(&lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;cif, FFI_FN(my_strlen), &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;rint, values);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bd93f9&#34;&gt;32&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;:&lt;/span&gt;  CHECK(rint &lt;span style=&#34;color:#ff79c6&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;的 &lt;code&gt;CHECK&lt;/code&gt; 失败了（ &lt;code&gt;rint&lt;/code&gt; 不等于 &lt;code&gt;1&lt;/code&gt; 了）&lt;/p&gt;
+&lt;h2 id=&#34;libffi-测试为什么炸了&#34;&gt;
+  libffi 测试为什么炸了？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#libffi-%e6%b5%8b%e8%af%95%e4%b8%ba%e4%bb%80%e4%b9%88%e7%82%b8%e4%ba%86&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;首先来看代码（经过简化）：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C++&#34; data-lang=&#34;C++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;// testsuite/libffi.call/strlen.c
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;size_t ABI_ATTR &lt;span style=&#34;color:#50fa7b&#34;&gt;my_strlen&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;s) { &lt;span style=&#34;color:#ff79c6&#34;&gt;return&lt;/span&gt; (strlen(s)); }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8be9fd&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#50fa7b&#34;&gt;main&lt;/span&gt; (&lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#6272a4&#34;&gt;// 省略了部分无关代码
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#8be9fd&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;s &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;&amp;#34;a&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;values[MAX_ARGS];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  values[&lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;] &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; (&lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;) &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;s;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ffi_arg rint;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ffi_call(&lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;cif, FFI_FN(my_strlen), &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;rint, values);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  CHECK(rint &lt;span style=&#34;color:#ff79c6&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;观测&#34;&gt;
+  观测
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e8%a7%82%e6%b5%8b&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;经过两分钟的代码观测，从以上代码块 L12 来看，&lt;code&gt;rint&lt;/code&gt; 是一个 &lt;code&gt;ffi_arg&lt;/code&gt; 类型的变量，经过阅读 header 可以得知，&lt;code&gt;ffi_arg&lt;/code&gt; 是一个 64 位无符号整数类型：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C++&#34; data-lang=&#34;C++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;// src/riscv/ffitarget.h
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;long&lt;/span&gt; ffi_arg;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;typedef&lt;/span&gt;   &lt;span style=&#34;color:#8be9fd&#34;&gt;signed&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;long&lt;/span&gt; ffi_sarg;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;首先使用 &lt;code&gt;gdb&lt;/code&gt; 在对应的 main 函数打断点并尝试复现问题：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Breakpoint 1, main &lt;span style=&#34;color:#ff79c6&#34;&gt;()&lt;/span&gt; at ./strlen.c:16
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; n // 狂躁的几次 n
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; p rint
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# 从 c 源码可以看出，这个 rint 在调用前是一个没经过 0 初始化的变量&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# 因此内存里面有脏东西很正常&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;$1&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;72057593903531392&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; p s
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;$2&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; 0xaaaaaaaaaaab78 &lt;span style=&#34;color:#f1fa8c&#34;&gt;&amp;#34;a&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; n
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bd93f9&#34;&gt;31&lt;/span&gt;        ffi_call&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;&amp;amp;cif, FFI_FN&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;my_strlen&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt;, &amp;amp;rint, values&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; n
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; p rint
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# 但如此看来，调用后的 rint 则不应该出现这么大的 length，毕竟我们的 s 只有一个字符 &amp;#34;a&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;$3&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;72057589742960641&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;看来问题核心出在了 &lt;code&gt;ffi_call&lt;/code&gt; 函数里。&lt;/p&gt;
+&lt;p&gt;重启调试，使用 s 指令进入 &lt;code&gt;ffi_call&lt;/code&gt; 函数继续跟进。发现这东西转头调用了 &lt;code&gt;ffi_call_int&lt;/code&gt;，而
+&lt;code&gt;ffi_call_int&lt;/code&gt; 是个不短的函数，&lt;del&gt;于是决定，还是先看代码再跑 gdb&lt;/del&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/libffi/libffi/blob/464b4b66e3cf3b5489e730c1466ee1bf825560e0/src/riscv/ffi.c#L331&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://github.com/libffi/libffi/blob/464b4b66e3cf3b5489e730c1466ee1bf825560e0/src/riscv/ffi.c#L331&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;仔细看下来，与 &lt;code&gt;rvalue&lt;/code&gt; 相关的几段代码只有以下内容：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;36
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;37
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;38
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C++&#34; data-lang=&#34;C++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#50fa7b&#34;&gt;passed_by_ref&lt;/span&gt;(call_builder &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;cb, ffi_type &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;type, &lt;span style=&#34;color:#8be9fd&#34;&gt;int&lt;/span&gt; var) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#if ABI_FLEN
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;   &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#ff79c6&#34;&gt;!&lt;/span&gt;var &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; type&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;type &lt;span style=&#34;color:#ff79c6&#34;&gt;==&lt;/span&gt; FFI_TYPE_STRUCT) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;       float_struct_info fsi &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; struct_passed_as_elements(cb, type);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;       &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (fsi.as_elements) &lt;span style=&#34;color:#ff79c6&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;   }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#endif
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;   &lt;span style=&#34;color:#ff79c6&#34;&gt;return&lt;/span&gt; type&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;size &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt; __SIZEOF_POINTER__;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#50fa7b&#34;&gt;ffi_call_int&lt;/span&gt; (
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#6272a4&#34;&gt;// 省略了无关参数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;rvalue,       &lt;span style=&#34;color:#6272a4&#34;&gt;// 返回值（需要关注）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#6272a4&#34;&gt;// 省略了部分无关代码
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;    size_t rval_bytes &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (rvalue &lt;span style=&#34;color:#ff79c6&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;NULL&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; cif&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;rtype&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;size &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;2&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;__SIZEOF_POINTER__)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        rval_bytes &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; FFI_ALIGN(cif&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;rtype&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;size, STKALIGN);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#6272a4&#34;&gt;// ......
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (rval_bytes)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        rvalue &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; (&lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)(alloc_base &lt;span style=&#34;color:#ff79c6&#34;&gt;+&lt;/span&gt; arg_bytes);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#6272a4&#34;&gt;// ......
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8be9fd&#34;&gt;int&lt;/span&gt; return_by_ref &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; passed_by_ref(&lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;cb, cif&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;rtype, &lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (return_by_ref)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        marshal(&lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;cb, &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;ffi_type_pointer, &lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;rvalue);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#6272a4&#34;&gt;// 省略准备参数的一个 for 循环...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ffi_call_asm ((&lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;) alloc_base, cb.aregs, fn, closure);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#ff79c6&#34;&gt;!&lt;/span&gt;return_by_ref &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; rvalue)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        unmarshal(&lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;cb, cif&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;rtype, &lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;, rvalue);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;即使是省略了其他内容，这段代码，一眼看下去还是感觉很难入手……&lt;/p&gt;
+&lt;p&gt;但有两点值得注意：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;在上文 L17 定义的 &lt;code&gt;rval_bytes&lt;/code&gt; 在本次测试中会恒等于 &lt;code&gt;0&lt;/code&gt;，因为
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;rvalue&lt;/code&gt; 传入值不会是 &lt;code&gt;NULL&lt;/code&gt;（我们知道调用方给了地址的）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;passed_by_ref&lt;/code&gt; 恒返回 0，因为
+&lt;ul&gt;
+&lt;li&gt;那个 ABI_FLEN 宏究竟是多少不重要（因为我们的 &lt;code&gt;type-&amp;gt;type&lt;/code&gt; 不是 &lt;code&gt;FFI_TYPE_STRUCT&lt;/code&gt;）&lt;/li&gt;
+&lt;li&gt;同时 &lt;code&gt;type-&amp;gt;size &amp;gt; 2 * __SIZEOF_POINTER__&lt;/code&gt; 不成立（因为我们的 &lt;code&gt;type&lt;/code&gt; 是 &lt;code&gt;ffi_arg&lt;/code&gt;）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;基于以上两点，&lt;code&gt;ffi_call_int&lt;/code&gt; 函数还就被简化为了以下两行：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C++&#34; data-lang=&#34;C++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;// 实际进行调用：
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;ffi_call_asm ((&lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;) alloc_base, cb.aregs, fn, closure);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;unmarshal(&lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;cb, cif&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;rtype, &lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;, rvalue);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;上面那个 &lt;code&gt;ffi_call_asm&lt;/code&gt; 定义在一个 assembly 文件里，由于并不是所有的单元测试都炸，我暂且先 assume 其能工作，因此来看 &lt;code&gt;unmarshal&lt;/code&gt; 函数：&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/libffi/libffi/blob/464b4b66e3cf3b5489e730c1466ee1bf825560e0/src/riscv/ffi.c#L254&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://github.com/libffi/libffi/blob/464b4b66e3cf3b5489e730c1466ee1bf825560e0/src/riscv/ffi.c#L254&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;以下内容仍有省略，源文件在&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C++&#34; data-lang=&#34;C++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;// 这段内容不在 c 文件里，为了方便阅读贴过来了
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#if __SIZEOF_POINTER__ == 8
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;#define IS_INT(type) ((type) &amp;gt;= FFI_TYPE_UINT8 &amp;amp;&amp;amp; (type) &amp;lt;= FFI_TYPE_SINT64)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#else
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;#define IS_INT(type) ((type) &amp;gt;= FFI_TYPE_UINT8 &amp;amp;&amp;amp; (type) &amp;lt;= FFI_TYPE_SINT32)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#endif
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#50fa7b&#34;&gt;unmarshal&lt;/span&gt;(call_builder &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;cb, ffi_type &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;type, &lt;span style=&#34;color:#8be9fd&#34;&gt;int&lt;/span&gt; var, &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;data) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    size_t realign[&lt;span style=&#34;color:#bd93f9&#34;&gt;2&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;pointer;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#6272a4&#34;&gt;// ...省略了对于 FFI_TYPE_STRUCT 和浮点小数点的处理
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (type&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;size &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt; __SIZEOF_POINTER__) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#6272a4&#34;&gt;// 省略了对于大数据类型的处理（我们的 `type` 是 `ffi_arg`，不够大）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;    } &lt;span style=&#34;color:#ff79c6&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (IS_INT(type&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;type) &lt;span style=&#34;color:#ff79c6&#34;&gt;||&lt;/span&gt; type&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;type &lt;span style=&#34;color:#ff79c6&#34;&gt;==&lt;/span&gt; FFI_TYPE_POINTER) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        unmarshal_atom(cb, type&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;type, data);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;return&lt;/span&gt; data;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    } &lt;span style=&#34;color:#ff79c6&#34;&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#6272a4&#34;&gt;// 整个 else 不会执行，因为上面的 if 已经满足了：IS_INT(type-&amp;gt;type)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;这个 &lt;code&gt;unmarshal&lt;/code&gt; 函数似乎没有什么值得关注的，因此继续进入 &lt;code&gt;unmarshal_atom&lt;/code&gt;：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C++&#34; data-lang=&#34;C++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#50fa7b&#34;&gt;unmarshal_atom&lt;/span&gt;(call_builder &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;cb, &lt;span style=&#34;color:#8be9fd&#34;&gt;int&lt;/span&gt; type, &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;data) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    size_t value;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#6272a4&#34;&gt;// 省略浮点小数点的处理
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (cb&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;used_integer &lt;span style=&#34;color:#ff79c6&#34;&gt;==&lt;/span&gt; NARGREG) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        value &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;cb&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;used_stack&lt;span style=&#34;color:#ff79c6&#34;&gt;++&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    } &lt;span style=&#34;color:#ff79c6&#34;&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        value &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; cb&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;aregs&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;a[cb&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;used_integer&lt;span style=&#34;color:#ff79c6&#34;&gt;++&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;switch&lt;/span&gt; (type) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_UINT8&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;uint8_t&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_SINT8&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;uint8_t&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_UINT16&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;uint16_t&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_SINT16&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;uint16_t&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_UINT32&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;uint32_t&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_SINT32&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;uint32_t&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#if __SIZEOF_POINTER__ == 8
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_UINT64&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;uint64_t&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_SINT64&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;uint64_t&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#endif
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_POINTER&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(size_t &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;default&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;:&lt;/span&gt; FFI_ASSERT(&lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;); &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;注意 &lt;code&gt;data&lt;/code&gt; 是指向 &lt;code&gt;ffi_arg&lt;/code&gt; 类型的指针，也就是一个 64 位无符号整数，但在实际的调用中：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; s
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bd93f9&#34;&gt;192&lt;/span&gt;         switch &lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;type&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; s
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bd93f9&#34;&gt;198&lt;/span&gt;             &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; FFI_TYPE_SINT32: *&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;uint32_t *&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;data&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; break;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; p &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;type&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;$1&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;10&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;被当作是一个指向 &lt;code&gt;uint32_t&lt;/code&gt; 的指针了，在接下来的写入操作中，只写入了 32 bits 的数据。&lt;/p&gt;
+&lt;p&gt;根据 &lt;code&gt;switch&lt;/code&gt; 可以清楚得知：&lt;code&gt;type&lt;/code&gt; 变量在此处的值为 10，对应的宏是 &lt;code&gt;FFI_TYPE_SINT32&lt;/code&gt; 而不是我们预期的 &lt;code&gt;FFI_TYPE_UINT64&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;通过查阅相关 man page 可以得知，在使用 libffi 调用函数时，负责接收函数返回值的类型（&lt;code&gt;rint&lt;/code&gt; 的类型）需要至少 &lt;code&gt;sizeof(ffi_arg)&lt;/code&gt; 大小
+（也就是 &lt;code&gt;FFI_TYPE_UINT64&lt;/code&gt; 或 &lt;code&gt;FFI_TYPE_SINT64&lt;/code&gt;）。&lt;/p&gt;
+&lt;h3 id=&#34;结论&#34;&gt;
+  结论
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e7%bb%93%e8%ae%ba&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;此处 RISC-V port 的 libffi 内部并未合理处理 「被调用函数」 返回值不足 &lt;code&gt;sizeof(ffi_arg)&lt;/code&gt; 的情况。导致向一块 64bits 内存（调用方）写入了
+32bits 的数字（被调用方）：&lt;/p&gt;
+&lt;p&gt;可以看到高位部分包含之前未初始化的垃圾数据，只有低位被写入了 1：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-txt&#34; data-lang=&#34;txt&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;调用前 rint = 72057593903531392 也就是 0xFFFFFFF7FD4580
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;调用后 rint = 72057589742960641 也就是 0xFFFFFF00000001
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;修&#34;&gt;
+  修
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e4%bf%ae&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;那么现在就要修改代码，使其使用正确的返回值类型，发现已经有人 PR：&lt;br&gt;
+&lt;a href=&#34;https://github.com/libffi/libffi/pull/680&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://github.com/libffi/libffi/pull/680&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;这个 PR 添加了判断「被调用函数返回值类型」的符号性&lt;br&gt;
+并根据系统 bits 数，规范地选用 &lt;code&gt;FFI_TYPE_{S,U}INT{32,64}&lt;/code&gt; 中的其中一种。&lt;/p&gt;
+&lt;p&gt;所以现在只需要将其 &lt;a href=&#34;https://github.com/felixonmars/archriscv-packages/pull/1182&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;backport&lt;/a&gt; 回我们正在使用的版本即可。&lt;/p&gt;
+&lt;h2 id=&#34;思考&#34;&gt;
+  思考
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%80%9d%e8%80%83&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;在后期调试的过程中，我忘记看 manual page，不清楚「函数返回值 convention」 （也就是，显式规定返回值：需要至少能放下一个 &lt;code&gt;ffi_arg&lt;/code&gt; 这一部分）。
+使得后续 debug 过程遇到阻碍，在后续的工作中要注意查阅相关文档。&lt;/p&gt;
+&lt;p&gt;以及，他们自己不跑单元测试的吗？&lt;/p&gt;
+&lt;p&gt;这篇文章咕咕咕了大概俩月才终于写完 :） 🎉🎉🎉&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>记一次 debug qmake</title>
+      <link>https://mooody.me/posts/2022-04/archrv-qmake6/</link>
+      <pubDate>Thu, 14 Apr 2022 00:32:37 +0100</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-04/archrv-qmake6/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;原本想甩锅 Qt，但后来发现&lt;del&gt;小丑竟是 qemu&lt;/del&gt; :)&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;正片开始&#34;&gt;
+  正片开始
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%ad%a3%e7%89%87%e5%bc%80%e5%a7%8b&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;初来乍到 &lt;code&gt;PLCT::archrv-pkg&lt;/code&gt;，作为新人总想快点贡献点什么，于是各种翻 build log。&lt;/p&gt;
+&lt;p&gt;qalculate-qt:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-log&#34; data-lang=&#34;log&#34;&gt;/usr/lib/qt6/mkspecs/features/toolchain.prf:76: Variable QMAKE_CXX.COMPILER_MACROS is not defined.
+Project ERROR: failed to parse default search paths from compiler output
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;打包机扔出了这么个错误，深受 qmake 其害的我看到这就准备开 &lt;a href=&#34;https://bugreports.qt.io&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;bugreports.qt.io&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;但是转头一想：肯定群里的大佬早就看到了这个问题，应该已经在 WIP 了吧，于是在群消息记录里搜了一下，
+发现果然早在上个月 24 号（两周前左右）就在讨论这个问题了。&lt;/p&gt;
+&lt;p&gt;可惜没能解决，翻记录说是 qemu 里独有的问题，换到物理机上就没事了。&lt;/p&gt;
+&lt;p&gt;抱着试一试万一能给 Qt 水个 bugreport 的心态，我打开了这个文件：&lt;code&gt;features/toolchain.prf&lt;/code&gt; 并找到第 76 行：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-qmake&#34; data-lang=&#34;qmake&#34;&gt;73:         cache($${target_prefix}.$$v, set stash, $$v)
+74:         $${target_prefix}.COMPILER_MACROS += $$v
+75:     }
+76:     cache($${target_prefix}.COMPILER_MACROS, set stash) &amp;lt;- 这里
+77: } else {
+78:     # load from the cache
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;很明显是一个 qmake 变量 &amp;ldquo;&lt;code&gt;某些东西.COMPILER_MACROS&lt;/code&gt;&amp;rdquo; 的解引用（取值）。&lt;/p&gt;
+&lt;p&gt;根据报错能看出 &lt;code&gt;某些东西&lt;/code&gt; 应该是 &lt;code&gt;QMAKE_CXX&lt;/code&gt;，于是继续向上翻：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-qmake&#34; data-lang=&#34;qmake&#34;&gt;66: for (v, vars) {
+67:    !contains(v, &amp;#34;[A-Z_]+ = .*&amp;#34;): next()
+68:     # Set both &amp;lt;varname&amp;gt; for the outer scope ...
+69:     eval($$v)
+70:     v ~= s/ .*//
+71:     isEmpty($$v): error(&amp;#34;Compiler produced empty value for $${v}.&amp;#34;)
+72:     # ... and save QMAKE_(HOST_)?CXX.&amp;lt;varname&amp;gt; in the cache.
+73:     cache($${target_prefix}.$$v, set stash, $$v)
+74:     $${target_prefix}.COMPILER_MACROS += $$v
+75: }
+76: cache($${target_prefix}.COMPILER_MACROS, set stash) &amp;lt;- 核爆中心
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;稍有常识的人都知道这是个 for loop，根据 L74 可以看出这个循环是用来向
+&lt;code&gt;COMPILER_MACROS&lt;/code&gt; append 一些值，我想起了 log 调试大法，于是眼疾手快就在这附近加了
+几个 &lt;code&gt;message(&amp;quot;....&amp;quot;)&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;随着 qmake6 重新运行，我发现在 &lt;code&gt;for&lt;/code&gt; 循环里并没有任何输出出现，这使人不禁怀疑这个
+&lt;code&gt;for&lt;/code&gt; 循环究竟有没有跑。带着这个问题，又在 &lt;code&gt;for&lt;/code&gt; 上面一行输出 &lt;code&gt;vars&lt;/code&gt;，也就是循环对象。&lt;/p&gt;
+&lt;p&gt;我还特地打了引号，避免输出的是个空格然后消失在 Konsole 大海中，结果发现这个 &lt;code&gt;var&lt;/code&gt; 里啥也
+没有。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;咋就成空的了？&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;继续向上翻，整段代码被包在了一个 &lt;code&gt;isEmpty($${target_prefix}.COMPILER_MACROS) {&lt;/code&gt;
+分支，说明这个变量为空，其实是在预期情况内。紧接着是两个分支：&lt;code&gt;msvc&lt;/code&gt; 和 &lt;code&gt;gcc|ghs&lt;/code&gt; 很明显
+应该是走 &lt;code&gt;gcc&lt;/code&gt; 分支：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-qmake&#34; data-lang=&#34;qmake&#34;&gt;63: } else: gcc|ghs {
+64:     vars = $$qtVariablesFromGCC($$QMAKE_CXX)
+65: }
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;找到 &lt;code&gt;vars&lt;/code&gt; 的来源了！这里调用了一个名为 &lt;code&gt;qtVariablesFromGCC&lt;/code&gt; 的函数，传入单个参数
+&lt;code&gt;$$QMAKE_CXX&lt;/code&gt;，返回一个 list （也就是 &lt;code&gt;vars&lt;/code&gt;），于是继续跟进函数去 debug。&lt;/p&gt;
+&lt;p&gt;函数定义很简单（节省地方稍微改了下缩进）：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-qmake&#34; data-lang=&#34;qmake&#34;&gt;37: defineReplace(qtVariablesFromGCC) {
+38:   ret = $$system(&amp;#34;$$1 -E $$system_quote($$PWD/data/macros.cpp) \
+39:     2&amp;gt;$$QMAKE_SYSTEM_NULL_DEVICE&amp;#34;, lines, ec)
+40:   !equals(ec, 0): qtCompilerError($$1, $$ret)
+41:   return($$ret)
+42: }
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;函数开头第一句话一个 &lt;code&gt;system&lt;/code&gt;，意思是要调用个子进程，然后读取输出。40 行的判断 ec 按照
+标准缩写应该是 &lt;code&gt;error code&lt;/code&gt;，先猜应该是个返回值。&lt;/p&gt;
+&lt;p&gt;于是开始 &lt;code&gt;message()&lt;/code&gt; 大法。&lt;/p&gt;
+&lt;p&gt;于是发现这 &lt;code&gt;ret&lt;/code&gt; 为空，我将 &lt;code&gt;system()&lt;/code&gt; 的参数单独拿出来跑：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# $$1 -E $$system_quote($$PWD/data/macros.cpp) 2&amp;gt;$$QMAKE_SYSTEM_NULL_DEVICE&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# 参数替换可得&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ c++ -E &lt;span style=&#34;color:#ff79c6&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;pwd&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt;/data/macros.cpp 2&amp;gt;/dev/null
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 0 &amp;#34;./macros.cpp&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 0 &amp;#34;&amp;lt;built-in&amp;gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 0 &amp;#34;&amp;lt;command-line&amp;gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 1 &amp;#34;/usr/include/stdc-predef.h&amp;#34; 1 3 4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 0 &amp;#34;&amp;lt;command-line&amp;gt;&amp;#34; 2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 1 &amp;#34;./macros.cpp&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;QT_COMPILER_STDCXX&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; 201703L
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 26 &amp;#34;./macros.cpp&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;QMAKE_GCC_MAJOR_VERSION&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;11&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;QMAKE_GCC_MINOR_VERSION&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;QMAKE_GCC_PATCH_VERSION&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;就是预处理结果嘛。。。&lt;/p&gt;
+&lt;p&gt;在进行了两分钟（没计时）的思考后，我认为是 qmake 没能正确执行 &lt;code&gt;system&lt;/code&gt; 函数，于是还是去
+了 &lt;a href=&#34;https://bugreports.qt.io&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;bugreports.qt.io&lt;/a&gt; 搜索 &lt;code&gt;qmake system&lt;/code&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;a href=&#34;https://bugreports.qt.io/browse/QTBUG-98951&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;strong&gt;QTBUG-98951: qmake system() does not work under qemu-user&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;这不就是我遇到的问题吗？正文里说：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;work-around: configure with -no-feature-forkfd_pidfd&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;code&gt;no-feature-forkfd_pidfd&lt;/code&gt; 是什么 feature？ 于是我继续按关键字搜索，找到了 &lt;a href=&#34;https://codereview.qt-project.org/c/qt/qtbase/&amp;#43;/313894&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Make usage of forkfd_pidfd in QProcess a configurable feature (#313894)&lt;/a&gt; 中的一处改动：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;// QTBUG-86285
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#if !QT_CONFIG(forkfd_pidfd)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;    ffdflags &lt;span style=&#34;color:#ff79c6&#34;&gt;|=&lt;/span&gt; FFD_USE_FORK;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#endif
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;那么关掉 &lt;code&gt;forkfd_pidfd&lt;/code&gt; 就使 &lt;code&gt;!QT_CONFIG(forkfd_pidfd)&lt;/code&gt; 为 &lt;code&gt;TRUE&lt;/code&gt;，从而强制添加
+&lt;code&gt;FFD_USE_FORK&lt;/code&gt; flag 给了 &lt;code&gt;ffdflags&lt;/code&gt;，而这就应该是避开了 qemu 未能实现的一个功能吧。&lt;/p&gt;
+&lt;p&gt;另外感谢肥猫找到了对应给 qemu 的 &lt;a href=&#34;https://patchew.org/QEMU/mvm4kadwyrm.fsf@suse.de/&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;patch&lt;/a&gt;，但很可惜的是没能合并。&lt;/p&gt;
+&lt;p&gt;在经历了一番折腾后，我在本机应用了给 qemu 的 patch，发现 qmake 的 &lt;code&gt;system&lt;/code&gt; 果然能正确执行了。&lt;/p&gt;
+&lt;p&gt;至此，一个由 &lt;code&gt;qalculate-qt&lt;/code&gt; 引发的，被以为是 Qt bug 的，但实际上是 qemu 的问题终于
+真相大白 :) 撒花！&lt;/p&gt;
+&lt;h2 id=&#34;小结&#34;&gt;
+  小结
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%b0%8f%e7%bb%93&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;以后遇到问题还是要先搜索，虽说本次 qmake 属于极端边角问题：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;首先是 qmake 现在（应该？）很少人用了吧？&lt;/li&gt;
+&lt;li&gt;其次还是 qemu-user （非 system，上篇文章说道 ArchRV 还没有能跑的 img）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;但确实仍然有人先遇到了，而且进行了汇报和 patch&lt;/p&gt;
+&lt;p&gt;下一篇文章（可能）写写 Qt Webengine 的 patch 过程（如果我能打出来的话）&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Qt 6.3 中 QML 的坑</title>
+      <link>https://mooody.me/posts/2022-04/qt63-qmlimportscanner/</link>
+      <pubDate>Sat, 02 Apr 2022 13:43:37 +0100</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-04/qt63-qmlimportscanner/</guid>
+      <description>&lt;h2 id=&#34;估计是-regression-了&#34;&gt;
+  估计是 Regression 了
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e4%bc%b0%e8%ae%a1%e6%98%af-regression-%e4%ba%86&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;h3 id=&#34;qmlimportscanner&#34;&gt;
+  &lt;code&gt;qmlimportscanner&lt;/code&gt;
+  &lt;a class=&#34;heading-link&#34; href=&#34;#qmlimportscanner&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;我也不知道为什么，由 &lt;code&gt;androiddeployqt&lt;/code&gt; 调用的 &lt;code&gt;qmlimportscanner&lt;/code&gt; 找不到就在本目录下的 &lt;code&gt;QtGraphicalEffects&lt;/code&gt; QML Module。&lt;/p&gt;
+&lt;h3 id=&#34;android-平台黑屏卡死&#34;&gt;
+  Android 平台黑屏卡死
+  &lt;a class=&#34;heading-link&#34; href=&#34;#android-%e5%b9%b3%e5%8f%b0%e9%bb%91%e5%b1%8f%e5%8d%a1%e6%ad%bb&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;其次，当使用 Qt 6.3 编译出的 Android APK 时，我的 &lt;code&gt;MoodyAPI Client&lt;/code&gt; 一旦退出就无法再进入界面（Sigh&lt;/p&gt;
+&lt;h3 id=&#34;解决方法&#34;&gt;
+  解决方法
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e8%a7%a3%e5%86%b3%e6%96%b9%e6%b3%95&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;&lt;del&gt;回退到 Qt6.2&lt;/del&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Press F to pay respects.&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

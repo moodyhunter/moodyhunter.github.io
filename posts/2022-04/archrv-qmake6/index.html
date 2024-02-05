@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+  <title>
+  记一次 debug qmake · Moody&#39;s
+</title>
+  <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+
+
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; block-all-mixed-content; default-src 'self'; child-src 'self'; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; form-action 'self' https://utteranc.es; frame-src 'self' https://utteranc.es; img-src 'self' https:; object-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://utteranc.es; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://utteranc.es https://static.cloudflareinsights.com https://js.monitor.azure.com; connect-src 'self' https://utteranc.es https://uksouth-1.in.applicationinsights.azure.com;">
+
+
+
+
+<meta name="author" content="Moody">
+<meta name="description" content="原本想甩锅 Qt，但后来发现小丑竟是 qemu :)
+正片开始 链接到标题 初来乍到 PLCT::archrv-pkg，作为新人总想快点贡献点什么，于是各种翻 build log。
+qalculate-qt:
+/usr/lib/qt6/mkspecs/features/toolchain.prf:76: Variable QMAKE_CXX.COMPILER_MACROS is not defined. Project ERROR: failed to parse default search paths from compiler output 打包机扔出了这么个错误，深受 qmake 其害的我看到这就准备开 bugreports.qt.io
+但是转头一想：肯定群里的大佬早就看到了这个问题，应该已经在 WIP 了吧，于是在群消息记录里搜了一下， 发现果然早在上个月 24 号（两周前左右）就在讨论这个问题了。
+可惜没能解决，翻记录说是 qemu 里独有的问题，换到物理机上就没事了。
+抱着试一试万一能给 Qt 水个 bugreport 的心态，我打开了这个文件：features/toolchain.prf 并找到第 76 行：
+73: cache($${target_prefix}.$$v, set stash, $$v) 74: $${target_prefix}.COMPILER_MACROS &#43;= $$v 75: } 76: cache($${target_prefix}.COMPILER_MACROS, set stash) &lt;- 这里 77: } else { 78: # load from the cache 很明显是一个 qmake 变量 &ldquo;某些东西.">
+<meta name="keywords" content="blog,personal,中文,个人">
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="记一次 debug qmake"/>
+<meta name="twitter:description" content="原本想甩锅 Qt，但后来发现小丑竟是 qemu :)
+正片开始 链接到标题 初来乍到 PLCT::archrv-pkg，作为新人总想快点贡献点什么，于是各种翻 build log。
+qalculate-qt:
+/usr/lib/qt6/mkspecs/features/toolchain.prf:76: Variable QMAKE_CXX.COMPILER_MACROS is not defined. Project ERROR: failed to parse default search paths from compiler output 打包机扔出了这么个错误，深受 qmake 其害的我看到这就准备开 bugreports.qt.io
+但是转头一想：肯定群里的大佬早就看到了这个问题，应该已经在 WIP 了吧，于是在群消息记录里搜了一下， 发现果然早在上个月 24 号（两周前左右）就在讨论这个问题了。
+可惜没能解决，翻记录说是 qemu 里独有的问题，换到物理机上就没事了。
+抱着试一试万一能给 Qt 水个 bugreport 的心态，我打开了这个文件：features/toolchain.prf 并找到第 76 行：
+73: cache($${target_prefix}.$$v, set stash, $$v) 74: $${target_prefix}.COMPILER_MACROS &#43;= $$v 75: } 76: cache($${target_prefix}.COMPILER_MACROS, set stash) &lt;- 这里 77: } else { 78: # load from the cache 很明显是一个 qmake 变量 &ldquo;某些东西."/>
+
+<meta property="og:title" content="记一次 debug qmake" />
+<meta property="og:description" content="原本想甩锅 Qt，但后来发现小丑竟是 qemu :)
+正片开始 链接到标题 初来乍到 PLCT::archrv-pkg，作为新人总想快点贡献点什么，于是各种翻 build log。
+qalculate-qt:
+/usr/lib/qt6/mkspecs/features/toolchain.prf:76: Variable QMAKE_CXX.COMPILER_MACROS is not defined. Project ERROR: failed to parse default search paths from compiler output 打包机扔出了这么个错误，深受 qmake 其害的我看到这就准备开 bugreports.qt.io
+但是转头一想：肯定群里的大佬早就看到了这个问题，应该已经在 WIP 了吧，于是在群消息记录里搜了一下， 发现果然早在上个月 24 号（两周前左右）就在讨论这个问题了。
+可惜没能解决，翻记录说是 qemu 里独有的问题，换到物理机上就没事了。
+抱着试一试万一能给 Qt 水个 bugreport 的心态，我打开了这个文件：features/toolchain.prf 并找到第 76 行：
+73: cache($${target_prefix}.$$v, set stash, $$v) 74: $${target_prefix}.COMPILER_MACROS &#43;= $$v 75: } 76: cache($${target_prefix}.COMPILER_MACROS, set stash) &lt;- 这里 77: } else { 78: # load from the cache 很明显是一个 qmake 变量 &ldquo;某些东西." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mooody.me/posts/2022-04/archrv-qmake6/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-04-14T00:32:37+01:00" />
+<meta property="article:modified_time" content="2022-04-14T00:32:37+01:00" />
+
+
+
+
+
+<link rel="canonical" href="https://mooody.me/posts/2022-04/archrv-qmake6/">
+
+
+<link rel="preload" href="/fonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+
+
+  
+  
+  <link rel="stylesheet" href="/css/coder.min.577e3c5ead537873430da16f0964b754a120fd87c4e2203a00686e7c75b51378.css" integrity="sha256-V348Xq1TeHNDDaFvCWS3VKEg/YfE4iA6AGhufHW1E3g=" crossorigin="anonymous" media="screen" />
+
+
+
+
+
+
+  
+    
+    
+    <link rel="stylesheet" href="/css/coder-dark.min.a00e6364bacbc8266ad1cc81230774a1397198f8cfb7bcba29b7d6fcb54ce57f.css" integrity="sha256-oA5jZLrLyCZq0cyBIwd0oTlxmPjPt7y6KbfW/LVM5X8=" crossorigin="anonymous" media="screen" />
+  
+
+
+
+ 
+
+
+  
+  
+    
+    <link rel="stylesheet" href="/scss/cards.min.66689eb6794f4d37bf49748d47a91d8dc5918d78d800a8fae4f1a9649ce35145.css" integrity="sha256-ZmietnlPTTe/SXSNR6kdjcWRjXjYAKj65PGpZJzjUUU=" crossorigin="anonymous" media="screen" />
+  
+
+  
+  
+    
+    <link rel="stylesheet" href="/scss/spoiler.min.6758d9b6919e25bb0a3c105fb53c53d4329838c7c3c6c41a4443a232bcca0886.css" integrity="sha256-Z1jZtpGeJbsKPBBftTxT1DKYOMfDxsQaREOiMrzKCIY=" crossorigin="anonymous" media="screen" />
+  
+
+
+
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg" sizes="any">
+<link rel="icon" type="image/png" href="/images/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/png" href="/images/favicon.ico" sizes="16x16">
+
+<link rel="apple-touch-icon" href="/images/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico">
+
+<link rel="manifest" href="/site.webmanifest">
+<link rel="mask-icon" href="/images/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"
+/>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"
+></script>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"
+></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+      ],
+    });
+  });
+</script>
+
+
+
+</head>
+
+
+
+
+
+
+<body class="preload-transitions colorscheme-auto">
+  
+<div class="float-container">
+    <a id="dark-mode-toggle" class="colorscheme-toggle">
+        <i class="fa-solid fa-adjust fa-fw" aria-hidden="true"></i>
+    </a>
+</div>
+
+
+  <main class="wrapper">
+    <nav class="navigation">
+  <section class="container">
+    <a class="navigation-title" href="/">
+      Moody&#39;s
+    </a>
+    
+      <input type="checkbox" id="menu-toggle" />
+      <label class="menu-button float-right" for="menu-toggle">
+        <i class="fa-solid fa-bars fa-fw" aria-hidden="true"></i>
+      </label>
+      <ul class="navigation-list">
+        
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/">主页</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/posts/">文章</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/friends/">友链</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/about/">我</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="https://g.mooody.me/d/home/server-status?orgId=2">服务状态</a>
+            </li>
+          
+        
+        
+          
+          
+          
+            
+          
+            
+              
+                <li class="navigation-item menu-separator">
+                  <span>|</span>
+                </li>
+                
+              
+              <li class="navigation-item">
+                <a href="/en/">🇬🇧</a>
+              </li>
+            
+          
+        
+      </ul>
+    
+  </section>
+</nav>
+
+
+    <div class="content">
+      
+  <section class="container post">
+    <article>
+      <header>
+        <div class="post-title">
+          <h1 class="title">
+            <a class="title-link" href="https://mooody.me/posts/2022-04/archrv-qmake6/">
+              记一次 debug qmake
+            </a>
+          </h1>
+        </div>
+        <div class="post-meta">
+          <div class="date">
+            <span class="posted-on">
+              <i class="fa-solid fa-calendar" aria-hidden="true"></i>
+              <time datetime="2022-04-14T00:32:37&#43;01:00">
+                April 14, 2022
+              </time>
+            </span>
+            <span class="reading-time">
+              <i class="fa-solid fa-clock" aria-hidden="true"></i>
+              阅读时间：3 分钟
+            </span>
+          </div>
+          
+          
+          <div class="tags">
+  <i class="fa-solid fa-tag" aria-hidden="true"></i>
+    <span class="tag">
+      <a href="/tags/qt-6/">Qt 6</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/qmake/">qmake</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/linux/">Linux</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/archrv/">ArchRV</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/%E5%9D%91/">坑</a>
+    </span></div>
+
+        </div>
+      </header>
+
+      <div class="post-content">
+        
+        <blockquote>
+<p>原本想甩锅 Qt，但后来发现<del>小丑竟是 qemu</del> :)</p>
+</blockquote>
+<h2 id="正片开始">
+  正片开始
+  <a class="heading-link" href="#%e6%ad%a3%e7%89%87%e5%bc%80%e5%a7%8b">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>初来乍到 <code>PLCT::archrv-pkg</code>，作为新人总想快点贡献点什么，于是各种翻 build log。</p>
+<p>qalculate-qt:</p>
+<pre tabindex="0"><code class="language-log" data-lang="log">/usr/lib/qt6/mkspecs/features/toolchain.prf:76: Variable QMAKE_CXX.COMPILER_MACROS is not defined.
+Project ERROR: failed to parse default search paths from compiler output
+</code></pre><p>打包机扔出了这么个错误，深受 qmake 其害的我看到这就准备开 <a href="https://bugreports.qt.io"  class="external-link" target="_blank" rel="noopener">bugreports.qt.io</a></p>
+<p>但是转头一想：肯定群里的大佬早就看到了这个问题，应该已经在 WIP 了吧，于是在群消息记录里搜了一下，
+发现果然早在上个月 24 号（两周前左右）就在讨论这个问题了。</p>
+<p>可惜没能解决，翻记录说是 qemu 里独有的问题，换到物理机上就没事了。</p>
+<p>抱着试一试万一能给 Qt 水个 bugreport 的心态，我打开了这个文件：<code>features/toolchain.prf</code> 并找到第 76 行：</p>
+<pre tabindex="0"><code class="language-qmake" data-lang="qmake">73:         cache($${target_prefix}.$$v, set stash, $$v)
+74:         $${target_prefix}.COMPILER_MACROS += $$v
+75:     }
+76:     cache($${target_prefix}.COMPILER_MACROS, set stash) &lt;- 这里
+77: } else {
+78:     # load from the cache
+</code></pre><p>很明显是一个 qmake 变量 &ldquo;<code>某些东西.COMPILER_MACROS</code>&rdquo; 的解引用（取值）。</p>
+<p>根据报错能看出 <code>某些东西</code> 应该是 <code>QMAKE_CXX</code>，于是继续向上翻：</p>
+<pre tabindex="0"><code class="language-qmake" data-lang="qmake">66: for (v, vars) {
+67:    !contains(v, &#34;[A-Z_]+ = .*&#34;): next()
+68:     # Set both &lt;varname&gt; for the outer scope ...
+69:     eval($$v)
+70:     v ~= s/ .*//
+71:     isEmpty($$v): error(&#34;Compiler produced empty value for $${v}.&#34;)
+72:     # ... and save QMAKE_(HOST_)?CXX.&lt;varname&gt; in the cache.
+73:     cache($${target_prefix}.$$v, set stash, $$v)
+74:     $${target_prefix}.COMPILER_MACROS += $$v
+75: }
+76: cache($${target_prefix}.COMPILER_MACROS, set stash) &lt;- 核爆中心
+</code></pre><p>稍有常识的人都知道这是个 for loop，根据 L74 可以看出这个循环是用来向
+<code>COMPILER_MACROS</code> append 一些值，我想起了 log 调试大法，于是眼疾手快就在这附近加了
+几个 <code>message(&quot;....&quot;)</code>。</p>
+<p>随着 qmake6 重新运行，我发现在 <code>for</code> 循环里并没有任何输出出现，这使人不禁怀疑这个
+<code>for</code> 循环究竟有没有跑。带着这个问题，又在 <code>for</code> 上面一行输出 <code>vars</code>，也就是循环对象。</p>
+<p>我还特地打了引号，避免输出的是个空格然后消失在 Konsole 大海中，结果发现这个 <code>var</code> 里啥也
+没有。</p>
+<blockquote>
+<p>咋就成空的了？</p>
+</blockquote>
+<p>继续向上翻，整段代码被包在了一个 <code>isEmpty($${target_prefix}.COMPILER_MACROS) {</code>
+分支，说明这个变量为空，其实是在预期情况内。紧接着是两个分支：<code>msvc</code> 和 <code>gcc|ghs</code> 很明显
+应该是走 <code>gcc</code> 分支：</p>
+<pre tabindex="0"><code class="language-qmake" data-lang="qmake">63: } else: gcc|ghs {
+64:     vars = $$qtVariablesFromGCC($$QMAKE_CXX)
+65: }
+</code></pre><p>找到 <code>vars</code> 的来源了！这里调用了一个名为 <code>qtVariablesFromGCC</code> 的函数，传入单个参数
+<code>$$QMAKE_CXX</code>，返回一个 list （也就是 <code>vars</code>），于是继续跟进函数去 debug。</p>
+<p>函数定义很简单（节省地方稍微改了下缩进）：</p>
+<pre tabindex="0"><code class="language-qmake" data-lang="qmake">37: defineReplace(qtVariablesFromGCC) {
+38:   ret = $$system(&#34;$$1 -E $$system_quote($$PWD/data/macros.cpp) \
+39:     2&gt;$$QMAKE_SYSTEM_NULL_DEVICE&#34;, lines, ec)
+40:   !equals(ec, 0): qtCompilerError($$1, $$ret)
+41:   return($$ret)
+42: }
+</code></pre><p>函数开头第一句话一个 <code>system</code>，意思是要调用个子进程，然后读取输出。40 行的判断 ec 按照
+标准缩写应该是 <code>error code</code>，先猜应该是个返回值。</p>
+<p>于是开始 <code>message()</code> 大法。</p>
+<p>于是发现这 <code>ret</code> 为空，我将 <code>system()</code> 的参数单独拿出来跑：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#6272a4"># $$1 -E $$system_quote($$PWD/data/macros.cpp) 2&gt;$$QMAKE_SYSTEM_NULL_DEVICE</span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4"># 参数替换可得</span>
+</span></span><span style="display:flex;"><span>$ c++ -E <span style="color:#ff79c6">$(</span><span style="color:#8be9fd;font-style:italic">pwd</span><span style="color:#ff79c6">)</span>/data/macros.cpp 2&gt;/dev/null
+</span></span><span style="display:flex;"><span>&gt; <span style="color:#6272a4"># 0 &#34;./macros.cpp&#34;</span>
+</span></span><span style="display:flex;"><span>&gt; <span style="color:#6272a4"># 0 &#34;&lt;built-in&gt;&#34;</span>
+</span></span><span style="display:flex;"><span>&gt; <span style="color:#6272a4"># 0 &#34;&lt;command-line&gt;&#34;</span>
+</span></span><span style="display:flex;"><span>&gt; <span style="color:#6272a4"># 1 &#34;/usr/include/stdc-predef.h&#34; 1 3 4</span>
+</span></span><span style="display:flex;"><span>&gt; <span style="color:#6272a4"># 0 &#34;&lt;command-line&gt;&#34; 2</span>
+</span></span><span style="display:flex;"><span>&gt; <span style="color:#6272a4"># 1 &#34;./macros.cpp&#34;</span>
+</span></span><span style="display:flex;"><span>&gt;
+</span></span><span style="display:flex;"><span>&gt; <span style="color:#8be9fd;font-style:italic">QT_COMPILER_STDCXX</span> <span style="color:#ff79c6">=</span> 201703L
+</span></span><span style="display:flex;"><span>&gt; <span style="color:#6272a4"># 26 &#34;./macros.cpp&#34;</span>
+</span></span><span style="display:flex;"><span>&gt; <span style="color:#8be9fd;font-style:italic">QMAKE_GCC_MAJOR_VERSION</span> <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">11</span>
+</span></span><span style="display:flex;"><span>&gt; <span style="color:#8be9fd;font-style:italic">QMAKE_GCC_MINOR_VERSION</span> <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">2</span>
+</span></span><span style="display:flex;"><span>&gt; <span style="color:#8be9fd;font-style:italic">QMAKE_GCC_PATCH_VERSION</span> <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>就是预处理结果嘛。。。</p>
+<p>在进行了两分钟（没计时）的思考后，我认为是 qmake 没能正确执行 <code>system</code> 函数，于是还是去
+了 <a href="https://bugreports.qt.io"  class="external-link" target="_blank" rel="noopener">bugreports.qt.io</a> 搜索 <code>qmake system</code></p>
+<blockquote>
+<p><a href="https://bugreports.qt.io/browse/QTBUG-98951"  class="external-link" target="_blank" rel="noopener"><strong>QTBUG-98951: qmake system() does not work under qemu-user</strong></a></p>
+</blockquote>
+<p>这不就是我遇到的问题吗？正文里说：</p>
+<blockquote>
+<p>work-around: configure with -no-feature-forkfd_pidfd</p>
+</blockquote>
+<p><code>no-feature-forkfd_pidfd</code> 是什么 feature？ 于是我继续按关键字搜索，找到了 <a href="https://codereview.qt-project.org/c/qt/qtbase/&#43;/313894"  class="external-link" target="_blank" rel="noopener">Make usage of forkfd_pidfd in QProcess a configurable feature (#313894)</a> 中的一处改动：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#6272a4">// QTBUG-86285
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">#if !QT_CONFIG(forkfd_pidfd)
+</span></span></span><span style="display:flex;"><span><span style="color:#ff79c6"></span>    ffdflags <span style="color:#ff79c6">|=</span> FFD_USE_FORK;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">#endif
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>那么关掉 <code>forkfd_pidfd</code> 就使 <code>!QT_CONFIG(forkfd_pidfd)</code> 为 <code>TRUE</code>，从而强制添加
+<code>FFD_USE_FORK</code> flag 给了 <code>ffdflags</code>，而这就应该是避开了 qemu 未能实现的一个功能吧。</p>
+<p>另外感谢肥猫找到了对应给 qemu 的 <a href="https://patchew.org/QEMU/mvm4kadwyrm.fsf@suse.de/"  class="external-link" target="_blank" rel="noopener">patch</a>，但很可惜的是没能合并。</p>
+<p>在经历了一番折腾后，我在本机应用了给 qemu 的 patch，发现 qmake 的 <code>system</code> 果然能正确执行了。</p>
+<p>至此，一个由 <code>qalculate-qt</code> 引发的，被以为是 Qt bug 的，但实际上是 qemu 的问题终于
+真相大白 :) 撒花！</p>
+<h2 id="小结">
+  小结
+  <a class="heading-link" href="#%e5%b0%8f%e7%bb%93">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>以后遇到问题还是要先搜索，虽说本次 qmake 属于极端边角问题：</p>
+<ul>
+<li>首先是 qmake 现在（应该？）很少人用了吧？</li>
+<li>其次还是 qemu-user （非 system，上篇文章说道 ArchRV 还没有能跑的 img）</li>
+</ul>
+<p>但确实仍然有人先遇到了，而且进行了汇报和 patch</p>
+<p>下一篇文章（可能）写写 Qt Webengine 的 patch 过程（如果我能打出来的话）</p>
+
+      </div>
+
+
+      <footer>
+        
+
+
+        
+        
+        <div class="comments">
+  <script>
+
+    let getTheme = window.localStorage && window.localStorage.getItem("colorscheme");
+    let themeInParams = '';
+
+    if (getTheme == null) {
+      if (themeInParams !== '' && themeInParams !== 'auto') {
+        getTheme = themeInParams;
+      }
+      else {
+        getTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
+      }
+    }
+
+    let theme = getTheme === 'dark' ? 'github-dark' : 'github-light';
+    let s = document.createElement('script');
+    s.src = 'https://utteranc.es/client.js';
+    s.setAttribute('repo', 'moodyhunter\/moodyhunter.github.io');
+    s.setAttribute('issue-term', 'pathname');
+    s.setAttribute('theme', theme);
+    s.setAttribute('crossorigin', 'anonymous');
+    s.setAttribute('async', '');
+    document.querySelector('div.comments').innerHTML = '';
+    document.querySelector('div.comments').appendChild(s);
+
+  </script>
+</div>
+        
+        
+
+        
+      </footer>
+    </article>
+
+    
+  </section>
+
+    </div>
+
+    <footer class="footer">
+  <section class="container">
+    ©
+    
+      2021 -
+    
+    2024
+     Moody 
+    ·
+    
+      许可依据 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA-4.0</a>
+    ·
+    
+    技术支持 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/" target="_blank" rel="noopener">Coder</a>.
+    
+  </section>
+</footer>
+
+  </main>
+
+  
+
+  
+  
+  <script src="/js/coder.min.6ae284be93d2d19dad1f02b0039508d9aab3180a12a06dcc71b0b0ef7825a317.js" integrity="sha256-auKEvpPS0Z2tHwKwA5UI2aqzGAoSoG3McbCw73gloxc="></script>
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  <script type="text/javascript">
+    !function(T,l,y){var S=T.location,k="script",D="connectionString",C="ingestionendpoint",I="disableExceptionTracking",E="ai.device.",b="toLowerCase",w="crossOrigin",N="POST",e="appInsightsSDK",t=y.name||"appInsights";(y.name||T[e])&&(T[e]=t);var n=T[t]||function(d){var g=!1,f=!1,m={initialize:!0,queue:[],sv:"5",version:2,config:d};function v(e,t){var n={},a="Browser";return n[E+"id"]=a[b](),n[E+"type"]=a,n["ai.operation.name"]=S&&S.pathname||"_unknown_",n["ai.internal.sdkVersion"]="javascript:snippet_"+(m.sv||m.version),{time:function(){var e=new Date;function t(e){var t=""+e;return 1===t.length&&(t="0"+t),t}return e.getUTCFullYear()+"-"+t(1+e.getUTCMonth())+"-"+t(e.getUTCDate())+"T"+t(e.getUTCHours())+":"+t(e.getUTCMinutes())+":"+t(e.getUTCSeconds())+"."+((e.getUTCMilliseconds()/1e3).toFixed(3)+"").slice(2,5)+"Z"}(),name:"Microsoft.ApplicationInsights."+e.replace(/-/g,"")+"."+t,sampleRate:100,tags:n,data:{baseData:{ver:2}}}}var h=d.url||y.src;if(h){function a(e){var t,n,a,i,r,o,s,c,u,p,l;g=!0,m.queue=[],f||(f=!0,t=h,s=function(){var e={},t=d.connectionString;if(t)for(var n=t.split(";"),a=0;a<n.length;a++){var i=n[a].split("=");2===i.length&&(e[i[0][b]()]=i[1])}if(!e[C]){var r=e.endpointsuffix,o=r?e.location:null;e[C]="https://"+(o?o+".":"")+"dc."+(r||"services.visualstudio.com")}return e}(),c=s[D]||d[D]||"",u=s[C],p=u?u+"/v2/track":d.endpointUrl,(l=[]).push((n="SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details)",a=t,i=p,(o=(r=v(c,"Exception")).data).baseType="ExceptionData",o.baseData.exceptions=[{typeName:"SDKLoadFailed",message:n.replace(/\./g,"-"),hasFullStack:!1,stack:n+"\nSnippet failed to load ["+a+"] -- Telemetry is disabled\nHelp Link: https://go.microsoft.com/fwlink/?linkid=2128109\nHost: "+(S&&S.pathname||"_unknown_")+"\nEndpoint: "+i,parsedStack:[]}],r)),l.push(function(e,t,n,a){var i=v(c,"Message"),r=i.data;r.baseType="MessageData";var o=r.baseData;return o.message='AI (Internal): 99 message:"'+("SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details) ("+n+")").replace(/\"/g,"")+'"',o.properties={endpoint:a},i}(0,0,t,p)),function(e,t){if(JSON){var n=T.fetch;if(n&&!y.useXhr)n(t,{method:N,body:JSON.stringify(e),mode:"cors"});else if(XMLHttpRequest){var a=new XMLHttpRequest;a.open(N,t),a.setRequestHeader("Content-type","application/json"),a.send(JSON.stringify(e))}}}(l,p))}function i(e,t){f||setTimeout(function(){!t&&m.core||a()},500)}var e=function(){var n=l.createElement(k);n.src=h;var e=y[w];return!e&&""!==e||"undefined"==n[w]||(n[w]=e),n.onload=i,n.onerror=a,n.onreadystatechange=function(e,t){"loaded"!==n.readyState&&"complete"!==n.readyState||i(0,t)},n}();y.ld<0?l.getElementsByTagName("head")[0].appendChild(e):setTimeout(function(){l.getElementsByTagName(k)[0].parentNode.appendChild(e)},y.ld||0)}try{m.cookie=l.cookie}catch(p){}function t(e){for(;e.length;)!function(t){m[t]=function(){var e=arguments;g||m.queue.push(function(){m[t].apply(m,e)})}}(e.pop())}var n="track",r="TrackPage",o="TrackEvent";t([n+"Event",n+"PageView",n+"Exception",n+"Trace",n+"DependencyData",n+"Metric",n+"PageViewPerformance","start"+r,"stop"+r,"start"+o,"stop"+o,"addTelemetryInitializer","setAuthenticatedUserContext","clearAuthenticatedUserContext","flush"]),m.SeverityLevel={Verbose:0,Information:1,Warning:2,Error:3,Critical:4};var s=(d.extensionConfig||{}).ApplicationInsightsAnalytics||{};if(!0!==d[I]&&!0!==s[I]){var c="onerror";t(["_"+c]);var u=T[c];T[c]=function(e,t,n,a,i){var r=u&&u(e,t,n,a,i);return!0!==r&&m["_"+c]({message:e,url:t,lineNumber:n,columnNumber:a,error:i}),r},d.autoExceptionInstrumented=!0}return m}(y.cfg);function a(){y.onInit&&y.onInit(n)}(T[t]=n).queue&&0===n.queue.length?(n.queue.push(a),n.trackPageView({})):a()}(window,document,{
+    src: "https://js.monitor.azure.com/scripts/b/ai.2.min.js", 
+    
+    
+    
+    crossOrigin: "anonymous", 
+    
+    cfg: { 
+        connectionString: "InstrumentationKey=5a5bbde5-faba-4982-8376-789e51b32d12;IngestionEndpoint=https:\/\/uksouth-1.in.applicationinsights.azure.com\/;LiveEndpoint=https:\/\/uksouth.livediagnostics.monitor.azure.com\/"
+         
+    }});
+    </script>    
+
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+
+</html>

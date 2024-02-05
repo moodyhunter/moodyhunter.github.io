@@ -1,0 +1,761 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>android on Moody&#39;s</title>
+    <link>https://mooody.me/tags/android/</link>
+    <description>Recent content in android on Moody&#39;s</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 06 Apr 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://mooody.me/tags/android/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>逆向 Fastcon BLE 协议 - 1</title>
+      <link>https://mooody.me/posts/2023-04/reverse-the-fastcon-ble-protocol/</link>
+      <pubDate>Thu, 06 Apr 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://mooody.me/posts/2023-04/reverse-the-fastcon-ble-protocol/</guid>
+      <description>&lt;p&gt;&lt;strong&gt;本文内容不得用于商业用途&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id=&#34;前情提要&#34;&gt;
+  前情提要
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%89%8d%e6%83%85%e6%8f%90%e8%a6%81&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/moodyhunter/MoodyAPI&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;MoodyAPI&lt;/a&gt; 里面有一个组件 &lt;code&gt;LightController&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;TlDr：控制一个 BLE 灯泡。&lt;/p&gt;
+&lt;p&gt;可惜的是，之前那只灯泡坏了&lt;span class=&#34;spoiler&#34; title=&#34;你知道的太多了&#34;
+  &gt;（&lt;del&gt;都是去年的事了&lt;/del&gt;）&lt;/span
+&gt;。鄙人只好又在 Amazon 上重新
+买了&lt;a href=&#34;https://www.amazon.co.uk/gp/product/B07RL79ZDS&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;另一只同样的&lt;/a&gt;：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;amazon.png&#34; alt=&#34;amazon&#34;&gt;&lt;/p&gt;
+&lt;p&gt;去年 12 月 18 买的，没两天就收到了。收到灯泡之后整个人就傻掉了。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;同一款灯泡，为什么通信协议完全不一样了呢？&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;上次的灯泡使用的是蓝牙 BLE GATT 协议，其&lt;a href=&#34;https://github.com/moodyhunter/MoodyAPI/blob/b8870165546dcb390b674a9a1229f88af6e3a3d0/LightControl/src/main.rs#L43-L52&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;暴露了两个 Service 用于控制颜色，亮度等参数&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;但这次的灯泡完全不一样，甚至连&lt;a href=&#34;https://play.google.com/store/apps/details?id=com.xiaoyu.hlight&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;用于控制的 App&lt;/a&gt;
+都&lt;a href=&#34;https://play.google.com/store/apps/details?id=com.brgd.brblmesh&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;无法通用&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;查询了各大论坛，也发现这种新型 Fastcon 协议&lt;a href=&#34;https://community.home-assistant.io/t/broadlink-fastcon-ble-support/486815/6&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;并没有&lt;/a&gt;&lt;a href=&#34;https://www.reddit.com/r/homeassistant/comments/znj7aq/broadlink_fastcon_ble_support_yet/&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;开源实现&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;那么，是退货，还是逆向这个闭源协议呢？&lt;/p&gt;
+&lt;h2 id=&#34;hahahugoshortcode32s1hbhb&#34;&gt;
+  &lt;span class=&#34;spoiler&#34; title=&#34;你知道的太多了&#34;
+  &gt;你猜？&lt;/span
+&gt;
+  &lt;a class=&#34;heading-link&#34; href=&#34;#hahahugoshortcode32s1hbhb&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;span class=&#34;spoiler&#34; title=&#34;你知道的太多了&#34;
+  &gt;当然是逆向了&lt;/span
+&gt;
+&lt;h2 id=&#34;1-获取-apk&#34;&gt;
+  1. 获取 APK
+  &lt;a class=&#34;heading-link&#34; href=&#34;#1-%e8%8e%b7%e5%8f%96-apk&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;这第一步自然是相当容易，有什么好说的&lt;/p&gt;
+&lt;h2 id=&#34;2-反编译-java-类&#34;&gt;
+  2. 反编译 Java 类
+  &lt;a class=&#34;heading-link&#34; href=&#34;#2-%e5%8f%8d%e7%bc%96%e8%af%91-java-%e7%b1%bb&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;这一步也很简单，甚至随便找了个 &lt;a href=&#34;http://www.javadecompilers.com/&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;online 的 decompiler&lt;/a&gt; 就
+拿到（部分）源码了。&lt;/p&gt;
+&lt;h2 id=&#34;3-源码分析&#34;&gt;
+  3. 源码分析
+  &lt;a class=&#34;heading-link&#34; href=&#34;#3-%e6%ba%90%e7%a0%81%e5%88%86%e6%9e%90&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;在解包 APK 的时候，我意外发现了一个 native 库，&lt;code&gt;libbroadlink_ble.so&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;看到 JNI，我的脑子就开始发毛，这不是要逆向 C/C++ 代码了吗？（悲）&lt;/p&gt;
+&lt;h3 id=&#34;31-java-类&#34;&gt;
+  3.1 Java 类
+  &lt;a class=&#34;heading-link&#34; href=&#34;#31-java-%e7%b1%bb&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;程序里有数个名称带有 &lt;code&gt;Fastcon&lt;/code&gt; 的类，其中 &lt;code&gt;BLEFastconHelper&lt;/code&gt; 似乎是最重要的一个，包含所有
+&lt;code&gt;Fastcon&lt;/code&gt; 设备无关的逻辑，&lt;code&gt;BLSBleLight&lt;/code&gt; 似乎是专门用于智能灯泡的封装类。&lt;/p&gt;
+&lt;p&gt;另外，程序内还有一个 &lt;code&gt;cn.com.broadlink.blelight.jni.BLEUtil&lt;/code&gt; 类，里面全都是 native 方法
+的声明。&lt;/p&gt;
+&lt;h3 id=&#34;32-libbroadlink_bleso&#34;&gt;
+  3.2 &lt;code&gt;libbroadlink_ble.so&lt;/code&gt;
+  &lt;a class=&#34;heading-link&#34; href=&#34;#32-libbroadlink_bleso&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;一个神秘 native 库，看了看里面有 47 个 JNI 函数，多数都是用于数据的打包：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;native_symbols.png&#34; alt=&#34;package&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;4-开始分析-blefastconhelper-的扫描设备逻辑&#34;&gt;
+  4. 开始分析 &lt;code&gt;BLEFastconHelper&lt;/code&gt; 的扫描设备逻辑
+  &lt;a class=&#34;heading-link&#34; href=&#34;#4-%e5%bc%80%e5%a7%8b%e5%88%86%e6%9e%90-blefastconhelper-%e7%9a%84%e6%89%ab%e6%8f%8f%e8%ae%be%e5%a4%87%e9%80%bb%e8%be%91&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;这个长达两千多行的类里面的函数名倒是很 self-explanatory，但其中函数的参数名则是一团乱麻。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;bad_arguments.png&#34; alt=&#34;arguments&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;41-如何扫描设备&#34;&gt;
+  4.1 如何扫描设备
+  &lt;a class=&#34;heading-link&#34; href=&#34;#41-%e5%a6%82%e4%bd%95%e6%89%ab%e6%8f%8f%e8%ae%be%e5%a4%87&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;BLEFastconHelper&lt;/code&gt; 里面有一个 &lt;code&gt;startScanBLEDevices&lt;/code&gt; 函数，用于（开始）扫描设备。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;boolean&lt;/span&gt; &lt;span style=&#34;color:#50fa7b&#34;&gt;startScanBLEDevices&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    stopCloseBLETimer();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    BluetoothAdapter bluetoothAdapter &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#50fa7b&#34;&gt;myAdapter&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (bluetoothAdapter &lt;span style=&#34;color:#ff79c6&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;null&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;false&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8be9fd&#34;&gt;boolean&lt;/span&gt; started &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; bluetoothAdapter.&lt;span style=&#34;color:#50fa7b&#34;&gt;startLeScan&lt;/span&gt;(&lt;span style=&#34;color:#ff79c6&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#50fa7b&#34;&gt;mCallback&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Log.&lt;span style=&#34;color:#50fa7b&#34;&gt;w&lt;/span&gt;(TAG, &lt;span style=&#34;color:#f1fa8c&#34;&gt;&amp;#34;start LeScanCmd: &amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;+&lt;/span&gt; started);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;true&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;没啥用，但 &lt;code&gt;bluetoothAdapter.startLeScan&lt;/code&gt; 就直接进入 Android 的蓝牙 API 了，所以
+查看一下 &lt;code&gt;this.mCallback&lt;/code&gt; 的值。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;mCallback.png&#34; alt=&#34;mCallback&#34;&gt;&lt;/p&gt;
+&lt;p&gt;上面代码是分析过后，包含了合理变量名和注释的版本，可以看到在 &lt;code&gt;mCallback&lt;/code&gt; 内比较了蓝牙 Advertising
+数据的长度和第 7-11 个字节（&lt;code&gt;13fff0ff&lt;/code&gt;），如果相等则进行下一步处理。&lt;/p&gt;
+&lt;p&gt;那么我能不能在电脑上也进行这样的扫描，并直接获取到这些数据呢？&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;strong&gt;A Million Years Later&lt;/strong&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;答案是不行。在电脑，树莓派以及手机的某&lt;strong&gt;些&lt;/strong&gt; BLE Scanner 上都无法扫描到这个设备。&lt;/p&gt;
+&lt;h3 id=&#34;42-scan-request&#34;&gt;
+  4.2 &amp;ldquo;Scan Request&amp;rdquo;
+  &lt;a class=&#34;heading-link&#34; href=&#34;#42-scan-request&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;在这种情况下，扫描器会主动向设备发送一个请求，然后设备才会返回数据。&lt;/p&gt;
+&lt;p&gt;我需要看看在调用 &lt;code&gt;startLeScan&lt;/code&gt; 之前，扫描器是否有发送过这样的请求。&lt;/p&gt;
+&lt;p&gt;果不其然，在 &lt;code&gt;ScanDeviceActivity&lt;/code&gt; 中发现了玄机：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;ScanDeviceActivity.png&#34; alt=&#34;scan device&#34;&gt;&lt;/p&gt;
+&lt;p&gt;在这个函数的最后，他启动了一个 &lt;code&gt;AddDevThread&lt;/code&gt; 线程，在后者的 &lt;code&gt;run&lt;/code&gt; 函数中，扫描器会
+向设备发送一个 &lt;code&gt;Scan Request&lt;/code&gt;：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;AddDevThread.png&#34; alt=&#34;adddevthread&#34;&gt;&lt;/p&gt;
+&lt;p&gt;其中：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;boolean&lt;/span&gt; &lt;span style=&#34;color:#50fa7b&#34;&gt;sendStartScan&lt;/span&gt;()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8be9fd&#34;&gt;byte&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;[]&lt;/span&gt; bArr &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;new&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;byte&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;[&lt;/span&gt;12&lt;span style=&#34;color:#ff79c6&#34;&gt;]&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    bArr&lt;span style=&#34;color:#ff79c6&#34;&gt;[&lt;/span&gt;0&lt;span style=&#34;color:#ff79c6&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; 0;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;return&lt;/span&gt; sendCommand(0, bArr, (&lt;span style=&#34;color:#8be9fd&#34;&gt;byte&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;[]&lt;/span&gt;) &lt;span style=&#34;color:#ff79c6&#34;&gt;null&lt;/span&gt;, BLE_CMD_RETRY_CNT,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;-&lt;/span&gt;1, &lt;span style=&#34;color:#ff79c6&#34;&gt;false&lt;/span&gt;, &lt;span style=&#34;color:#ff79c6&#34;&gt;false&lt;/span&gt;, &lt;span style=&#34;color:#ff79c6&#34;&gt;false&lt;/span&gt;, 0);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;🤡 &lt;code&gt;-1&lt;/code&gt;, &lt;code&gt;false&lt;/code&gt;, &lt;code&gt;false&lt;/code&gt;, &lt;code&gt;false&lt;/code&gt;, &lt;code&gt;0&lt;/code&gt; 🤡&lt;/p&gt;
+&lt;p&gt;函数层层调用，一团乱麻般的参数，最终会被传递到 &lt;code&gt;doSendCommand&lt;/code&gt; 函数中：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sendStartScan()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sendCommand(0, bArr, (&lt;span style=&#34;color:#8be9fd&#34;&gt;byte&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;[]&lt;/span&gt;) &lt;span style=&#34;color:#ff79c6&#34;&gt;null&lt;/span&gt;, 1, &lt;span style=&#34;color:#ff79c6&#34;&gt;-&lt;/span&gt;1, &lt;span style=&#34;color:#ff79c6&#34;&gt;false&lt;/span&gt;, &lt;span style=&#34;color:#ff79c6&#34;&gt;false&lt;/span&gt;, &lt;span style=&#34;color:#ff79c6&#34;&gt;false&lt;/span&gt;, 0);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sendCommand(0, data, &lt;span style=&#34;color:#ff79c6&#34;&gt;null&lt;/span&gt;, 1, &lt;span style=&#34;color:#ff79c6&#34;&gt;-&lt;/span&gt;1, &lt;span style=&#34;color:#ff79c6&#34;&gt;false&lt;/span&gt;, &lt;span style=&#34;color:#ff79c6&#34;&gt;false&lt;/span&gt;, 0, &lt;span style=&#34;color:#ff79c6&#34;&gt;false&lt;/span&gt;, &lt;span style=&#34;color:#ff79c6&#34;&gt;false&lt;/span&gt;, 0);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;doSendCommand(0, data, &lt;span style=&#34;color:#ff79c6&#34;&gt;null&lt;/span&gt;, 1, &lt;span style=&#34;color:#ff79c6&#34;&gt;-&lt;/span&gt;1, &lt;span style=&#34;color:#ff79c6&#34;&gt;false&lt;/span&gt;, &lt;span style=&#34;color:#ff79c6&#34;&gt;false&lt;/span&gt;, &lt;span style=&#34;color:#ff79c6&#34;&gt;false&lt;/span&gt;, &lt;span style=&#34;color:#ff79c6&#34;&gt;false&lt;/span&gt;, 0);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;code&gt;doSendCommand&lt;/code&gt; 函数再次调用 &lt;code&gt;getPayloadWithInnerRetry&lt;/code&gt; 函数，这个函数进而调用了
+native 方法 &lt;code&gt;package_ble_fastcon_body&lt;/code&gt;，返回的数据被传递到一个名叫 &lt;code&gt;sHandler&lt;/code&gt;
+的 &lt;code&gt;Handler&lt;/code&gt; 中。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;sHandler&lt;/code&gt; 获取到数据后，调用另一个函数签名的 &lt;code&gt;doSendCommand&lt;/code&gt; 函数，在这里我将其重命名为
+&lt;code&gt;XdoSendCommand&lt;/code&gt;，在这个函数中，数据包被再次传递到 native 库函数 &lt;code&gt;get_rf_payload&lt;/code&gt;，
+并最终使用 &lt;code&gt;bluetoothLeAdvertiser2.startAdvertising&lt;/code&gt; 被发送出去。&lt;/p&gt;
+&lt;h3 id=&#34;43-scan-response&#34;&gt;
+  4.3 &amp;ldquo;Scan Response&amp;rdquo;
+  &lt;a class=&#34;heading-link&#34; href=&#34;#43-scan-response&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;只有理论分析当然不够，我还需要进行真正的测试。&lt;/p&gt;
+&lt;p&gt;于是把代码 Ctrl+C/Ctrl+V 到了一个新的 Android 项目中，然后改改改改改改改改改改改改改改改改改改一些
+编译错误，终于可以运行了。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;myapp_main.png&#34; alt=&#34;scan response&#34;&gt;&lt;/p&gt;
+&lt;p&gt;我在 MainActivity 手动添加了一个 &lt;code&gt;BLEFastconHelper.getInstance().sendStartScan();&lt;/code&gt; 调用，
+然后运行程序，果然在电脑上收到了设备发来的响应：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-log&#34; data-lang=&#34;log&#34;&gt;Manufacturer data: {65520: [
+    78, 109, 122, 172, 236, 11, 241,  15,
+     0, 233, 161, 168,  94, 54, 123, 196
+]}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;因此推测，Fastcon 设备对应的 Manufacturer ID 是 &lt;code&gt;0xfff0&lt;/code&gt;，所以上文中的 &lt;code&gt;13fff0ff&lt;/code&gt; 应该是
+&lt;code&gt;0x13&lt;/code&gt; + &lt;code&gt;0xfff0&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;那么回到 &lt;code&gt;mCallback&lt;/code&gt; 函数中，我们可以看到，如果扫描到的设备的 Manufacturer ID 与 &lt;code&gt;0xfff0&lt;/code&gt; 相等，
+则会继续调用 &lt;code&gt;BLEUtil.parse_ble_broadcast&lt;/code&gt; 这个 native 方法：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;mCallback_native.png&#34; alt=&#34;parse_ble_broadcast&#34;&gt;&lt;/p&gt;
+&lt;p&gt;可以看到，这个函数接受一个 &lt;code&gt;copyOfRange&lt;/code&gt; 数组，它的长度，一个 &lt;code&gt;mPhoneKey&lt;/code&gt; 和一个&lt;strong&gt;巨大的&lt;/strong&gt;
+&lt;code&gt;BLEScanCallback&lt;/code&gt; 类实例。&lt;/p&gt;
+&lt;p&gt;实例中使用三个不同函数来处理不同的数据包类型：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;onDevCallback&lt;/code&gt;：看起来是我们需要的 &lt;code&gt;Scan Response&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;onTimerListCallback&lt;/code&gt;：这个智能灯泡支持定时功能，这个函数应该是用来处理定时数据包的&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;onHeartBeat&lt;/code&gt;：不太清楚这个是什么。有一段时间，我的灯完全停止响应，但只有在那时我才能收到
+大量的心跳包，其他正常时间我收不到。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;44-进入-native-函数-parse_ble_broadcast&#34;&gt;
+  4.4 进入 native 函数 &lt;code&gt;parse_ble_broadcast&lt;/code&gt;
+  &lt;a class=&#34;heading-link&#34; href=&#34;#44-%e8%bf%9b%e5%85%a5-native-%e5%87%bd%e6%95%b0-parse_ble_broadcast&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;在 Binary Ninja 中打开这个 &lt;code&gt;so&lt;/code&gt;，并使用 JNI 插件分析 JNI 所需的第一个和第二个参数（&lt;code&gt;jEnv&lt;/code&gt; 和 &lt;code&gt;obj&lt;/code&gt;）：&lt;/p&gt;
+&lt;p&gt;首先是一大堆 FindClass 和 GetFieldID：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;parse_ble_broadcast-part1.png&#34; alt=&#34;parse_ble_broadcast_jni&#34;&gt;&lt;/p&gt;
+&lt;p&gt;随后进行了 Header 的 &amp;ldquo;解密&amp;rdquo;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;bl_ble_fastcon_header_encrty&lt;/code&gt; 是不是拼错了呢？&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;再之后进行 header 的解析，包括检查一些可能的 type，并最终进入到我们关注的分支，创建新对象并进行赋值：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;parse_ble_broadcast-part2-3.png&#34; alt=&#34;parse_ble_broadcast_jni_2&#34;&gt;&lt;/p&gt;
+&lt;p&gt;最终调用 &lt;code&gt;_JNIEnv::CallVoidMethod&lt;/code&gt; 并将对象传递给 &lt;code&gt;onDevCallback&lt;/code&gt; 函数。&lt;/p&gt;
+&lt;h3 id=&#34;45-回到-java-代码&#34;&gt;
+  4.5 回到 Java 代码
+  &lt;a class=&#34;heading-link&#34; href=&#34;#45-%e5%9b%9e%e5%88%b0-java-%e4%bb%a3%e7%a0%81&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-java&#34; data-lang=&#34;java&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#50fa7b&#34;&gt;onDevCallback&lt;/span&gt;(BLEDeviceInfo bLEDeviceInfo)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#ff79c6&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#50fa7b&#34;&gt;mOnDevScanCallback&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;null&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        bLEDeviceInfo.&lt;span style=&#34;color:#50fa7b&#34;&gt;name&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; BLEFastconHelper.&lt;span style=&#34;color:#50fa7b&#34;&gt;genDefaultName&lt;/span&gt;(bLEDeviceInfo);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;this&lt;/span&gt;.&lt;span style=&#34;color:#50fa7b&#34;&gt;mOnDevScanCallback&lt;/span&gt;.&lt;span style=&#34;color:#50fa7b&#34;&gt;onCallback&lt;/span&gt;(bLEDeviceInfo);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;没啥好说的，如果 &lt;code&gt;mOnDevScanCallback&lt;/code&gt; 存在，就调用它的 &lt;code&gt;onCallback&lt;/code&gt; 函数。&lt;/p&gt;
+&lt;p&gt;做到这里，我已经能在理论上发送 &lt;code&gt;Scan Request&lt;/code&gt; 并接收到 &lt;code&gt;Scan Response&lt;/code&gt; 了，接下来需要
+的就是将其使用 C 或 Rust 重写实现。&lt;/p&gt;
+&lt;h3 id=&#34;46-重写-parse-ble-broadcast-和-send-start-scan&#34;&gt;
+  4.6 重写 &lt;code&gt;Parse BLE Broadcast&lt;/code&gt; 和 &lt;code&gt;Send Start Scan&lt;/code&gt;
+  &lt;a class=&#34;heading-link&#34; href=&#34;#46-%e9%87%8d%e5%86%99-parse-ble-broadcast-%e5%92%8c-send-start-scan&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;以上内容其实在一月份就理解了，但是我一直没有动手实现，因为在写 MOS。&lt;/p&gt;
+&lt;p&gt;而接下来的内容几乎花了我整整一周的时间，因为内容涉及到 ARM64 汇编以及 native 调试，并且还
+顺便学了一些 Rust。&lt;/p&gt;
+&lt;span class=&#34;spoiler&#34; title=&#34;你知道的太多了&#34;
+  &gt;所以下一篇再写。&lt;/span
+&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>猫鼠游戏 —— 大战 Lloyds Bank App</title>
+      <link>https://mooody.me/posts/2022-12/me-vs-the-lloyds-bank-app/</link>
+      <pubDate>Sat, 24 Dec 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-12/me-vs-the-lloyds-bank-app/</guid>
+      <description>&lt;h1 id=&#34;猫鼠游戏-流水账&#34;&gt;
+  &amp;ldquo;猫鼠游戏&amp;rdquo; 流水账
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e7%8c%ab%e9%bc%a0%e6%b8%b8%e6%88%8f-%e6%b5%81%e6%b0%b4%e8%b4%a6&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h1&gt;
+&lt;p&gt;自从给手机解锁 bootloader 并启用 root 权限之后，咱的心智负担就每况愈下：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;不知道哪次什么 App 升级了新型 &lt;span class=&#34;spoiler&#34; title=&#34;你知道的太多了&#34;
+  &gt;电信诈骗&lt;/span
+&gt;(&lt;span class=&#34;spoiler&#34; title=&#34;你知道的太多了&#34;
+  &gt;root&lt;/span
+&gt;) 检测机制，
+又得花时间排错（&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;App 更新检测机制；Root 框架进行修补；App 再次更新；框架再次修补……&lt;/p&gt;
+&lt;p&gt;这似乎成了一个难以破解的死循环。&lt;/p&gt;
+&lt;p&gt;这不，事情又来了……&lt;/p&gt;
+&lt;h2 id=&#34;钱钱&#34;&gt;
+  钱钱
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e9%92%b1%e9%92%b1&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;几周前，&lt;del&gt;因为没钱吃饭&lt;/del&gt;，我打开了 Lloyds bank 的手机 app 查看余额，结果出现了一行大字：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Sorry, you can&amp;rsquo;t use this app as we&amp;rsquo;ve detected that your device has been kailbroken/rooted.
+You can still use our Mobile Banking or Internet Banking sites via your web browser.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;寄了。&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;穷途末路，Google 上搜也没搜到结果。于是开始胡乱尝试：&lt;/p&gt;
+&lt;h2 id=&#34;1-删了-magisk&#34;&gt;
+  1. 删了 Magisk
+  &lt;a class=&#34;heading-link&#34; href=&#34;#1-%e5%88%a0%e4%ba%86-magisk&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;删掉 Magisk 后观测到 app 可以正常打开，但这根本不在我的可选解决方案内。我用了 &lt;code&gt;MagiskHide Prop Config&lt;/code&gt; 换了设备
+的 fingerprint（不然 Google Pay 用不了），如果整个 Magisk 卸载的话&lt;del&gt;咱就更没法吃饭了&lt;/del&gt;。&lt;/p&gt;
+&lt;h2 id=&#34;2-又把-magisk-装回来&#34;&gt;
+  2. 又把 Magisk 装回来
+  &lt;a class=&#34;heading-link&#34; href=&#34;#2-%e5%8f%88%e6%8a%8a-magisk-%e8%a3%85%e5%9b%9e%e6%9d%a5&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;Banking App 可以没有，但是 root 和 Google Pay 不能。所以我又把 Magisk 装回来了。&lt;/p&gt;
+&lt;p&gt;在这期间就没怎么管它，直到今天。&lt;/p&gt;
+&lt;h2 id=&#34;3-shamiko&#34;&gt;
+  3. Shamiko
+  &lt;a class=&#34;heading-link&#34; href=&#34;#3-shamiko&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;经过与朋友的交谈，发现了 Shamiko。据说能 &lt;strong&gt;&lt;em&gt;Hide more trace of Zygisk&lt;/em&gt;&lt;/strong&gt;。不过因为是闭源的，那位朋友自己没尝试过，
+只是在交谈中提及了一下。&lt;/p&gt;
+&lt;p&gt;结果配置了 Shamiko 后发现仍然 app 无法正常工作。&lt;/p&gt;
+&lt;h2 id=&#34;4-island-insular&#34;&gt;
+  4. Island (Insular)
+  &lt;a class=&#34;heading-link&#34; href=&#34;#4-island-insular&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;这玩意开了个沙盒，可以给指定的 Apps 构造独立的运行环境。可惜经过了几次尝试，没能成功启动。&lt;/p&gt;
+&lt;h2 id=&#34;5-冻结重命名后的-magisk-app&#34;&gt;
+  5. 冻结重命名后的 Magisk App
+  &lt;a class=&#34;heading-link&#34; href=&#34;#5-%e5%86%bb%e7%bb%93%e9%87%8d%e5%91%bd%e5%90%8d%e5%90%8e%e7%9a%84-magisk-app&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;XDA forum 里有推荐冻结住 Magisk Manager，但测试过后仍未果。&lt;/p&gt;
+&lt;h2 id=&#34;6-hide-my-applist&#34;&gt;
+  6. Hide My Applist
+  &lt;a class=&#34;heading-link&#34; href=&#34;#6-hide-my-applist&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;新的曙光出现了！&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://forum.xda-developers.com/t/how-to-bypass-lloyds-and-santander-root-detection.3837206/post-87849927&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://forum.xda-developers.com/t/how-to-bypass-lloyds-and-santander-root-detection.3837206/post-87849927&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;就在 Dec 12 （一周前），有人成功使用 &lt;code&gt;Hide My Applist&lt;/code&gt; 修复了这个问题，那我也来试试。&lt;/p&gt;
+&lt;p&gt;发现仍然不行。&lt;/p&gt;
+&lt;h2 id=&#34;7-仍然是-hide-my-applist&#34;&gt;
+  7. 仍然是 Hide My Applist
+  &lt;a class=&#34;heading-link&#34; href=&#34;#7-%e4%bb%8d%e7%84%b6%e6%98%af-hide-my-applist&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;在仔细研究了它的 Hide My Applist 配置以后，我发现他用的是 blacklist 模式，也就是仅从 applist 里移除某些 apps，
+咱闲来无事，就想：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;我 tm 干脆给你整个白名单&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;于是把 Lloyds Bank 对应的规则改为了白名单模式，仅让其能检测到一些系统应用。&lt;/p&gt;
+&lt;p&gt;重启手机，发现竟然能打开了！&lt;/p&gt;
+&lt;h2 id=&#34;收尾&#34;&gt;
+  收尾
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%94%b6%e5%b0%be&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;Lloyds Bank 在本月 8 号发了一个&lt;a href=&#34;https://www.apkmirror.com/apk/lloyds-banking-group-plc/lloyds-bank-mobile-banking/&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;新版&lt;/a&gt;，
+名曰 104.03。就是这个版本他们 &lt;em&gt;&amp;ldquo;fixed some bugs and added &lt;strong&gt;security updates&lt;/strong&gt;.&amp;rdquo;&lt;/em&gt; 导致 app 打不开。&lt;/p&gt;
+&lt;p&gt;至于为什么改成白名单就能正常工作……估计是还新增检测了一些别的应用吧？&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;不管怎么说，我终于能看到我的个位数余额了&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;把 Magisk Manager 重命名成了 Bank，记录此次事件：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;./home.png&#34; alt=&#34;home&#34;&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Android &#39;Deploy&#39; Qt?</title>
+      <link>https://mooody.me/posts/2022-05/android-deploy-qt/</link>
+      <pubDate>Fri, 13 May 2022 02:09:05 +0100</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-05/android-deploy-qt/</guid>
+      <description>&lt;h2 id=&#34;你这-androiddeployqt-可能没法正常-deploy-qt&#34;&gt;
+  你这 &lt;code&gt;androiddeployqt&lt;/code&gt; 可能没法正常 deploy Qt
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e4%bd%a0%e8%bf%99-androiddeployqt-%e5%8f%af%e8%83%bd%e6%b2%a1%e6%b3%95%e6%ad%a3%e5%b8%b8-deploy-qt&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;h3 id=&#34;一些无聊的概念&#34;&gt;
+  一些无聊的概念
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e4%b8%80%e4%ba%9b%e6%97%a0%e8%81%8a%e7%9a%84%e6%a6%82%e5%bf%b5&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Moody&amp;rsquo;s Utility Bot&lt;/em&gt; 是一个与&lt;a href=&#34;https://github.com/moodyhunter/MoodyAPI&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;此仓库&lt;/a&gt; GitHub Actions &lt;del&gt;梦幻联动&lt;/del&gt; 的 Telegram Bot&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;负责发送消息和最新 build 产物，&lt;/li&gt;
+&lt;li&gt;&lt;del&gt;同时也负责提醒蔡队起来（出处：&lt;a href=&#34;https://github.com/moodyhunter/MoodyAPI/blob/1f1d32a8c761c7c13d486cd4e7af657e838cd44f/Server/main.go#L70&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&amp;ldquo;我起来了&amp;rdquo;&lt;/a&gt;）&lt;/del&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Qt 是 ……&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;这还用介绍吗&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;QtGraphicalEffects 是 ……&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Qt5 时期的一个 Qt module，顾名思义负责 “图形特效” 比如渐变，阴影甚至 GLSL 效果&lt;/li&gt;
+&lt;li&gt;但在 Qt6 中被 deprecate 了&lt;/li&gt;
+&lt;li&gt;但我硬是强行将其 port 到 Qt6，其实是一种 “又不是不能用” 的状态&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;开端&#34;&gt;
+  《开端》？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%bc%80%e7%ab%af&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;2022 年 5 月 1 日凌晨 1 点 00 分 56 秒：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Moody&amp;rsquo;s Utils Bot:&lt;/p&gt;
+&lt;p&gt;Successfully built the client app, [File : MoodyAppMain.apk]&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;我随即下载并安装了新版 &lt;code&gt;MoodyAppMain.apk&lt;/code&gt;，&lt;del&gt;笑死&lt;/del&gt;，直接崩掉。&lt;/p&gt;
+&lt;p&gt;当时我心里很清楚这玩意已经炸了一个月了，从愚人节当天的 &lt;a href=&#34;https://github.com/moodyhunter/MoodyAPI/commit/ad042600dfed5bc44efe5fccca7888ae8247befd&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;ad042600&lt;/a&gt; 以后就全盘裂开，但这 commit 只是简单的升级了一下 Qt 版本（622 到 630），并不应该引入新的问题。&lt;/p&gt;
+&lt;p&gt;为什么那天要迁移 Build Server？ 答：之前的编译机炸了。&lt;/p&gt;
+&lt;p&gt;因为前段时间有考试，此时（五月一号）还处于考完试疯玩期间，就并没有对此进行调查。&lt;/p&gt;
+&lt;p&gt;…………&lt;/p&gt;
+&lt;h3 id=&#34;复现&#34;&gt;
+  复现
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%a4%8d%e7%8e%b0&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;意思是这个 bug 4 月 1 号的 commit 开始出现，一直咕到现在才开始修（大概是玩够了，该老老实实把 broken build 修一修了），于是我开始重新拿起 QtCreator&lt;/p&gt;
+&lt;p&gt;首先使用 QtCreator 直接编译（我都多长时间没写过 QML 了）&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;首先我得 Build 个 Qt，或者从 Qt installer 下载一份 Qt for Android，但是我有 &lt;a href=&#34;https://github.com/moodyhunter/QtBuildScript&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;QtBuildScript&lt;/a&gt;，直接 &lt;code&gt;./build-qt.fish -p android -a x86_64&lt;/code&gt; 即可编译 Qt &lt;del&gt;（什么王婆卖瓜环节）&lt;/del&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;在等了半个小时以后，打开 QtCreator 并（从头）（重新）配置 Qt 环境（这种东西没必要赘述）&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;使用以下 CMake 参数~~（这个得记，下次要考）~~ 进行 configure 并开始 build&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cmake&#34; data-lang=&#34;cmake&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-DCMAKE_TOOLCHAIN_FILE=/PATH/TO/VCPKG/scripts/buildsystems/vcpkg.cmake
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=/PATH/TO/NDK/build/cmake/android.toolchain.cmake
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-DVCPKG_TARGET_TRIPLET=x64-android
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;上文 CMake 参数只适用于在 QtCreator 中使用 vcpkg 和 Android toolchain，而在命令行
+中使用 qt-cmake 则需要另一个变量&lt;/p&gt;
+&lt;p&gt;也就是把 &lt;code&gt;CMAKE_TOOLCHAIN_FILE&lt;/code&gt; 换为 &lt;code&gt;QT_CHAINLOAD_TOOLCHAIN_FILE&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;随后启动 Android 虚拟机进行测试，结果 &lt;strong&gt;BANG&lt;/strong&gt;&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-log&#34; data-lang=&#34;log&#34;&gt;W MoodyApp: QQmlApplicationEngine failed to load component
+W MoodyApp: qrc:/client/api/mooody/me/qml/main.qml:5:1: module &amp;#34;QtGraphicalEffects&amp;#34; is not installed
+W MoodyApp: exit app 0
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;想起之前写过一篇 &lt;a href=&#34;https://mooody.me/posts/2021-09/qt6-cmake-porting-guide/&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;code&gt;qt_add_qml_module&lt;/code&gt;&lt;/a&gt; CMake 函数的&amp;quot;详&amp;quot;解，但现在反过来看了看，并没有着重说明 &lt;code&gt;IMPORT_PATH&lt;/code&gt; 的重要性，于是打开 &lt;a href=&#34;https://doc-snapshots.qt.io/qt6-dev/qt-add-qml-module.html#qt6-add-qml-module&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Qt 文档 (dev 分支版)&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;文档里说：&lt;em&gt;&lt;code&gt;IMPORT_PATH&lt;/code&gt; 可以用来添加被依赖的 QML 模块的搜索路径。这里指定的位置需要包含 &lt;code&gt;qmldir&lt;/code&gt; 文件来标明此文件夹代表了一个 QML 模块。&lt;/em&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;那看来我加一个就行？在项目里添加了 &lt;code&gt;IMPORT_PATH ${CMAKE_BINARY_DIR}&lt;/code&gt; 并重新 build，果然效果拔群！&lt;/p&gt;
+&lt;p&gt;到现在为止，程序成功地在 Android VM 中运行了。于是我又进行了一轮实体机的测试，终于成功在生产环境（一台三星手机）上成功运行起这个 APK。&lt;/p&gt;
+&lt;p&gt;最后的最后，我进行了 &lt;code&gt;git push&lt;/code&gt;，并准备休息&lt;/p&gt;
+&lt;h3 id=&#34;就这就这能水一篇文章&#34;&gt;
+  就这？就这能水一篇文章？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%b0%b1%e8%bf%99%e5%b0%b1%e8%bf%99%e8%83%bd%e6%b0%b4%e4%b8%80%e7%af%87%e6%96%87%e7%ab%a0&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;咕了一个月的 bug 仅两行代码就能修好？&lt;/p&gt;
+&lt;p&gt;别急，本文标题所说的 &lt;code&gt;androiddeployqt&lt;/code&gt; 还没出场呢&lt;/p&gt;
+&lt;p&gt;在 &lt;a href=&#34;https://github.com/moodyhunter/MoodyAPI/commit/9f6512c3fb7a94e377a2a7f55ddcb5d4ef72b75e&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;commit&lt;/a&gt; 的时候，我就暗自怀疑：&amp;ldquo;Is it simple like this?&amp;quot;，哈哈事实证明：不可能的&lt;/p&gt;
+&lt;p&gt;就在两分钟后，编译机将 CI 环境下编译完成的 APK 自动发送到了 Telegram 群，我立即安装并打开，结果竟然&lt;strong&gt;又&lt;/strong&gt;闪退了&lt;/p&gt;
+&lt;p&gt;这下我人麻了，从头顶麻到脚尖。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;我之前的开发过程中可都没出现过 CI 产物没法用的问题啊&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;刨根问底&#34;&gt;
+  刨根问底
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%88%a8%e6%a0%b9%e9%97%ae%e5%ba%95&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;大概不用讲道理，Android 上调试肯定得搬出 &lt;code&gt;adb logcat&lt;/code&gt;：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-log&#34; data-lang=&#34;log&#34;&gt;26896  4836 W MoodyApp: QQmlApplicationEngine failed to load component
+26896  4836 W MoodyApp: qrc:/client/api/mooody/me/qml/main.qml:5:1: module &amp;#34;QtGraphicalEffects&amp;#34; is not installed
+26896  4836 W MoodyApp: exit app 0
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;这怎么和上面的 output 一模一样啊，不是修好了吗？&lt;/li&gt;
+&lt;li&gt;我的 QtGraphicalEffects 又去哪了？&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;拆包解压&#34;&gt;
+  拆包（解压）
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%8b%86%e5%8c%85%e8%a7%a3%e5%8e%8b&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;p&gt;稍微理解一些 Qt/QML 的读者可能会知道，一个 QML 模块其实对应了一个（或两个，或零个）动态库，而 Android 打包
+过程中是会把这些依赖的动态库打进 APK 的。&lt;/p&gt;
+&lt;p&gt;所以为了仔细研究 APK 里的内容，我选择使用 &lt;del&gt;KDE 精品压缩文件查看器&lt;/del&gt; Ark 打开 APK 一探究竟：&lt;/p&gt;
+&lt;p&gt;（图很小，理论上可以直接右键看源文件）&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;androiddeployqt-apk-1.png&#34; alt=&#34;APK 内部&#34;&gt;&lt;/p&gt;
+&lt;p&gt;打开源文件图片以后，就可以很清晰地看到 QtGraphicalEffects 并没有在 &lt;code&gt;lib/&lt;/code&gt; 文件夹内&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;啥叫 &amp;ldquo;可以很清晰地看到 xxx 没在&amp;rdquo;？&lt;/li&gt;
+&lt;li&gt;&lt;del&gt;anyway&lt;/del&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;依赖的 so 没在 APK 包里，这肯定是某些 deployment 的问题&lt;/p&gt;
+&lt;h4 id=&#34;ci-log&#34;&gt;
+  CI Log
+  &lt;a class=&#34;heading-link&#34; href=&#34;#ci-log&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;p&gt;经过对比，CMake Configure 输出和本地 build 时的输出并无区别，Qt 版本也一致，那么问题就被缩减到了 deployment 过程上。&lt;/p&gt;
+&lt;p&gt;我使用 &lt;code&gt;cmake --build . --parallel --verbose&lt;/code&gt; 让 CMake 在 build 过程中输出详细内容，大概就是每一
+步骤运行的程序，发现 Qt 在 Android 平台的 deployment 其实是一个名为 &lt;code&gt;androiddeployqt&lt;/code&gt; 的程序进行的，
+它详细的参数是：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# 稍微 format 了一下，不然没法给人看&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# 部分内容做了 placeholder 处理，因为源目录太长了&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# BUILDDIR 表示 build 目录&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# PATH_TO_QT 表示 Qt （host 版本） 安装路径（不是 Android）&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;/PATH_TO_QT/bin/androiddeployqt &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    --input /BUILDDIR/android-MoodyAppMain-deployment-settings.json &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    --output /BUILDDIR/android-build &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    --apk /BUILDDIR/android-build/MoodyAppMain.apk &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    --depfile /BUILDDIR/android-build/MoodyAppMain.d &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    --builddir /BUILDDIR
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;可以明显看到传入参数是 &lt;code&gt;android-MoodyAppMain-deployment-settings.json&lt;/code&gt; 这只 JSON&lt;/p&gt;
+&lt;p&gt;大概是本能反应？打开了本地能用的 JSON 文件进行对比：&lt;/p&gt;
+&lt;p&gt;这种玩意一般人都看不懂吧：
+&lt;img src=&#34;androiddeployqt-diff-1.png&#34; alt=&#34;diff-1&#34;&gt;&lt;/p&gt;
+&lt;p&gt;整篇都是 path 不同导致的 diff，简直要命。所以我将 JSON 里的绝对路径改为了 &lt;code&gt;/SOURCE&lt;/code&gt;, &lt;code&gt;/BUILDDIR&lt;/code&gt; 一类的 placeholder，diff 得出以下结果：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-diff&#34; data-lang=&#34;diff&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;diff ./android-MoodyAppMain-deployment-settings.json ./json2.json
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;&lt;/span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;5c5
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#f55&#34;&gt;&amp;lt;    &amp;#34;sdkBuildToolsRevision&amp;#34;: &amp;#34;33.0.0-rc2&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f55&#34;&gt;&lt;/span&gt;---
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#50fa7b;font-weight:bold&#34;&gt;&amp;gt;    &amp;#34;sdkBuildToolsRevision&amp;#34;: &amp;#34;31.0.0&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#50fa7b;font-weight:bold&#34;&gt;&lt;/span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;16d15
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#f55&#34;&gt;&amp;lt;    &amp;#34;application-binary&amp;#34;: &amp;#34;MoodyAppMain&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f55&#34;&gt;&lt;/span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;18a18
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#50fa7b;font-weight:bold&#34;&gt;&amp;gt;    &amp;#34;application-binary&amp;#34;: &amp;#34;MoodyAppMain&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;忽略 16/18 行的顺序问题，我发现 sdk 版本出现了不一致。但在 CI 机器上安装同样版本的 Android SDK 后，
+build 出来的 APK 仍然不包含 QtGraphicalEffects 模块。&lt;/p&gt;
+&lt;h3 id=&#34;咋回事呢&#34;&gt;
+  咋回事呢？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%92%8b%e5%9b%9e%e4%ba%8b%e5%91%a2&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;检查了 &lt;code&gt;androiddeployqt&lt;/code&gt; 的参数，是不是该检查一下输出了：&lt;/p&gt;
+&lt;p&gt;似乎没有什么有意义的：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;androiddeployqt-diff-2.png&#34; alt=&#34;diff-2&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;--verbose&#34;&gt;
+  &lt;code&gt;--verbose&lt;/code&gt;？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#--verbose&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;p&gt;无意间发现 &lt;code&gt;androiddeployqt&lt;/code&gt; 有 &lt;code&gt;--verbose&lt;/code&gt; 选项，打开 verbose 后，事情出现了转机：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;androiddeployqt-diff-3.png&#34; alt=&#34;diff-3&#34;&gt;&lt;/p&gt;
+&lt;p&gt;什么叫 &lt;code&gt;is in QML root path&lt;/code&gt;，当我回去检查 &lt;code&gt;android-MoodyAppMain-deployment-settings.json&lt;/code&gt; 时发现：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;CI 环境的 build 目录在 &lt;code&gt;SOURCE/build&lt;/code&gt;，很明显 &lt;code&gt;SOURCE&lt;/code&gt; 就是 QML root path；&lt;/li&gt;
+&lt;li&gt;而本地开发环境，由于统一管理了 build 产物，默认的 &lt;code&gt;CMAKE_BINARY_DIR&lt;/code&gt; 位于 &lt;code&gt;~/.local/build_temp&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这就导致 &lt;code&gt;BUILDDIR/QtGraphicalEffects&lt;/code&gt; 在 CI 环境和开发环境处于了不同的相对位置：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;CI 环境下，位于 QML root path 子目录&lt;/li&gt;
+&lt;li&gt;开发环境下，反之，处于别的地方&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;核心问题&#34;&gt;
+  核心问题
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%a0%b8%e5%bf%83%e9%97%ae%e9%a2%98&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;位于 &lt;a href=&#34;https://github.com/qt/qtbase/blob/dev/src/tools/androiddeployqt/main.cpp#L2103&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;src/tools/androiddeployqt/main.cpp:L2011&lt;/a&gt; 调用的 &lt;code&gt;checkQmlFileInRootPaths(const Options*, const QString &amp;amp;)&lt;/code&gt; 可知：&lt;/p&gt;
+&lt;p&gt;这个函数无脑（只）检查了子目录，而并检查「即使 module 位于子目录，能否通过 import URI 导入此 module」，因此
+导致 SOURCE 下的所有 QML module 都会被认为 &amp;ldquo;位于 QML import path 内&amp;rdquo;，但事实并非如此：&lt;/p&gt;
+&lt;p&gt;这个 QML import path 不会被 deploy 到 APK 里面，那自然里面的 QML module 就全丢了：）&lt;/p&gt;
+&lt;h3 id=&#34;后续&#34;&gt;
+  后续
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%90%8e%e7%bb%ad&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;给 Qt 发了个 patch &lt;a href=&#34;https://codereview.qt-project.org/c/qt/qtbase/&amp;#43;/411805&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;qtbase@411805&lt;/a&gt;，
+希望能帮上忙，&lt;del&gt;但说实话我也不确定是否应该这样修&lt;/del&gt;&lt;/p&gt;
+&lt;h2 id=&#34;结语&#34;&gt;
+  结语
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e7%bb%93%e8%af%ad&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;睡觉，晚安&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Qt 6.3 中 QML 的坑</title>
+      <link>https://mooody.me/posts/2022-04/qt63-qmlimportscanner/</link>
+      <pubDate>Sat, 02 Apr 2022 13:43:37 +0100</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-04/qt63-qmlimportscanner/</guid>
+      <description>&lt;h2 id=&#34;估计是-regression-了&#34;&gt;
+  估计是 Regression 了
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e4%bc%b0%e8%ae%a1%e6%98%af-regression-%e4%ba%86&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;h3 id=&#34;qmlimportscanner&#34;&gt;
+  &lt;code&gt;qmlimportscanner&lt;/code&gt;
+  &lt;a class=&#34;heading-link&#34; href=&#34;#qmlimportscanner&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;我也不知道为什么，由 &lt;code&gt;androiddeployqt&lt;/code&gt; 调用的 &lt;code&gt;qmlimportscanner&lt;/code&gt; 找不到就在本目录下的 &lt;code&gt;QtGraphicalEffects&lt;/code&gt; QML Module。&lt;/p&gt;
+&lt;h3 id=&#34;android-平台黑屏卡死&#34;&gt;
+  Android 平台黑屏卡死
+  &lt;a class=&#34;heading-link&#34; href=&#34;#android-%e5%b9%b3%e5%8f%b0%e9%bb%91%e5%b1%8f%e5%8d%a1%e6%ad%bb&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;其次，当使用 Qt 6.3 编译出的 Android APK 时，我的 &lt;code&gt;MoodyAPI Client&lt;/code&gt; 一旦退出就无法再进入界面（Sigh&lt;/p&gt;
+&lt;h3 id=&#34;解决方法&#34;&gt;
+  解决方法
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e8%a7%a3%e5%86%b3%e6%96%b9%e6%b3%95&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;&lt;del&gt;回退到 Qt6.2&lt;/del&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Press F to pay respects.&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
