@@ -163,7 +163,7 @@ weight = 3
 [[languages.en.menu.main]]
 name = "Server Status"
 target = "_blank"
-url = "https://g.mooody.me/d/home/server-status?orgId=2"
+url = "https://g.mooody.me/public-dashboards/305e9305e46240eb80345e055738c236?orgId=1&theme=light&refresh=10s"
 weight = 4
 
 [languages.zh-cn.params]
@@ -195,5 +195,5 @@ weight = 3
 [[languages.zh-cn.menu.main]]
 name = "服务状态"
 target = "_blank"
-url = "https://g.mooody.me/d/home/server-status?orgId=2"
+url = "https://g.mooody.me/public-dashboards/305e9305e46240eb80345e055738c236?orgId=1&theme=light&refresh=10s"
 weight = 4
