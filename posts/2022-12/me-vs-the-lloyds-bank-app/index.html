@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+  <title>
+  猫鼠游戏 —— 大战 Lloyds Bank App · Moody&#39;s
+</title>
+  <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+
+
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; block-all-mixed-content; default-src 'self'; child-src 'self'; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; form-action 'self' https://utteranc.es; frame-src 'self' https://utteranc.es; img-src 'self' https:; object-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://utteranc.es; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://utteranc.es https://static.cloudflareinsights.com https://js.monitor.azure.com; connect-src 'self' https://utteranc.es https://uksouth-1.in.applicationinsights.azure.com;">
+
+
+
+
+<meta name="author" content="Moody">
+<meta name="description" content="&ldquo;猫鼠游戏&rdquo; 流水账 链接到标题 自从给手机解锁 bootloader 并启用 root 权限之后，咱的心智负担就每况愈下：
+不知道哪次什么 App 升级了新型 电信诈骗(root) 检测机制， 又得花时间排错（
+App 更新检测机制；Root 框架进行修补；App 再次更新；框架再次修补……
+这似乎成了一个难以破解的死循环。
+这不，事情又来了……
+钱钱 链接到标题 几周前，因为没钱吃饭，我打开了 Lloyds bank 的手机 app 查看余额，结果出现了一行大字：
+Sorry, you can&rsquo;t use this app as we&rsquo;ve detected that your device has been kailbroken/rooted. You can still use our Mobile Banking or Internet Banking sites via your web browser.
+寄了。
+穷途末路，Google 上搜也没搜到结果。于是开始胡乱尝试：
+1. 删了 Magisk 链接到标题 删掉 Magisk 后观测到 app 可以正常打开，但这根本不在我的可选解决方案内。我用了 MagiskHide Prop Config 换了设备 的 fingerprint（不然 Google Pay 用不了），如果整个 Magisk 卸载的话咱就更没法吃饭了。">
+<meta name="keywords" content="blog,personal,中文,个人">
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="猫鼠游戏 —— 大战 Lloyds Bank App"/>
+<meta name="twitter:description" content="&ldquo;猫鼠游戏&rdquo; 流水账 链接到标题 自从给手机解锁 bootloader 并启用 root 权限之后，咱的心智负担就每况愈下：
+不知道哪次什么 App 升级了新型 电信诈骗(root) 检测机制， 又得花时间排错（
+App 更新检测机制；Root 框架进行修补；App 再次更新；框架再次修补……
+这似乎成了一个难以破解的死循环。
+这不，事情又来了……
+钱钱 链接到标题 几周前，因为没钱吃饭，我打开了 Lloyds bank 的手机 app 查看余额，结果出现了一行大字：
+Sorry, you can&rsquo;t use this app as we&rsquo;ve detected that your device has been kailbroken/rooted. You can still use our Mobile Banking or Internet Banking sites via your web browser.
+寄了。
+穷途末路，Google 上搜也没搜到结果。于是开始胡乱尝试：
+1. 删了 Magisk 链接到标题 删掉 Magisk 后观测到 app 可以正常打开，但这根本不在我的可选解决方案内。我用了 MagiskHide Prop Config 换了设备 的 fingerprint（不然 Google Pay 用不了），如果整个 Magisk 卸载的话咱就更没法吃饭了。"/>
+
+<meta property="og:title" content="猫鼠游戏 —— 大战 Lloyds Bank App" />
+<meta property="og:description" content="&ldquo;猫鼠游戏&rdquo; 流水账 链接到标题 自从给手机解锁 bootloader 并启用 root 权限之后，咱的心智负担就每况愈下：
+不知道哪次什么 App 升级了新型 电信诈骗(root) 检测机制， 又得花时间排错（
+App 更新检测机制；Root 框架进行修补；App 再次更新；框架再次修补……
+这似乎成了一个难以破解的死循环。
+这不，事情又来了……
+钱钱 链接到标题 几周前，因为没钱吃饭，我打开了 Lloyds bank 的手机 app 查看余额，结果出现了一行大字：
+Sorry, you can&rsquo;t use this app as we&rsquo;ve detected that your device has been kailbroken/rooted. You can still use our Mobile Banking or Internet Banking sites via your web browser.
+寄了。
+穷途末路，Google 上搜也没搜到结果。于是开始胡乱尝试：
+1. 删了 Magisk 链接到标题 删掉 Magisk 后观测到 app 可以正常打开，但这根本不在我的可选解决方案内。我用了 MagiskHide Prop Config 换了设备 的 fingerprint（不然 Google Pay 用不了），如果整个 Magisk 卸载的话咱就更没法吃饭了。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mooody.me/posts/2022-12/me-vs-the-lloyds-bank-app/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-12-24T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-12-24T00:00:00+00:00" />
+
+
+
+
+<link rel="canonical" href="https://mooody.me/posts/2022-12/me-vs-the-lloyds-bank-app/">
+
+
+<link rel="preload" href="/fonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+
+
+  
+  
+  <link rel="stylesheet" href="/css/coder.min.38c4552ac40f9ae3408bad40358f654ebd8804412fe74ed56f2d6c8a7af82dd3.css" integrity="sha256-OMRVKsQPmuNAi61ANY9lTr2IBEEv507Vby1sinr4LdM=" crossorigin="anonymous" media="screen" />
+
+
+
+
+
+
+  
+    
+    
+    <link rel="stylesheet" href="/css/coder-dark.min.a00e6364bacbc8266ad1cc81230774a1397198f8cfb7bcba29b7d6fcb54ce57f.css" integrity="sha256-oA5jZLrLyCZq0cyBIwd0oTlxmPjPt7y6KbfW/LVM5X8=" crossorigin="anonymous" media="screen" />
+  
+
+
+
+ 
+
+
+  
+  
+    
+    <link rel="stylesheet" href="/scss/cards.min.66689eb6794f4d37bf49748d47a91d8dc5918d78d800a8fae4f1a9649ce35145.css" integrity="sha256-ZmietnlPTTe/SXSNR6kdjcWRjXjYAKj65PGpZJzjUUU=" crossorigin="anonymous" media="screen" />
+  
+
+  
+  
+    
+    <link rel="stylesheet" href="/scss/spoiler.min.6758d9b6919e25bb0a3c105fb53c53d4329838c7c3c6c41a4443a232bcca0886.css" integrity="sha256-Z1jZtpGeJbsKPBBftTxT1DKYOMfDxsQaREOiMrzKCIY=" crossorigin="anonymous" media="screen" />
+  
+
+
+
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg" sizes="any">
+<link rel="icon" type="image/png" href="/images/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/png" href="/images/favicon.ico" sizes="16x16">
+
+<link rel="apple-touch-icon" href="/images/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico">
+
+<link rel="manifest" href="/site.webmanifest">
+<link rel="mask-icon" href="/images/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"
+/>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"
+></script>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"
+></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+      ],
+    });
+  });
+</script>
+
+
+
+</head>
+
+
+
+
+
+
+<body class="preload-transitions colorscheme-auto">
+  
+<div class="float-container">
+    <a id="dark-mode-toggle" class="colorscheme-toggle">
+        <i class="fa-solid fa-adjust fa-fw" aria-hidden="true"></i>
+    </a>
+</div>
+
+
+  <main class="wrapper">
+    <nav class="navigation">
+  <section class="container">
+    
+    <a class="navigation-title" href="https://mooody.me/">
+      Moody&#39;s
+    </a>
+    
+    
+      <input type="checkbox" id="menu-toggle" />
+      <label class="menu-button float-right" for="menu-toggle">
+        <i class="fa-solid fa-bars fa-fw" aria-hidden="true"></i>
+      </label>
+      <ul class="navigation-list">
+        
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/">主页</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/posts/">文章</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/friends/">友链</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/about/">我</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="https://g.mooody.me/public-dashboards/305e9305e46240eb80345e055738c236?orgId=1&amp;theme=light&amp;refresh=10s">服务状态</a>
+            </li>
+          
+        
+        
+          
+          
+          
+            
+          
+            
+              
+                <li class="navigation-item menu-separator">
+                  <span>|</span>
+                </li>
+                
+              
+              <li class="navigation-item">
+                <a href="/en/">🇬🇧</a>
+              </li>
+            
+          
+        
+      </ul>
+    
+  </section>
+</nav>
+
+
+    <div class="content">
+      
+  <section class="container post">
+    <article>
+      <header>
+        <div class="post-title">
+          <h1 class="title">
+            <a class="title-link" href="https://mooody.me/posts/2022-12/me-vs-the-lloyds-bank-app/">
+              猫鼠游戏 —— 大战 Lloyds Bank App
+            </a>
+          </h1>
+        </div>
+        <div class="post-meta">
+          <div class="date">
+            <span class="posted-on">
+              <i class="fa-solid fa-calendar" aria-hidden="true"></i>
+              <time datetime="2022-12-24T00:00:00Z">
+                December 24, 2022
+              </time>
+            </span>
+            <span class="reading-time">
+              <i class="fa-solid fa-clock" aria-hidden="true"></i>
+              阅读时间：1 分钟
+            </span>
+          </div>
+          
+          
+          <div class="tags">
+  <i class="fa-solid fa-tag" aria-hidden="true"></i>
+    <span class="tag">
+      <a href="/tags/android/">Android</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/%E5%9D%91/">坑</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/uk-life/">UK Life</a>
+    </span></div>
+
+        </div>
+      </header>
+
+      <div class="post-content">
+        
+        <h1 id="猫鼠游戏-流水账">
+  &ldquo;猫鼠游戏&rdquo; 流水账
+  <a class="heading-link" href="#%e7%8c%ab%e9%bc%a0%e6%b8%b8%e6%88%8f-%e6%b5%81%e6%b0%b4%e8%b4%a6">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h1>
+<p>自从给手机解锁 bootloader 并启用 root 权限之后，咱的心智负担就每况愈下：</p>
+<blockquote>
+<p>不知道哪次什么 App 升级了新型 <span class="spoiler" title="你知道的太多了"
+  >电信诈骗</span
+>(<span class="spoiler" title="你知道的太多了"
+  >root</span
+>) 检测机制，
+又得花时间排错（</p>
+</blockquote>
+<p>App 更新检测机制；Root 框架进行修补；App 再次更新；框架再次修补……</p>
+<p>这似乎成了一个难以破解的死循环。</p>
+<p>这不，事情又来了……</p>
+<h2 id="钱钱">
+  钱钱
+  <a class="heading-link" href="#%e9%92%b1%e9%92%b1">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>几周前，<del>因为没钱吃饭</del>，我打开了 Lloyds bank 的手机 app 查看余额，结果出现了一行大字：</p>
+<blockquote>
+<p>Sorry, you can&rsquo;t use this app as we&rsquo;ve detected that your device has been kailbroken/rooted.
+You can still use our Mobile Banking or Internet Banking sites via your web browser.</p>
+</blockquote>
+<p>寄了。</p>
+<hr>
+<p>穷途末路，Google 上搜也没搜到结果。于是开始胡乱尝试：</p>
+<h2 id="1-删了-magisk">
+  1. 删了 Magisk
+  <a class="heading-link" href="#1-%e5%88%a0%e4%ba%86-magisk">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>删掉 Magisk 后观测到 app 可以正常打开，但这根本不在我的可选解决方案内。我用了 <code>MagiskHide Prop Config</code> 换了设备
+的 fingerprint（不然 Google Pay 用不了），如果整个 Magisk 卸载的话<del>咱就更没法吃饭了</del>。</p>
+<h2 id="2-又把-magisk-装回来">
+  2. 又把 Magisk 装回来
+  <a class="heading-link" href="#2-%e5%8f%88%e6%8a%8a-magisk-%e8%a3%85%e5%9b%9e%e6%9d%a5">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>Banking App 可以没有，但是 root 和 Google Pay 不能。所以我又把 Magisk 装回来了。</p>
+<p>在这期间就没怎么管它，直到今天。</p>
+<h2 id="3-shamiko">
+  3. Shamiko
+  <a class="heading-link" href="#3-shamiko">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>经过与朋友的交谈，发现了 Shamiko。据说能 <strong><em>Hide more trace of Zygisk</em></strong>。不过因为是闭源的，那位朋友自己没尝试过，
+只是在交谈中提及了一下。</p>
+<p>结果配置了 Shamiko 后发现仍然 app 无法正常工作。</p>
+<h2 id="4-island-insular">
+  4. Island (Insular)
+  <a class="heading-link" href="#4-island-insular">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>这玩意开了个沙盒，可以给指定的 Apps 构造独立的运行环境。可惜经过了几次尝试，没能成功启动。</p>
+<h2 id="5-冻结重命名后的-magisk-app">
+  5. 冻结重命名后的 Magisk App
+  <a class="heading-link" href="#5-%e5%86%bb%e7%bb%93%e9%87%8d%e5%91%bd%e5%90%8d%e5%90%8e%e7%9a%84-magisk-app">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>XDA forum 里有推荐冻结住 Magisk Manager，但测试过后仍未果。</p>
+<h2 id="6-hide-my-applist">
+  6. Hide My Applist
+  <a class="heading-link" href="#6-hide-my-applist">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>新的曙光出现了！</p>
+<p><a href="https://forum.xda-developers.com/t/how-to-bypass-lloyds-and-santander-root-detection.3837206/post-87849927"  class="external-link" target="_blank" rel="noopener">https://forum.xda-developers.com/t/how-to-bypass-lloyds-and-santander-root-detection.3837206/post-87849927</a></p>
+<p>就在 Dec 12 （一周前），有人成功使用 <code>Hide My Applist</code> 修复了这个问题，那我也来试试。</p>
+<p>发现仍然不行。</p>
+<h2 id="7-仍然是-hide-my-applist">
+  7. 仍然是 Hide My Applist
+  <a class="heading-link" href="#7-%e4%bb%8d%e7%84%b6%e6%98%af-hide-my-applist">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>在仔细研究了它的 Hide My Applist 配置以后，我发现他用的是 blacklist 模式，也就是仅从 applist 里移除某些 apps，
+咱闲来无事，就想：</p>
+<blockquote>
+<p>我 tm 干脆给你整个白名单</p>
+</blockquote>
+<p>于是把 Lloyds Bank 对应的规则改为了白名单模式，仅让其能检测到一些系统应用。</p>
+<p>重启手机，发现竟然能打开了！</p>
+<h2 id="收尾">
+  收尾
+  <a class="heading-link" href="#%e6%94%b6%e5%b0%be">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>Lloyds Bank 在本月 8 号发了一个<a href="https://www.apkmirror.com/apk/lloyds-banking-group-plc/lloyds-bank-mobile-banking/"  class="external-link" target="_blank" rel="noopener">新版</a>，
+名曰 104.03。就是这个版本他们 <em>&ldquo;fixed some bugs and added <strong>security updates</strong>.&rdquo;</em> 导致 app 打不开。</p>
+<p>至于为什么改成白名单就能正常工作……估计是还新增检测了一些别的应用吧？</p>
+<p><strong><em>不管怎么说，我终于能看到我的个位数余额了</em></strong></p>
+<p>把 Magisk Manager 重命名成了 Bank，记录此次事件：</p>
+<p><img alt="home" src="./home.png"></p>
+
+      </div>
+
+
+      <footer>
+        
+
+
+        
+        
+        <div class="comments">
+  <script>
+
+    let getTheme = window.localStorage && window.localStorage.getItem("colorscheme");
+    let themeInParams = '';
+
+    if (getTheme == null) {
+      if (themeInParams !== '' && themeInParams !== 'auto') {
+        getTheme = themeInParams;
+      }
+      else {
+        getTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
+      }
+    }
+
+    let theme = getTheme === 'dark' ? 'github-dark' : 'github-light';
+    let s = document.createElement('script');
+    s.src = 'https://utteranc.es/client.js';
+    s.setAttribute('repo', 'moodyhunter\/moodyhunter.github.io');
+    s.setAttribute('issue-term', 'pathname');
+    s.setAttribute('theme', theme);
+    s.setAttribute('crossorigin', 'anonymous');
+    s.setAttribute('async', '');
+    document.querySelector('div.comments').innerHTML = '';
+    document.querySelector('div.comments').appendChild(s);
+
+  </script>
+</div>
+        
+        
+
+        
+      </footer>
+    </article>
+
+    
+  </section>
+
+    </div>
+
+    <footer class="footer">
+  <section class="container">
+    ©
+    
+      2021 -
+    
+    2024
+     Moody 
+    ·
+    
+      许可依据 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA-4.0</a>
+    ·
+    
+    技术支持 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/" target="_blank" rel="noopener">Coder</a>.
+    
+  </section>
+</footer>
+
+  </main>
+
+  
+
+  
+  
+  <script src="/js/coder.min.6ae284be93d2d19dad1f02b0039508d9aab3180a12a06dcc71b0b0ef7825a317.js" integrity="sha256-auKEvpPS0Z2tHwKwA5UI2aqzGAoSoG3McbCw73gloxc="></script>
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  <script type="text/javascript">
+    !function(T,l,y){var S=T.location,k="script",D="connectionString",C="ingestionendpoint",I="disableExceptionTracking",E="ai.device.",b="toLowerCase",w="crossOrigin",N="POST",e="appInsightsSDK",t=y.name||"appInsights";(y.name||T[e])&&(T[e]=t);var n=T[t]||function(d){var g=!1,f=!1,m={initialize:!0,queue:[],sv:"5",version:2,config:d};function v(e,t){var n={},a="Browser";return n[E+"id"]=a[b](),n[E+"type"]=a,n["ai.operation.name"]=S&&S.pathname||"_unknown_",n["ai.internal.sdkVersion"]="javascript:snippet_"+(m.sv||m.version),{time:function(){var e=new Date;function t(e){var t=""+e;return 1===t.length&&(t="0"+t),t}return e.getUTCFullYear()+"-"+t(1+e.getUTCMonth())+"-"+t(e.getUTCDate())+"T"+t(e.getUTCHours())+":"+t(e.getUTCMinutes())+":"+t(e.getUTCSeconds())+"."+((e.getUTCMilliseconds()/1e3).toFixed(3)+"").slice(2,5)+"Z"}(),name:"Microsoft.ApplicationInsights."+e.replace(/-/g,"")+"."+t,sampleRate:100,tags:n,data:{baseData:{ver:2}}}}var h=d.url||y.src;if(h){function a(e){var t,n,a,i,r,o,s,c,u,p,l;g=!0,m.queue=[],f||(f=!0,t=h,s=function(){var e={},t=d.connectionString;if(t)for(var n=t.split(";"),a=0;a<n.length;a++){var i=n[a].split("=");2===i.length&&(e[i[0][b]()]=i[1])}if(!e[C]){var r=e.endpointsuffix,o=r?e.location:null;e[C]="https://"+(o?o+".":"")+"dc."+(r||"services.visualstudio.com")}return e}(),c=s[D]||d[D]||"",u=s[C],p=u?u+"/v2/track":d.endpointUrl,(l=[]).push((n="SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details)",a=t,i=p,(o=(r=v(c,"Exception")).data).baseType="ExceptionData",o.baseData.exceptions=[{typeName:"SDKLoadFailed",message:n.replace(/\./g,"-"),hasFullStack:!1,stack:n+"\nSnippet failed to load ["+a+"] -- Telemetry is disabled\nHelp Link: https://go.microsoft.com/fwlink/?linkid=2128109\nHost: "+(S&&S.pathname||"_unknown_")+"\nEndpoint: "+i,parsedStack:[]}],r)),l.push(function(e,t,n,a){var i=v(c,"Message"),r=i.data;r.baseType="MessageData";var o=r.baseData;return o.message='AI (Internal): 99 message:"'+("SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details) ("+n+")").replace(/\"/g,"")+'"',o.properties={endpoint:a},i}(0,0,t,p)),function(e,t){if(JSON){var n=T.fetch;if(n&&!y.useXhr)n(t,{method:N,body:JSON.stringify(e),mode:"cors"});else if(XMLHttpRequest){var a=new XMLHttpRequest;a.open(N,t),a.setRequestHeader("Content-type","application/json"),a.send(JSON.stringify(e))}}}(l,p))}function i(e,t){f||setTimeout(function(){!t&&m.core||a()},500)}var e=function(){var n=l.createElement(k);n.src=h;var e=y[w];return!e&&""!==e||"undefined"==n[w]||(n[w]=e),n.onload=i,n.onerror=a,n.onreadystatechange=function(e,t){"loaded"!==n.readyState&&"complete"!==n.readyState||i(0,t)},n}();y.ld<0?l.getElementsByTagName("head")[0].appendChild(e):setTimeout(function(){l.getElementsByTagName(k)[0].parentNode.appendChild(e)},y.ld||0)}try{m.cookie=l.cookie}catch(p){}function t(e){for(;e.length;)!function(t){m[t]=function(){var e=arguments;g||m.queue.push(function(){m[t].apply(m,e)})}}(e.pop())}var n="track",r="TrackPage",o="TrackEvent";t([n+"Event",n+"PageView",n+"Exception",n+"Trace",n+"DependencyData",n+"Metric",n+"PageViewPerformance","start"+r,"stop"+r,"start"+o,"stop"+o,"addTelemetryInitializer","setAuthenticatedUserContext","clearAuthenticatedUserContext","flush"]),m.SeverityLevel={Verbose:0,Information:1,Warning:2,Error:3,Critical:4};var s=(d.extensionConfig||{}).ApplicationInsightsAnalytics||{};if(!0!==d[I]&&!0!==s[I]){var c="onerror";t(["_"+c]);var u=T[c];T[c]=function(e,t,n,a,i){var r=u&&u(e,t,n,a,i);return!0!==r&&m["_"+c]({message:e,url:t,lineNumber:n,columnNumber:a,error:i}),r},d.autoExceptionInstrumented=!0}return m}(y.cfg);function a(){y.onInit&&y.onInit(n)}(T[t]=n).queue&&0===n.queue.length?(n.queue.push(a),n.trackPageView({})):a()}(window,document,{
+    src: "https://js.monitor.azure.com/scripts/b/ai.2.min.js", 
+    
+    
+    
+    crossOrigin: "anonymous", 
+    
+    cfg: { 
+        connectionString: "InstrumentationKey=5a5bbde5-faba-4982-8376-789e51b32d12;IngestionEndpoint=https:\/\/uksouth-1.in.applicationinsights.azure.com\/;LiveEndpoint=https:\/\/uksouth.livediagnostics.monitor.azure.com\/"
+         
+    }});
+    </script>    
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+
+</html>

@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Qmake on Moody&#39;s</title>
+    <link>https://mooody.me/tags/qmake/</link>
+    <description>Recent content in Qmake on Moody&#39;s</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 28 Apr 2022 15:44:00 +0100</lastBuildDate><atom:link href="https://mooody.me/tags/qmake/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>QProcess in Qemu - A Detailed Explanation</title>
+      <link>https://mooody.me/posts/2022-04/qprocess-in-qemu/</link>
+      <pubDate>Thu, 28 Apr 2022 15:44:00 +0100</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-04/qprocess-in-qemu/</guid>
+      <description>&lt;p&gt;It&amp;rsquo;s been a long time since my promise to publish a detailed write-up on what the hell was
+actually going on inside qemu.&lt;/p&gt;
+&lt;p&gt;Qt, for its Unix QProcess implementation, utilises &lt;a href=&#34;https://doc.qt.io/qt-6/qtcore-attribution-forkfd.html&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;forkfd library&lt;/a&gt;, (See also: &lt;a href=&#34;https://github.com/qt/qtbase/tree/dev/src/3rdparty/forkfd&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://github.com/qt/qtbase/tree/dev/src/3rdparty/forkfd&lt;/a&gt;) as a helper library to fork subprocess.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;pidfd&lt;/code&gt; is a new kernel feature, which has just been added to the kernel upon v5.2.&lt;/p&gt;
+&lt;p&gt;Since &lt;a href=&#34;https://codereview.qt-project.org/c/qt/qtbase/&amp;#43;/313894&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;this merge&lt;/a&gt;, Qt added a new
+configuration feature (&lt;code&gt;forkfd_pidfd&lt;/code&gt;, &amp;ldquo;CLONE_PIDFD support in forkfd&amp;rdquo;) and it was default
+to ON on Linux.&lt;/p&gt;
+&lt;p&gt;When this feature is ON, Qt does nothing special, forkfd library selectively uses either
+&lt;code&gt;forkfd()&lt;/code&gt; or &lt;code&gt;fork()&lt;/code&gt; based on kernel version: (it goes into
+&lt;a href=&#34;https://github.com/qt/qtbase/blob/dev/src/3rdparty/forkfd/forkfd.c#L654-L656&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;this branch&lt;/a&gt;
+and then
+&lt;a href=&#34;https://github.com/qt/qtbase/blob/dev/src/3rdparty/forkfd/forkfd_linux.c#L150&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;sets CLONE_PIDFD here&lt;/a&gt;
+before calling
+&lt;a href=&#34;https://github.com/qt/qtbase/blob/dev/src/3rdparty/forkfd/forkfd_linux.c#L68&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;clone&lt;/a&gt;)&lt;/p&gt;
+&lt;p&gt;OTOH, if the feature is OFF, Qt sets the &lt;code&gt;FFD_USE_FORK&lt;/code&gt; flag (say: forkfd please use &lt;code&gt;fork&lt;/code&gt;
+anyway) when calling &lt;code&gt;::forkfd()&lt;/code&gt;, which will cause forkfd to use &lt;code&gt;fork()&lt;/code&gt; direcly.&lt;/p&gt;
+&lt;p&gt;Under regular circumstances, this works well, forkfd is smart enough to correctly detect the
+kernel version and use the correct syscall, however, things go south fast when &lt;code&gt;qemu-user&lt;/code&gt;
+steps in:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Qt has no &lt;code&gt;FFD_USE_FORK&lt;/code&gt; set, and&lt;/li&gt;
+&lt;li&gt;forkfd thinks the kernel has correct &lt;code&gt;forkfd&lt;/code&gt; syscall implementation (because it should have), and&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;QEMU has no support for &lt;code&gt;clone&lt;/code&gt;-ing with &lt;code&gt;CLONE_PIDFD&lt;/code&gt; yet (there&amp;rsquo;s a &lt;a href=&#34;https://patchew.org/QEMU/mvm4kadwyrm.fsf@suse.de/&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;possibly abandoned patch&lt;/a&gt;)&lt;/strong&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;(original blog post: &lt;a href=&#34;https://mooody.me/posts/2022-04/archrv-qmake6/&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;记一次-debug-qmake&lt;/a&gt;)&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>记一次 debug qmake</title>
+      <link>https://mooody.me/posts/2022-04/archrv-qmake6/</link>
+      <pubDate>Thu, 14 Apr 2022 00:32:37 +0100</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-04/archrv-qmake6/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;原本想甩锅 Qt，但后来发现&lt;del&gt;小丑竟是 qemu&lt;/del&gt; :)&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;正片开始&#34;&gt;
+  正片开始
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%ad%a3%e7%89%87%e5%bc%80%e5%a7%8b&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;初来乍到 &lt;code&gt;PLCT::archrv-pkg&lt;/code&gt;，作为新人总想快点贡献点什么，于是各种翻 build log。&lt;/p&gt;
+&lt;p&gt;qalculate-qt:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-log&#34; data-lang=&#34;log&#34;&gt;/usr/lib/qt6/mkspecs/features/toolchain.prf:76: Variable QMAKE_CXX.COMPILER_MACROS is not defined.
+Project ERROR: failed to parse default search paths from compiler output
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;打包机扔出了这么个错误，深受 qmake 其害的我看到这就准备开 &lt;a href=&#34;https://bugreports.qt.io&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;bugreports.qt.io&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;但是转头一想：肯定群里的大佬早就看到了这个问题，应该已经在 WIP 了吧，于是在群消息记录里搜了一下，
+发现果然早在上个月 24 号（两周前左右）就在讨论这个问题了。&lt;/p&gt;
+&lt;p&gt;可惜没能解决，翻记录说是 qemu 里独有的问题，换到物理机上就没事了。&lt;/p&gt;
+&lt;p&gt;抱着试一试万一能给 Qt 水个 bugreport 的心态，我打开了这个文件：&lt;code&gt;features/toolchain.prf&lt;/code&gt; 并找到第 76 行：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-qmake&#34; data-lang=&#34;qmake&#34;&gt;73:         cache($${target_prefix}.$$v, set stash, $$v)
+74:         $${target_prefix}.COMPILER_MACROS += $$v
+75:     }
+76:     cache($${target_prefix}.COMPILER_MACROS, set stash) &amp;lt;- 这里
+77: } else {
+78:     # load from the cache
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;很明显是一个 qmake 变量 &amp;ldquo;&lt;code&gt;某些东西.COMPILER_MACROS&lt;/code&gt;&amp;rdquo; 的解引用（取值）。&lt;/p&gt;
+&lt;p&gt;根据报错能看出 &lt;code&gt;某些东西&lt;/code&gt; 应该是 &lt;code&gt;QMAKE_CXX&lt;/code&gt;，于是继续向上翻：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-qmake&#34; data-lang=&#34;qmake&#34;&gt;66: for (v, vars) {
+67:    !contains(v, &amp;#34;[A-Z_]+ = .*&amp;#34;): next()
+68:     # Set both &amp;lt;varname&amp;gt; for the outer scope ...
+69:     eval($$v)
+70:     v ~= s/ .*//
+71:     isEmpty($$v): error(&amp;#34;Compiler produced empty value for $${v}.&amp;#34;)
+72:     # ... and save QMAKE_(HOST_)?CXX.&amp;lt;varname&amp;gt; in the cache.
+73:     cache($${target_prefix}.$$v, set stash, $$v)
+74:     $${target_prefix}.COMPILER_MACROS += $$v
+75: }
+76: cache($${target_prefix}.COMPILER_MACROS, set stash) &amp;lt;- 核爆中心
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;稍有常识的人都知道这是个 for loop，根据 L74 可以看出这个循环是用来向
+&lt;code&gt;COMPILER_MACROS&lt;/code&gt; append 一些值，我想起了 log 调试大法，于是眼疾手快就在这附近加了
+几个 &lt;code&gt;message(&amp;quot;....&amp;quot;)&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;随着 qmake6 重新运行，我发现在 &lt;code&gt;for&lt;/code&gt; 循环里并没有任何输出出现，这使人不禁怀疑这个
+&lt;code&gt;for&lt;/code&gt; 循环究竟有没有跑。带着这个问题，又在 &lt;code&gt;for&lt;/code&gt; 上面一行输出 &lt;code&gt;vars&lt;/code&gt;，也就是循环对象。&lt;/p&gt;
+&lt;p&gt;我还特地打了引号，避免输出的是个空格然后消失在 Konsole 大海中，结果发现这个 &lt;code&gt;var&lt;/code&gt; 里啥也
+没有。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;咋就成空的了？&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;继续向上翻，整段代码被包在了一个 &lt;code&gt;isEmpty($${target_prefix}.COMPILER_MACROS) {&lt;/code&gt;
+分支，说明这个变量为空，其实是在预期情况内。紧接着是两个分支：&lt;code&gt;msvc&lt;/code&gt; 和 &lt;code&gt;gcc|ghs&lt;/code&gt; 很明显
+应该是走 &lt;code&gt;gcc&lt;/code&gt; 分支：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-qmake&#34; data-lang=&#34;qmake&#34;&gt;63: } else: gcc|ghs {
+64:     vars = $$qtVariablesFromGCC($$QMAKE_CXX)
+65: }
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;找到 &lt;code&gt;vars&lt;/code&gt; 的来源了！这里调用了一个名为 &lt;code&gt;qtVariablesFromGCC&lt;/code&gt; 的函数，传入单个参数
+&lt;code&gt;$$QMAKE_CXX&lt;/code&gt;，返回一个 list （也就是 &lt;code&gt;vars&lt;/code&gt;），于是继续跟进函数去 debug。&lt;/p&gt;
+&lt;p&gt;函数定义很简单（节省地方稍微改了下缩进）：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-qmake&#34; data-lang=&#34;qmake&#34;&gt;37: defineReplace(qtVariablesFromGCC) {
+38:   ret = $$system(&amp;#34;$$1 -E $$system_quote($$PWD/data/macros.cpp) \
+39:     2&amp;gt;$$QMAKE_SYSTEM_NULL_DEVICE&amp;#34;, lines, ec)
+40:   !equals(ec, 0): qtCompilerError($$1, $$ret)
+41:   return($$ret)
+42: }
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;函数开头第一句话一个 &lt;code&gt;system&lt;/code&gt;，意思是要调用个子进程，然后读取输出。40 行的判断 ec 按照
+标准缩写应该是 &lt;code&gt;error code&lt;/code&gt;，先猜应该是个返回值。&lt;/p&gt;
+&lt;p&gt;于是开始 &lt;code&gt;message()&lt;/code&gt; 大法。&lt;/p&gt;
+&lt;p&gt;于是发现这 &lt;code&gt;ret&lt;/code&gt; 为空，我将 &lt;code&gt;system()&lt;/code&gt; 的参数单独拿出来跑：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# $$1 -E $$system_quote($$PWD/data/macros.cpp) 2&amp;gt;$$QMAKE_SYSTEM_NULL_DEVICE&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# 参数替换可得&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ c++ -E &lt;span style=&#34;color:#ff79c6&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;pwd&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt;/data/macros.cpp 2&amp;gt;/dev/null
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 0 &amp;#34;./macros.cpp&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 0 &amp;#34;&amp;lt;built-in&amp;gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 0 &amp;#34;&amp;lt;command-line&amp;gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 1 &amp;#34;/usr/include/stdc-predef.h&amp;#34; 1 3 4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 0 &amp;#34;&amp;lt;command-line&amp;gt;&amp;#34; 2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 1 &amp;#34;./macros.cpp&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;QT_COMPILER_STDCXX&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; 201703L
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 26 &amp;#34;./macros.cpp&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;QMAKE_GCC_MAJOR_VERSION&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;11&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;QMAKE_GCC_MINOR_VERSION&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;QMAKE_GCC_PATCH_VERSION&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;就是预处理结果嘛。。。&lt;/p&gt;
+&lt;p&gt;在进行了两分钟（没计时）的思考后，我认为是 qmake 没能正确执行 &lt;code&gt;system&lt;/code&gt; 函数，于是还是去
+了 &lt;a href=&#34;https://bugreports.qt.io&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;bugreports.qt.io&lt;/a&gt; 搜索 &lt;code&gt;qmake system&lt;/code&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;a href=&#34;https://bugreports.qt.io/browse/QTBUG-98951&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;strong&gt;QTBUG-98951: qmake system() does not work under qemu-user&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;这不就是我遇到的问题吗？正文里说：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;work-around: configure with -no-feature-forkfd_pidfd&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;code&gt;no-feature-forkfd_pidfd&lt;/code&gt; 是什么 feature？ 于是我继续按关键字搜索，找到了 &lt;a href=&#34;https://codereview.qt-project.org/c/qt/qtbase/&amp;#43;/313894&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Make usage of forkfd_pidfd in QProcess a configurable feature (#313894)&lt;/a&gt; 中的一处改动：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;// QTBUG-86285
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#if !QT_CONFIG(forkfd_pidfd)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;    ffdflags &lt;span style=&#34;color:#ff79c6&#34;&gt;|=&lt;/span&gt; FFD_USE_FORK;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#endif
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;那么关掉 &lt;code&gt;forkfd_pidfd&lt;/code&gt; 就使 &lt;code&gt;!QT_CONFIG(forkfd_pidfd)&lt;/code&gt; 为 &lt;code&gt;TRUE&lt;/code&gt;，从而强制添加
+&lt;code&gt;FFD_USE_FORK&lt;/code&gt; flag 给了 &lt;code&gt;ffdflags&lt;/code&gt;，而这就应该是避开了 qemu 未能实现的一个功能吧。&lt;/p&gt;
+&lt;p&gt;另外感谢肥猫找到了对应给 qemu 的 &lt;a href=&#34;https://patchew.org/QEMU/mvm4kadwyrm.fsf@suse.de/&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;patch&lt;/a&gt;，但很可惜的是没能合并。&lt;/p&gt;
+&lt;p&gt;在经历了一番折腾后，我在本机应用了给 qemu 的 patch，发现 qmake 的 &lt;code&gt;system&lt;/code&gt; 果然能正确执行了。&lt;/p&gt;
+&lt;p&gt;至此，一个由 &lt;code&gt;qalculate-qt&lt;/code&gt; 引发的，被以为是 Qt bug 的，但实际上是 qemu 的问题终于
+真相大白 :) 撒花！&lt;/p&gt;
+&lt;h2 id=&#34;小结&#34;&gt;
+  小结
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%b0%8f%e7%bb%93&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;以后遇到问题还是要先搜索，虽说本次 qmake 属于极端边角问题：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;首先是 qmake 现在（应该？）很少人用了吧？&lt;/li&gt;
+&lt;li&gt;其次还是 qemu-user （非 system，上篇文章说道 ArchRV 还没有能跑的 img）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;但确实仍然有人先遇到了，而且进行了汇报和 patch&lt;/p&gt;
+&lt;p&gt;下一篇文章（可能）写写 Qt Webengine 的 patch 过程（如果我能打出来的话）&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

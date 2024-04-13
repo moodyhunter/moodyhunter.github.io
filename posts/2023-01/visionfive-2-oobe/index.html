@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+  <title>
+  VisionFive 2 开箱记录 · Moody&#39;s
+</title>
+  <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+
+
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; block-all-mixed-content; default-src 'self'; child-src 'self'; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; form-action 'self' https://utteranc.es; frame-src 'self' https://utteranc.es; img-src 'self' https:; object-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://utteranc.es; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://utteranc.es https://static.cloudflareinsights.com https://js.monitor.azure.com; connect-src 'self' https://utteranc.es https://uksouth-1.in.applicationinsights.azure.com;">
+
+
+
+
+<meta name="author" content="Moody">
+<meta name="description" content="心心念念的 VisionFive 2 板子终于收到了
+（其实早就到了，只是我当时在加拿大 🍁 没法取用） 首先放几张图：
+因为板子上没有 WiFi 模块，所以花钱给了个
+[383047.947883] usb 1-1.3: Product: 6600U [383047.947904] usb 1-1.3: Manufacturer: ESWIN [383047.947924] usb 1-1.3: SerialNumber: 6600U 主线内核支持情况 链接到标题 基本没有：https://wiki.rvspace.org/en/project/JH7110_Upstream_Plan
+安装 Arch 链接到标题 首先需要一张 SD 卡（U-boot 似乎不能直接从 NVMe 引导） 标准 Arch 安装流程 然后卡在了 init 再也起不来 原因其实很简单，对应的代码在 Arch Kernel 里没有，不过这一点是之后才意识到的
+官方 Debian 内核 链接到标题 于是目光转向了“StarFive 官方”发布的 Debian 内核，替换好 kernel 和 initrd 之后开机，发现可以正常工作。
+不过，因为 initrd 里的模块有限，而 rootfs 是 Arch，Debian 内核需要的各种模块（如 btrfs 无法被正确加载）
+这直接导致 btrfs 人用不了 btrfs）">
+<meta name="keywords" content="blog,personal,中文,个人">
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="VisionFive 2 开箱记录"/>
+<meta name="twitter:description" content="心心念念的 VisionFive 2 板子终于收到了
+（其实早就到了，只是我当时在加拿大 🍁 没法取用） 首先放几张图：
+因为板子上没有 WiFi 模块，所以花钱给了个
+[383047.947883] usb 1-1.3: Product: 6600U [383047.947904] usb 1-1.3: Manufacturer: ESWIN [383047.947924] usb 1-1.3: SerialNumber: 6600U 主线内核支持情况 链接到标题 基本没有：https://wiki.rvspace.org/en/project/JH7110_Upstream_Plan
+安装 Arch 链接到标题 首先需要一张 SD 卡（U-boot 似乎不能直接从 NVMe 引导） 标准 Arch 安装流程 然后卡在了 init 再也起不来 原因其实很简单，对应的代码在 Arch Kernel 里没有，不过这一点是之后才意识到的
+官方 Debian 内核 链接到标题 于是目光转向了“StarFive 官方”发布的 Debian 内核，替换好 kernel 和 initrd 之后开机，发现可以正常工作。
+不过，因为 initrd 里的模块有限，而 rootfs 是 Arch，Debian 内核需要的各种模块（如 btrfs 无法被正确加载）
+这直接导致 btrfs 人用不了 btrfs）"/>
+
+<meta property="og:title" content="VisionFive 2 开箱记录" />
+<meta property="og:description" content="心心念念的 VisionFive 2 板子终于收到了
+（其实早就到了，只是我当时在加拿大 🍁 没法取用） 首先放几张图：
+因为板子上没有 WiFi 模块，所以花钱给了个
+[383047.947883] usb 1-1.3: Product: 6600U [383047.947904] usb 1-1.3: Manufacturer: ESWIN [383047.947924] usb 1-1.3: SerialNumber: 6600U 主线内核支持情况 链接到标题 基本没有：https://wiki.rvspace.org/en/project/JH7110_Upstream_Plan
+安装 Arch 链接到标题 首先需要一张 SD 卡（U-boot 似乎不能直接从 NVMe 引导） 标准 Arch 安装流程 然后卡在了 init 再也起不来 原因其实很简单，对应的代码在 Arch Kernel 里没有，不过这一点是之后才意识到的
+官方 Debian 内核 链接到标题 于是目光转向了“StarFive 官方”发布的 Debian 内核，替换好 kernel 和 initrd 之后开机，发现可以正常工作。
+不过，因为 initrd 里的模块有限，而 rootfs 是 Arch，Debian 内核需要的各种模块（如 btrfs 无法被正确加载）
+这直接导致 btrfs 人用不了 btrfs）" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mooody.me/posts/2023-01/visionfive-2-oobe/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-01-30T00:00:00+00:00" />
+<meta property="article:modified_time" content="2023-01-30T00:00:00+00:00" />
+
+
+
+
+<link rel="canonical" href="https://mooody.me/posts/2023-01/visionfive-2-oobe/">
+
+
+<link rel="preload" href="/fonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+
+
+  
+  
+  <link rel="stylesheet" href="/css/coder.min.38c4552ac40f9ae3408bad40358f654ebd8804412fe74ed56f2d6c8a7af82dd3.css" integrity="sha256-OMRVKsQPmuNAi61ANY9lTr2IBEEv507Vby1sinr4LdM=" crossorigin="anonymous" media="screen" />
+
+
+
+
+
+
+  
+    
+    
+    <link rel="stylesheet" href="/css/coder-dark.min.a00e6364bacbc8266ad1cc81230774a1397198f8cfb7bcba29b7d6fcb54ce57f.css" integrity="sha256-oA5jZLrLyCZq0cyBIwd0oTlxmPjPt7y6KbfW/LVM5X8=" crossorigin="anonymous" media="screen" />
+  
+
+
+
+ 
+
+
+  
+  
+    
+    <link rel="stylesheet" href="/scss/cards.min.66689eb6794f4d37bf49748d47a91d8dc5918d78d800a8fae4f1a9649ce35145.css" integrity="sha256-ZmietnlPTTe/SXSNR6kdjcWRjXjYAKj65PGpZJzjUUU=" crossorigin="anonymous" media="screen" />
+  
+
+  
+  
+    
+    <link rel="stylesheet" href="/scss/spoiler.min.6758d9b6919e25bb0a3c105fb53c53d4329838c7c3c6c41a4443a232bcca0886.css" integrity="sha256-Z1jZtpGeJbsKPBBftTxT1DKYOMfDxsQaREOiMrzKCIY=" crossorigin="anonymous" media="screen" />
+  
+
+
+
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg" sizes="any">
+<link rel="icon" type="image/png" href="/images/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/png" href="/images/favicon.ico" sizes="16x16">
+
+<link rel="apple-touch-icon" href="/images/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico">
+
+<link rel="manifest" href="/site.webmanifest">
+<link rel="mask-icon" href="/images/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"
+/>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"
+></script>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"
+></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+      ],
+    });
+  });
+</script>
+
+
+
+</head>
+
+
+
+
+
+
+<body class="preload-transitions colorscheme-auto">
+  
+<div class="float-container">
+    <a id="dark-mode-toggle" class="colorscheme-toggle">
+        <i class="fa-solid fa-adjust fa-fw" aria-hidden="true"></i>
+    </a>
+</div>
+
+
+  <main class="wrapper">
+    <nav class="navigation">
+  <section class="container">
+    
+    <a class="navigation-title" href="https://mooody.me/">
+      Moody&#39;s
+    </a>
+    
+    
+      <input type="checkbox" id="menu-toggle" />
+      <label class="menu-button float-right" for="menu-toggle">
+        <i class="fa-solid fa-bars fa-fw" aria-hidden="true"></i>
+      </label>
+      <ul class="navigation-list">
+        
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/">主页</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/posts/">文章</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/friends/">友链</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/about/">我</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="https://g.mooody.me/public-dashboards/305e9305e46240eb80345e055738c236?orgId=1&amp;theme=light&amp;refresh=10s">服务状态</a>
+            </li>
+          
+        
+        
+          
+          
+          
+            
+          
+            
+              
+                <li class="navigation-item menu-separator">
+                  <span>|</span>
+                </li>
+                
+              
+              <li class="navigation-item">
+                <a href="/en/">🇬🇧</a>
+              </li>
+            
+          
+        
+      </ul>
+    
+  </section>
+</nav>
+
+
+    <div class="content">
+      
+  <section class="container post">
+    <article>
+      <header>
+        <div class="post-title">
+          <h1 class="title">
+            <a class="title-link" href="https://mooody.me/posts/2023-01/visionfive-2-oobe/">
+              VisionFive 2 开箱记录
+            </a>
+          </h1>
+        </div>
+        <div class="post-meta">
+          <div class="date">
+            <span class="posted-on">
+              <i class="fa-solid fa-calendar" aria-hidden="true"></i>
+              <time datetime="2023-01-30T00:00:00Z">
+                January 30, 2023
+              </time>
+            </span>
+            <span class="reading-time">
+              <i class="fa-solid fa-clock" aria-hidden="true"></i>
+              阅读时间：3 分钟
+            </span>
+          </div>
+          
+          
+          <div class="tags">
+  <i class="fa-solid fa-tag" aria-hidden="true"></i>
+    <span class="tag">
+      <a href="/tags/risc-v/">RISC-V</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/linux/">Linux</a>
+    </span></div>
+
+        </div>
+      </header>
+
+      <div class="post-content">
+        
+        <p>心心念念的 VisionFive 2 板子终于收到了</p>
+<blockquote>
+<span class="spoiler" title="你知道的太多了"
+  >（其实早就到了，只是我当时在加拿大 🍁 没法取用）</span
+>
+</blockquote>
+<p>首先放几张图：</p>
+<p><img alt="1" src="/posts/2023-01/visionfive-2-oobe/01.box.png"></p>
+<p><img alt="2" src="/posts/2023-01/visionfive-2-oobe/02.in-box.png"></p>
+<p><img alt="3" src="/posts/2023-01/visionfive-2-oobe/03.overview.png"></p>
+<p><img alt="4" src="/posts/2023-01/visionfive-2-oobe/04.side-view.png"></p>
+<p><img alt="5" src="/posts/2023-01/visionfive-2-oobe/05.sockets.png"></p>
+<p><img alt="6" src="/posts/2023-01/visionfive-2-oobe/06.m2-emmc.png"></p>
+<p><img alt="7" src="/posts/2023-01/visionfive-2-oobe/07.cpu-mem.png"></p>
+<p>因为板子上没有 WiFi 模块，所以<span class="spoiler" title="你知道的太多了"
+  >花钱</span
+>给了个</p>
+<p><img alt="8" src="/posts/2023-01/visionfive-2-oobe/08.usb-wifi.png"></p>
+<pre tabindex="0"><code class="language-log" data-lang="log">[383047.947883] usb 1-1.3: Product: 6600U
+[383047.947904] usb 1-1.3: Manufacturer: ESWIN
+[383047.947924] usb 1-1.3: SerialNumber: 6600U
+</code></pre><h2 id="主线内核支持情况">
+  主线内核支持情况
+  <a class="heading-link" href="#%e4%b8%bb%e7%ba%bf%e5%86%85%e6%a0%b8%e6%94%af%e6%8c%81%e6%83%85%e5%86%b5">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>基本没有：<a href="https://wiki.rvspace.org/en/project/JH7110_Upstream_Plan"  class="external-link" target="_blank" rel="noopener">https://wiki.rvspace.org/en/project/JH7110_Upstream_Plan</a></p>
+<h2 id="安装-arch">
+  安装 Arch
+  <a class="heading-link" href="#%e5%ae%89%e8%a3%85-arch">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<ul>
+<li>首先需要一张 SD 卡（U-boot 似乎不能直接从 NVMe 引导）</li>
+<li>标准 Arch 安装流程</li>
+<li>然后卡在了 init
+<img alt="init-stuck" src="/posts/2023-01/visionfive-2-oobe/09.init-stuck.png">
+再也起不来</li>
+</ul>
+<blockquote>
+<p>原因其实很简单，对应的代码在 Arch Kernel 里没有，不过这一点是之后才意识到的</p>
+</blockquote>
+<h2 id="官方-debian-内核">
+  官方 Debian 内核
+  <a class="heading-link" href="#%e5%ae%98%e6%96%b9-debian-%e5%86%85%e6%a0%b8">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>于是目光转向了“StarFive 官方”发布的 Debian 内核，替换好 kernel 和 initrd 之后开机，发现可以正常工作。</p>
+<p>不过，因为 initrd 里的模块有限，而 rootfs 是 Arch，Debian 内核需要的各种模块（如 <code>btrfs</code> 无法被正确加载）</p>
+<p>这直接导致 btrfs 人用不了 btrfs）</p>
+<h2 id="自行编译内核">
+  自行编译内核
+  <a class="heading-link" href="#%e8%87%aa%e8%a1%8c%e7%bc%96%e8%af%91%e5%86%85%e6%a0%b8">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>按理来说应该是很简单的……</p>
+<ol>
+<li>上游 config 抄过来</li>
+<li>替换一下 Arch 的 PKGBUILD</li>
+<li>最后 makepkg</li>
+<li>再最后 pacman -U &hellip;</li>
+</ol>
+<p>首先就遇到了内核编译失败……（说实话咱也不确定这个分支对不对）</p>
+<p><a href="https://github.com/starfive-tech/linux/blob/JH7110_VisionFive2_devel/drivers/gpu/drm/i2c/tda998x_pin.c#L33"  class="external-link" target="_blank" rel="noopener">https://github.com/starfive-tech/linux/blob/JH7110_VisionFive2_devel/drivers/gpu/drm/i2c/tda998x_pin.c#L33</a>f</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-diff" data-lang="diff"><span style="display:flex;"><span><span style="color:#f55">-MODULE_DEVICE_TABLE(of, starfive_drm_dt_ids);
+</span></span></span><span style="display:flex;"><span><span style="color:#f55"></span><span style="color:#50fa7b;font-weight:bold">+MODULE_DEVICE_TABLE(of, tda998x_rgb_dt_ids);
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>修好这个问题以后，<del>就遇到了更多问题</del></p>
+<p>新版 pahole 改了行为，编译旧版 Kernel 需要加一些 flags：<a href="https://github.com/torvalds/linux/commit/9741e07ece7c#diff-d801ca7968dc54e8304d53e0448d55f59098daf387330f030e6099e4283fcf96L43-R43"  class="external-link" target="_blank" rel="noopener">https://github.com/torvalds/linux/commit/9741e07ece7c#diff-d801ca7968dc54e8304d53e0448d55f59098daf387330f030e6099e4283fcf96L43-R43</a></p>
+<p>值得一提的是，上游默认配置把网卡驱动设置成了 <code>y</code>，我一开始<span class="spoiler" title="你知道的太多了"
+  >不知道为啥</span
+>，改成了 <code>m</code> 导致网卡驱动
+无法自动加载，将其改回 <code>y</code> 后终于能正常使用了：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-env" data-lang="env"><span style="display:flex;"><span>moody@MoodyVF2 ~&gt; zgrep STARFIVE /proc/config.gz
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_SOC_STARFIVE</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#6272a4"># CONFIG_SOC_STARFIVE_VIC7100 is not set</span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_SOC_STARFIVE_JH7110</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_DWMAC_STARFIVE_PLAT</span><span style="color:#ff79c6">=</span>y <span style="color:#6272a4"># &lt;&lt;============ 就是这个</span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4"># CONFIG_HW_RANDOM_STARFIVE is not set</span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_SPI_PL022_STARFIVE</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_PINCTRL_STARFIVE</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_PINCTRL_STARFIVE_JH7110</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_GPIO_STARFIVE_JH7110</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_STARFIVE_WATCHDOG</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_REGULATOR_STARFIVE_JH7110</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_STARFIVE_INNO_HDMI</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_STARFIVE_DSI</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_SND_SOC_STARFIVE</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_SND_SOC_STARFIVE_PWMDAC</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_SND_SOC_STARFIVE_PWMDAC_PCM</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_SND_SOC_STARFIVE_I2S</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_SND_SOC_STARFIVE_PDM</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_SND_SOC_STARFIVE_TDM</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_SND_SOC_STARFIVE_SPDIF</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_SND_SOC_STARFIVE_SPDIF_PCM</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_USB_CDNS3_STARFIVE</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_MMC_DW_STARFIVE</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_RTC_DRV_STARFIVE</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_DW_AXI_DMAC_STARFIVE</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_CLK_STARFIVE_JH7110</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_CLK_STARFIVE_JH7110_VOUT</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_CLK_STARFIVE_JH7110_ISP</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_CLK_STARFIVE_JH7110_PLL</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_STARFIVE_TIMER</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_STARFIVE_MBOX</span><span style="color:#ff79c6">=</span>m
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_STARFIVE_MBOX_TEST</span><span style="color:#ff79c6">=</span>m
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_STARFIVE_PMU</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_PWM_STARFIVE_PTC</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_RESET_STARFIVE_JH7110</span><span style="color:#ff79c6">=</span>y
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">CONFIG_RISCV_STARFIVE_CPUFREQ</span><span style="color:#ff79c6">=</span>y
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>至于 Linux Kernel 只认出了 4GB 内存的问题，目前还没见到其他的解法。</p>
+<p>我干脆直接改了 dtb：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-diff" data-lang="diff"><span style="display:flex;"><span>memory@40000000 {
+</span></span><span style="display:flex;"><span>    device_type = &#34;memory&#34;;
+</span></span><span style="display:flex;"><span><span style="color:#f55">-    reg = &lt;0x00 0x40000000 0x01 0x00&gt;;
+</span></span></span><span style="display:flex;"><span><span style="color:#f55"></span><span style="color:#50fa7b;font-weight:bold">+    reg = &lt;0x00 0x40000000 0x02 0x00&gt;;
+</span></span></span><span style="display:flex;"><span><span style="color:#50fa7b;font-weight:bold"></span>};
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>之后 <code>make dtbs</code> 重新生成了 dtb 并放到对应位置</p>
+<h2 id="成果展示">
+  成果展示
+  <a class="heading-link" href="#%e6%88%90%e6%9e%9c%e5%b1%95%e7%a4%ba">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<h3 id="neofetch">
+  neofetch
+  <a class="heading-link" href="#neofetch">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<pre tabindex="0"><code class="language-log" data-lang="log">                   -`                    moody@MoodyVF2
+                  .o+`                   --------------
+                 `ooo/                   OS: Arch Linux riscv64
+                `+oooo:                  Host: StarFive VisionFive V2
+               `+oooooo:                 Kernel: 5.15.0-3-vf2
+               -+oooooo+:                Uptime: 4 days, 12 hours, 37 mins
+             `/:-:++oooo+:               Packages: 319 (pacman)
+            `/++++/+++++++:              Shell: fish 3.6.0
+           `/++++++++++++++:             Terminal: /dev/pts/0
+          `/+++ooooooooooooo/`           CPU: (4) @ 1.500GHz
+         ./ooosssso++osssssso+`          Memory: 196MiB / 7885MiB
+        .oossssso-````/ossssss+`
+       -osssssso.      :ssssssso.
+      :osssssss/        osssso+++.
+     /ossssssss/        +ssssooo/-
+   `/ossssso+/:-        -:/+osssso+-
+  `+sso+:-`                 `.-/+oso:
+ `++:.                           `-/+/
+ .`                                 `/
+</code></pre><h3 id="uname--a">
+  uname -a
+  <a class="heading-link" href="#uname--a">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<pre tabindex="0"><code class="language-log" data-lang="log">Linux MoodyVF2 5.15.0-3-vf2 #1 SMP PREEMPT Wed, 25 Jan 2023 18:44:54 +0000 riscv64 GNU/Linux
+</code></pre><h3 id="free--h">
+  free -h
+  <a class="heading-link" href="#free--h">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<pre tabindex="0"><code class="language-log" data-lang="log">               total        used        free      shared  buff/cache   available
+Mem:           7.7Gi       191Mi       7.1Gi       2.0Mi       391Mi       7.3Gi
+Swap:           25Gi          0B        25Gi
+</code></pre><h3 id="lscpu">
+  lscpu
+  <a class="heading-link" href="#lscpu">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<pre tabindex="0"><code class="language-log" data-lang="log">Architecture:          riscv64
+  Byte Order:          Little Endian
+CPU(s):                4
+  On-line CPU(s) list: 0-3
+NUMA:
+  NUMA node(s):        1
+  NUMA node0 CPU(s):   0-3
+</code></pre><h3 id="cat-proccpuinfo">
+  cat /proc/cpuinfo
+  <a class="heading-link" href="#cat-proccpuinfo">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<pre tabindex="0"><code class="language-log" data-lang="log">processor   : 0
+hart        : 1
+isa     : rv64imafdc
+mmu     : sv39
+isa-ext     :
+uarch       : sifive,u74-mc
+...
+</code></pre><h3 id="lspci--v">
+  lspci -v
+  <a class="heading-link" href="#lspci--v">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<pre tabindex="0"><code class="language-log" data-lang="log">0000:00:00.0 PCI bridge: PLDA XpressRich-AXI Ref Design (rev 02) (prog-if 00 [Normal decode])
+        Flags: bus master, fast devsel, latency 0, IRQ 58
+        Bus: primary=00, secondary=01, subordinate=01, sec-latency=0
+        Memory behind bridge: 30000000-300fffff [size=1M] [32-bit]
+        Capabilities: &lt;access denied&gt;
+        Kernel driver in use: pcieport
+
+0000:01:00.0 USB controller: VIA Technologies, Inc. VL805/806 xHCI USB 3.0 Controller (rev 01) (prog-if 30 [XHCI])
+        Subsystem: VIA Technologies, Inc. VL805/806 xHCI USB 3.0 Controller
+        Flags: bus master, fast devsel, latency 0, IRQ 66
+        Memory at 30000000 (64-bit, non-prefetchable) [size=4K]
+        Capabilities: &lt;access denied&gt;
+        Kernel driver in use: xhci_hcd
+        Kernel modules: xhci_pci
+
+0001:00:00.0 PCI bridge: PLDA XpressRich-AXI Ref Design (rev 02) (prog-if 00 [Normal decode])
+        Flags: bus master, fast devsel, latency 0, IRQ 60
+        Bus: primary=00, secondary=01, subordinate=01, sec-latency=0
+        Memory behind bridge: 38000000-380fffff [size=1M] [32-bit]
+        Capabilities: &lt;access denied&gt;
+        Kernel driver in use: pcieport
+
+0001:01:00.0 Non-Volatile memory controller: Micron/Crucial Technology P2 NVMe PCIe SSD (rev 01) (prog-if 02 [NVM Express])
+        Subsystem: Micron/Crucial Technology Device 5021
+        Flags: bus master, fast devsel, latency 0, IRQ 59, NUMA node 0
+        Memory at 38000000 (64-bit, non-prefetchable) [size=16K]
+        Capabilities: &lt;access denied&gt;
+        Kernel driver in use: nvme
+</code></pre><h3 id="lsusb--t">
+  lsusb -t
+  <a class="heading-link" href="#lsusb--t">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<pre tabindex="0"><code class="language-log" data-lang="log">/:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 5000M
+/:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/1p, 480M
+    |__ Port 1: Dev 2, If 0, Class=Hub, Driver=hub/4p, 480M
+</code></pre>
+      </div>
+
+
+      <footer>
+        
+
+
+        
+        
+        <div class="comments">
+  <script>
+
+    let getTheme = window.localStorage && window.localStorage.getItem("colorscheme");
+    let themeInParams = '';
+
+    if (getTheme == null) {
+      if (themeInParams !== '' && themeInParams !== 'auto') {
+        getTheme = themeInParams;
+      }
+      else {
+        getTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
+      }
+    }
+
+    let theme = getTheme === 'dark' ? 'github-dark' : 'github-light';
+    let s = document.createElement('script');
+    s.src = 'https://utteranc.es/client.js';
+    s.setAttribute('repo', 'moodyhunter\/moodyhunter.github.io');
+    s.setAttribute('issue-term', 'pathname');
+    s.setAttribute('theme', theme);
+    s.setAttribute('crossorigin', 'anonymous');
+    s.setAttribute('async', '');
+    document.querySelector('div.comments').innerHTML = '';
+    document.querySelector('div.comments').appendChild(s);
+
+  </script>
+</div>
+        
+        
+
+        
+      </footer>
+    </article>
+
+    
+  </section>
+
+    </div>
+
+    <footer class="footer">
+  <section class="container">
+    ©
+    
+      2021 -
+    
+    2024
+     Moody 
+    ·
+    
+      许可依据 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA-4.0</a>
+    ·
+    
+    技术支持 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/" target="_blank" rel="noopener">Coder</a>.
+    
+  </section>
+</footer>
+
+  </main>
+
+  
+
+  
+  
+  <script src="/js/coder.min.6ae284be93d2d19dad1f02b0039508d9aab3180a12a06dcc71b0b0ef7825a317.js" integrity="sha256-auKEvpPS0Z2tHwKwA5UI2aqzGAoSoG3McbCw73gloxc="></script>
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  <script type="text/javascript">
+    !function(T,l,y){var S=T.location,k="script",D="connectionString",C="ingestionendpoint",I="disableExceptionTracking",E="ai.device.",b="toLowerCase",w="crossOrigin",N="POST",e="appInsightsSDK",t=y.name||"appInsights";(y.name||T[e])&&(T[e]=t);var n=T[t]||function(d){var g=!1,f=!1,m={initialize:!0,queue:[],sv:"5",version:2,config:d};function v(e,t){var n={},a="Browser";return n[E+"id"]=a[b](),n[E+"type"]=a,n["ai.operation.name"]=S&&S.pathname||"_unknown_",n["ai.internal.sdkVersion"]="javascript:snippet_"+(m.sv||m.version),{time:function(){var e=new Date;function t(e){var t=""+e;return 1===t.length&&(t="0"+t),t}return e.getUTCFullYear()+"-"+t(1+e.getUTCMonth())+"-"+t(e.getUTCDate())+"T"+t(e.getUTCHours())+":"+t(e.getUTCMinutes())+":"+t(e.getUTCSeconds())+"."+((e.getUTCMilliseconds()/1e3).toFixed(3)+"").slice(2,5)+"Z"}(),name:"Microsoft.ApplicationInsights."+e.replace(/-/g,"")+"."+t,sampleRate:100,tags:n,data:{baseData:{ver:2}}}}var h=d.url||y.src;if(h){function a(e){var t,n,a,i,r,o,s,c,u,p,l;g=!0,m.queue=[],f||(f=!0,t=h,s=function(){var e={},t=d.connectionString;if(t)for(var n=t.split(";"),a=0;a<n.length;a++){var i=n[a].split("=");2===i.length&&(e[i[0][b]()]=i[1])}if(!e[C]){var r=e.endpointsuffix,o=r?e.location:null;e[C]="https://"+(o?o+".":"")+"dc."+(r||"services.visualstudio.com")}return e}(),c=s[D]||d[D]||"",u=s[C],p=u?u+"/v2/track":d.endpointUrl,(l=[]).push((n="SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details)",a=t,i=p,(o=(r=v(c,"Exception")).data).baseType="ExceptionData",o.baseData.exceptions=[{typeName:"SDKLoadFailed",message:n.replace(/\./g,"-"),hasFullStack:!1,stack:n+"\nSnippet failed to load ["+a+"] -- Telemetry is disabled\nHelp Link: https://go.microsoft.com/fwlink/?linkid=2128109\nHost: "+(S&&S.pathname||"_unknown_")+"\nEndpoint: "+i,parsedStack:[]}],r)),l.push(function(e,t,n,a){var i=v(c,"Message"),r=i.data;r.baseType="MessageData";var o=r.baseData;return o.message='AI (Internal): 99 message:"'+("SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details) ("+n+")").replace(/\"/g,"")+'"',o.properties={endpoint:a},i}(0,0,t,p)),function(e,t){if(JSON){var n=T.fetch;if(n&&!y.useXhr)n(t,{method:N,body:JSON.stringify(e),mode:"cors"});else if(XMLHttpRequest){var a=new XMLHttpRequest;a.open(N,t),a.setRequestHeader("Content-type","application/json"),a.send(JSON.stringify(e))}}}(l,p))}function i(e,t){f||setTimeout(function(){!t&&m.core||a()},500)}var e=function(){var n=l.createElement(k);n.src=h;var e=y[w];return!e&&""!==e||"undefined"==n[w]||(n[w]=e),n.onload=i,n.onerror=a,n.onreadystatechange=function(e,t){"loaded"!==n.readyState&&"complete"!==n.readyState||i(0,t)},n}();y.ld<0?l.getElementsByTagName("head")[0].appendChild(e):setTimeout(function(){l.getElementsByTagName(k)[0].parentNode.appendChild(e)},y.ld||0)}try{m.cookie=l.cookie}catch(p){}function t(e){for(;e.length;)!function(t){m[t]=function(){var e=arguments;g||m.queue.push(function(){m[t].apply(m,e)})}}(e.pop())}var n="track",r="TrackPage",o="TrackEvent";t([n+"Event",n+"PageView",n+"Exception",n+"Trace",n+"DependencyData",n+"Metric",n+"PageViewPerformance","start"+r,"stop"+r,"start"+o,"stop"+o,"addTelemetryInitializer","setAuthenticatedUserContext","clearAuthenticatedUserContext","flush"]),m.SeverityLevel={Verbose:0,Information:1,Warning:2,Error:3,Critical:4};var s=(d.extensionConfig||{}).ApplicationInsightsAnalytics||{};if(!0!==d[I]&&!0!==s[I]){var c="onerror";t(["_"+c]);var u=T[c];T[c]=function(e,t,n,a,i){var r=u&&u(e,t,n,a,i);return!0!==r&&m["_"+c]({message:e,url:t,lineNumber:n,columnNumber:a,error:i}),r},d.autoExceptionInstrumented=!0}return m}(y.cfg);function a(){y.onInit&&y.onInit(n)}(T[t]=n).queue&&0===n.queue.length?(n.queue.push(a),n.trackPageView({})):a()}(window,document,{
+    src: "https://js.monitor.azure.com/scripts/b/ai.2.min.js", 
+    
+    
+    
+    crossOrigin: "anonymous", 
+    
+    cfg: { 
+        connectionString: "InstrumentationKey=5a5bbde5-faba-4982-8376-789e51b32d12;IngestionEndpoint=https:\/\/uksouth-1.in.applicationinsights.azure.com\/;LiveEndpoint=https:\/\/uksouth.livediagnostics.monitor.azure.com\/"
+         
+    }});
+    </script>    
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+
+</html>

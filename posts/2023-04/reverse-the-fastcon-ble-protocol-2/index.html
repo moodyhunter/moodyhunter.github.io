@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+  <title>
+  逆向 Fastcon BLE 协议 - 2 · Moody&#39;s
+</title>
+  <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+
+
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; block-all-mixed-content; default-src 'self'; child-src 'self'; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; form-action 'self' https://utteranc.es; frame-src 'self' https://utteranc.es; img-src 'self' https:; object-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://utteranc.es; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://utteranc.es https://static.cloudflareinsights.com https://js.monitor.azure.com; connect-src 'self' https://utteranc.es https://uksouth-1.in.applicationinsights.azure.com;">
+
+
+
+
+<meta name="author" content="Moody">
+<meta name="description" content="本文内容不得用于商业用途
+上回书说到…… 链接到标题 4.6 重写 Parse BLE Broadcast 和 Send Start Scan 花费了我整整一周的时间。
+第一步，我选择了 Parse BLE Broadcast，因为它是一个简单的函数，而且我已经知道了它的输入和输出。
+首先就是函数签名：
+1 2 3 4 5 6 void parse_ble_broadcast( const u8 *data, // 数据 const size_t data_len, // 数据长度 const u8 *phone_key, // 手机 Key，大概只有 4 bytes /* callback */ // 一些回调函数，我们在 C 里面不需要 ); 然后根据 Binja 内的伪 C 代码，大概写出了函数的逻辑：
+首先调用 bl_ble_fastcon_header_encrty 函数解密数据前 4 字节的头，第一个 byte 右移 4 位之后的低三位应该是 header type（也就是第 5, 6, 7 位）">
+<meta name="keywords" content="blog,personal,中文,个人">
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="逆向 Fastcon BLE 协议 - 2"/>
+<meta name="twitter:description" content="本文内容不得用于商业用途
+上回书说到…… 链接到标题 4.6 重写 Parse BLE Broadcast 和 Send Start Scan 花费了我整整一周的时间。
+第一步，我选择了 Parse BLE Broadcast，因为它是一个简单的函数，而且我已经知道了它的输入和输出。
+首先就是函数签名：
+1 2 3 4 5 6 void parse_ble_broadcast( const u8 *data, // 数据 const size_t data_len, // 数据长度 const u8 *phone_key, // 手机 Key，大概只有 4 bytes /* callback */ // 一些回调函数，我们在 C 里面不需要 ); 然后根据 Binja 内的伪 C 代码，大概写出了函数的逻辑：
+首先调用 bl_ble_fastcon_header_encrty 函数解密数据前 4 字节的头，第一个 byte 右移 4 位之后的低三位应该是 header type（也就是第 5, 6, 7 位）"/>
+
+<meta property="og:title" content="逆向 Fastcon BLE 协议 - 2" />
+<meta property="og:description" content="本文内容不得用于商业用途
+上回书说到…… 链接到标题 4.6 重写 Parse BLE Broadcast 和 Send Start Scan 花费了我整整一周的时间。
+第一步，我选择了 Parse BLE Broadcast，因为它是一个简单的函数，而且我已经知道了它的输入和输出。
+首先就是函数签名：
+1 2 3 4 5 6 void parse_ble_broadcast( const u8 *data, // 数据 const size_t data_len, // 数据长度 const u8 *phone_key, // 手机 Key，大概只有 4 bytes /* callback */ // 一些回调函数，我们在 C 里面不需要 ); 然后根据 Binja 内的伪 C 代码，大概写出了函数的逻辑：
+首先调用 bl_ble_fastcon_header_encrty 函数解密数据前 4 字节的头，第一个 byte 右移 4 位之后的低三位应该是 header type（也就是第 5, 6, 7 位）" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mooody.me/posts/2023-04/reverse-the-fastcon-ble-protocol-2/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-04-07T00:00:00+00:00" />
+<meta property="article:modified_time" content="2023-04-07T00:00:00+00:00" />
+
+
+
+
+<link rel="canonical" href="https://mooody.me/posts/2023-04/reverse-the-fastcon-ble-protocol-2/">
+
+
+<link rel="preload" href="/fonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+
+
+  
+  
+  <link rel="stylesheet" href="/css/coder.min.38c4552ac40f9ae3408bad40358f654ebd8804412fe74ed56f2d6c8a7af82dd3.css" integrity="sha256-OMRVKsQPmuNAi61ANY9lTr2IBEEv507Vby1sinr4LdM=" crossorigin="anonymous" media="screen" />
+
+
+
+
+
+
+  
+    
+    
+    <link rel="stylesheet" href="/css/coder-dark.min.a00e6364bacbc8266ad1cc81230774a1397198f8cfb7bcba29b7d6fcb54ce57f.css" integrity="sha256-oA5jZLrLyCZq0cyBIwd0oTlxmPjPt7y6KbfW/LVM5X8=" crossorigin="anonymous" media="screen" />
+  
+
+
+
+ 
+
+
+  
+  
+    
+    <link rel="stylesheet" href="/scss/cards.min.66689eb6794f4d37bf49748d47a91d8dc5918d78d800a8fae4f1a9649ce35145.css" integrity="sha256-ZmietnlPTTe/SXSNR6kdjcWRjXjYAKj65PGpZJzjUUU=" crossorigin="anonymous" media="screen" />
+  
+
+  
+  
+    
+    <link rel="stylesheet" href="/scss/spoiler.min.6758d9b6919e25bb0a3c105fb53c53d4329838c7c3c6c41a4443a232bcca0886.css" integrity="sha256-Z1jZtpGeJbsKPBBftTxT1DKYOMfDxsQaREOiMrzKCIY=" crossorigin="anonymous" media="screen" />
+  
+
+
+
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg" sizes="any">
+<link rel="icon" type="image/png" href="/images/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/png" href="/images/favicon.ico" sizes="16x16">
+
+<link rel="apple-touch-icon" href="/images/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico">
+
+<link rel="manifest" href="/site.webmanifest">
+<link rel="mask-icon" href="/images/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"
+/>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"
+></script>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"
+></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+      ],
+    });
+  });
+</script>
+
+
+
+</head>
+
+
+
+
+
+
+<body class="preload-transitions colorscheme-auto">
+  
+<div class="float-container">
+    <a id="dark-mode-toggle" class="colorscheme-toggle">
+        <i class="fa-solid fa-adjust fa-fw" aria-hidden="true"></i>
+    </a>
+</div>
+
+
+  <main class="wrapper">
+    <nav class="navigation">
+  <section class="container">
+    
+    <a class="navigation-title" href="https://mooody.me/">
+      Moody&#39;s
+    </a>
+    
+    
+      <input type="checkbox" id="menu-toggle" />
+      <label class="menu-button float-right" for="menu-toggle">
+        <i class="fa-solid fa-bars fa-fw" aria-hidden="true"></i>
+      </label>
+      <ul class="navigation-list">
+        
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/">主页</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/posts/">文章</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/friends/">友链</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/about/">我</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="https://g.mooody.me/public-dashboards/305e9305e46240eb80345e055738c236?orgId=1&amp;theme=light&amp;refresh=10s">服务状态</a>
+            </li>
+          
+        
+        
+          
+          
+          
+            
+          
+            
+              
+                <li class="navigation-item menu-separator">
+                  <span>|</span>
+                </li>
+                
+              
+              <li class="navigation-item">
+                <a href="/en/">🇬🇧</a>
+              </li>
+            
+          
+        
+      </ul>
+    
+  </section>
+</nav>
+
+
+    <div class="content">
+      
+  <section class="container post">
+    <article>
+      <header>
+        <div class="post-title">
+          <h1 class="title">
+            <a class="title-link" href="https://mooody.me/posts/2023-04/reverse-the-fastcon-ble-protocol-2/">
+              逆向 Fastcon BLE 协议 - 2
+            </a>
+          </h1>
+        </div>
+        <div class="post-meta">
+          <div class="date">
+            <span class="posted-on">
+              <i class="fa-solid fa-calendar" aria-hidden="true"></i>
+              <time datetime="2023-04-07T00:00:00Z">
+                April 7, 2023
+              </time>
+            </span>
+            <span class="reading-time">
+              <i class="fa-solid fa-clock" aria-hidden="true"></i>
+              阅读时间：12 分钟
+            </span>
+          </div>
+          
+          
+          <div class="tags">
+  <i class="fa-solid fa-tag" aria-hidden="true"></i>
+    <span class="tag">
+      <a href="/tags/reverse-engineering/">Reverse Engineering</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/ble/">BLE</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/fastcon/">Fastcon</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/bluetooth/">Bluetooth</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/rust/">Rust</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/arm64/">ARM64</a>
+    </span></div>
+
+        </div>
+      </header>
+
+      <div class="post-content">
+        
+        <p><strong>本文内容不得用于商业用途</strong></p>
+<h2 id="上回书说到">
+  上回书说到……
+  <a class="heading-link" href="#%e4%b8%8a%e5%9b%9e%e4%b9%a6%e8%af%b4%e5%88%b0">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p><em>4.6 重写 <code>Parse BLE Broadcast</code> 和 <code>Send Start Scan</code> 花费了我整整一周的时间。</em></p>
+<p>第一步，我选择了 <code>Parse BLE Broadcast</code>，因为它是一个简单的函数，而且我已经知道了它的输入和输出。</p>
+<p>首先就是函数签名：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8be9fd">void</span> <span style="color:#50fa7b">parse_ble_broadcast</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">const</span> u8 <span style="color:#ff79c6">*</span>data,         <span style="color:#6272a4">// 数据
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">const</span> <span style="color:#8be9fd">size_t</span> data_len,  <span style="color:#6272a4">// 数据长度
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">const</span> u8 <span style="color:#ff79c6">*</span>phone_key,    <span style="color:#6272a4">// 手机 Key，大概只有 4 bytes
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    <span style="color:#6272a4">/* callback */</span>          <span style="color:#6272a4">// 一些回调函数，我们在 C 里面不需要
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>然后根据 Binja 内的伪 C 代码，大概写出了函数的逻辑：</p>
+<p><img alt="parse-1" src="/posts/2023-04/reverse-the-fastcon-ble-protocol-2/parse-part1.png"></p>
+<p>首先调用 <code>bl_ble_fastcon_header_encrty</code> 函数解密数据前 4 字节的头，第一个 byte 右移 4
+位之后的低三位应该是 header type（也就是第 5, 6, 7 位）</p>
+<p>如果 header type 是 1，则进入所需的 <code>Scan Response</code> 处理流程，我在代码中直接将其命名为
+<code>DeviceAnnouncement</code>。</p>
+<p>如果 header type 是 3，根据反编译结果，会调用 <code>bl_ble_fastcon_encrty</code> 函数解密剩下的数据，
+并根据解密后的第一个 byte 判断内容类型，包括 <code>TimerUploadResponse</code> 和 <code>HeartBeat</code>。</p>
+<p>似乎没有其他的 header type 了。</p>
+<hr>
+<h2 id="bl_ble_fastcon_header_encrty-与-bl_ble_fastcon_encrty">
+  bl_ble_fastcon_header_encrty 与 bl_ble_fastcon_encrty
+  <a class="heading-link" href="#bl_ble_fastcon_header_encrty-%e4%b8%8e-bl_ble_fastcon_encrty">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>接下来需要逆向出 <code>bl_ble_fastcon_header_encrty</code> 和 <code>bl_ble_fastcon_encrty</code> 函数的逻辑。</p>
+<p><img alt="decrypt-1-binja" src="/posts/2023-04/reverse-the-fastcon-ble-protocol-2/decrypt-1-binja.png"></p>
+<p>看到这里出现了 v 寄存器，于是合理猜测是一个 SIMD 优化过的循环。</p>
+<p>因为在编译器进行 SIMD 优化时，不会假设「所有的数据均能被」 SIMD 指令处理。
+因此在 SIMD 指令前后总会出现另一循环，用来处理剩余的数据，并且效果应与 SIMD 指令相同。</p>
+<p>（所以只看另一部分非 SIMD 的循环，也能得到正确的结果）</p>
+<p><img alt="decrypt-non-simd" src="/posts/2023-04/reverse-the-fastcon-ble-protocol-2/decrpyt-1-non-simd.png"></p>
+<p>在这里，我看到了……</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ff79c6">do</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">*</span>(<span style="color:#8be9fd">int8_t</span><span style="color:#ff79c6">*</span>)((<span style="color:#8be9fd">char</span><span style="color:#ff79c6">*</span>)arg2 <span style="color:#ff79c6">+</span> x9_1) <span style="color:#ff79c6">=</span>
+</span></span><span style="display:flex;"><span>        (HEADER_XOR_KEY[(x9_1 <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">3</span>)] <span style="color:#ff79c6">^</span> <span style="color:#ff79c6">*</span>(<span style="color:#8be9fd">int8_t</span><span style="color:#ff79c6">*</span>)((<span style="color:#8be9fd">char</span><span style="color:#ff79c6">*</span>)arg1 <span style="color:#ff79c6">+</span> x9_1));
+</span></span><span style="display:flex;"><span>    x9_1 <span style="color:#ff79c6">=</span> (x9_1 <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">1</span>);
+</span></span><span style="display:flex;"><span>} <span style="color:#ff79c6">while</span> (x8_1 <span style="color:#ff79c6">!=</span> x9_1);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>由此可知 <code>x9_1</code> 类似一个计数器，那么根据一般经验，<code>x8_1</code> 既然是要和 <code>x9_1</code> 比较的话，
+它就应该是剩余（因为 SIMD 代码<strong>可能</strong>已经处理一部分了）数据的长度。</p>
+<p>果不其然，在上面就有 <code>uint64_t x8_1 = ((uint64_t)arg3);</code> 这样的语句。</p>
+<p>我已经知道函数的 <code>arg1</code> 的类型是 <code>const u8 *</code>，也就是输入数据，<code>arg2</code> 的类型是 <code>u8 *</code>，
+也就是输出数据，那么就不难看出这段循环的作用了。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ff79c6">for</span> (<span style="color:#8be9fd">int</span> i <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>; i <span style="color:#ff79c6">&lt;</span> data_len; i<span style="color:#ff79c6">++</span>) {
+</span></span><span style="display:flex;"><span>    out[i] <span style="color:#ff79c6">=</span> data[i] <span style="color:#ff79c6">^</span> HEADER_XOR_KEY[i <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">3</span>];
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>至此，这个函数逻辑就很清晰了，仅仅是一个简单的异或运算。</p>
+<hr>
+<h3 id="bl_ble_fastcon_encrty">
+  bl_ble_fastcon_encrty
+  <a class="heading-link" href="#bl_ble_fastcon_encrty">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>有了上一函数的经验，这个函数就很简单了。</p>
+<p>同样是一个 v 寄存器，代表着 SIMD 优化过的循环，同样是 goto 到了另一个 &ldquo;平凡&rdquo; 的循环。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">label_15914</span>:
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">do</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    arg2[x9_1] <span style="color:#ff79c6">=</span> (<span style="color:#ff79c6">*</span>(<span style="color:#8be9fd">int8_t</span><span style="color:#ff79c6">*</span>)((<span style="color:#8be9fd">char</span><span style="color:#ff79c6">*</span>)arg4 <span style="color:#ff79c6">+</span> (x9_1 <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">3</span>)) <span style="color:#ff79c6">^</span> arg1[x9_1]);
+</span></span><span style="display:flex;"><span>    x9_1 <span style="color:#ff79c6">=</span> (x9_1 <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">1</span>);
+</span></span><span style="display:flex;"><span>} <span style="color:#ff79c6">while</span> (x8_1 <span style="color:#ff79c6">!=</span> x9_1);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>稍微不同的是，这里我们没有 <code>HEADER_XOR_KEY</code>，而是有一个 <code>arg4</code>。</p>
+<p>在不经意间翻看的时候，发现了 C++ 里才会有的 <code>std::</code> 命名空间，这才发现
+原来这个库是用 C++ 写的。</p>
+<p>于是我尝试在 Binja 中显示函数 mangle 后的名字，发现是 <code>_Z21bl_ble_fastcon_encrtyPhS_iS_</code>，
+那么：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ c++filt <span style="color:#f1fa8c">&#39;_Z21bl_ble_fastcon_encrtyPhS_iS_&#39;</span>
+</span></span><span style="display:flex;"><span>bl_ble_fastcon_encrty<span style="color:#ff79c6">(</span>unsigned char*, unsigned char*, int, unsigned char*<span style="color:#ff79c6">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>我们就可以可靠地得知 <code>arg4</code> 的类型是 <code>const u8 *</code>，也就是解密所需的 key。</p>
+<p>那么这个函数就也被成功逆向了。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#6272a4">// 我写代码才不会用这样的格式……
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4">// 还不是为了照顾窄屏用户
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#8be9fd">void</span> <span style="color:#50fa7b">bl_ble_fastcon_encrty</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">const</span> u8 <span style="color:#ff79c6">*</span>src,
+</span></span><span style="display:flex;"><span>    u8 <span style="color:#ff79c6">*</span>dst,
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">size_t</span> size,
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">const</span> u8 <span style="color:#ff79c6">*</span>key
+</span></span><span style="display:flex;"><span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">for</span> (<span style="color:#8be9fd">size_t</span> i <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>; i <span style="color:#ff79c6">&lt;</span> size; i<span style="color:#ff79c6">++</span>)
+</span></span><span style="display:flex;"><span>        dst[i] <span style="color:#ff79c6">=</span> key[i <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">3</span>] <span style="color:#ff79c6">^</span> src[i];
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="java-对应调用方的重新实现">
+  Java 对应调用方的重新实现
+  <a class="heading-link" href="#java-%e5%af%b9%e5%ba%94%e8%b0%83%e7%94%a8%e6%96%b9%e7%9a%84%e9%87%8d%e6%96%b0%e5%ae%9e%e7%8e%b0">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>在这种情况下，由于我的最终目标是写一个 Rust 库，所以现阶段需要做的就是直接将 Java
+反编译后的代码使用 Rust 重新实现一下即可。</p>
+<h3 id="1-java-方面的参数">
+  1. Java 方面的参数
+  <a class="heading-link" href="#1-java-%e6%96%b9%e9%9d%a2%e7%9a%84%e5%8f%82%e6%95%b0">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>接下来请欣赏反编译后的 Java 函数参数名：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">public</span> String <span style="color:#50fa7b">genSingleLightCommand</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">boolean</span> z, <span style="color:#8be9fd">int</span> i, <span style="color:#8be9fd">int</span> i2, <span style="color:#8be9fd">int</span> i3, <span style="color:#8be9fd">int</span> i4, <span style="color:#8be9fd">int</span> i5, <span style="color:#8be9fd">int</span> i6,
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">int</span> i7
+</span></span><span style="display:flex;"><span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">return</span> genSingleLightCommand(
+</span></span><span style="display:flex;"><span>        z, i, i2, i3, i4, i5, i6, i7, <span style="color:#ff79c6">false</span>
+</span></span><span style="display:flex;"><span>    );
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">public</span> String <span style="color:#50fa7b">genSingleLightCommand</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">boolean</span> z, <span style="color:#8be9fd">int</span> i, <span style="color:#8be9fd">int</span> i2, <span style="color:#8be9fd">int</span> i3, <span style="color:#8be9fd">int</span> i4, <span style="color:#8be9fd">int</span> i5, <span style="color:#8be9fd">int</span> i6,
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">int</span> i7, <span style="color:#8be9fd">boolean</span> z2
+</span></span><span style="display:flex;"><span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">return</span> genSingleLightCommand(
+</span></span><span style="display:flex;"><span>        z, i, i2, i3, i4, i5, i6, <span style="color:#ff79c6">true</span>, 255, i7, z2
+</span></span><span style="display:flex;"><span>    );
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">public</span> String <span style="color:#50fa7b">genSingleLightCommand</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">boolean</span> z, <span style="color:#8be9fd">int</span> i, <span style="color:#8be9fd">int</span> i2, <span style="color:#8be9fd">int</span> i3, <span style="color:#8be9fd">int</span> i4, <span style="color:#8be9fd">int</span> i5, <span style="color:#8be9fd">int</span> i6,
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">boolean</span> z2, <span style="color:#8be9fd">int</span> i7, <span style="color:#8be9fd">int</span> i8, <span style="color:#8be9fd">boolean</span> z3
+</span></span><span style="display:flex;"><span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">return</span> genSingleLightCommand(
+</span></span><span style="display:flex;"><span>        z, i, i2, i3, i4, i5, i6, z2, i7, i8, z3, <span style="color:#ff79c6">true</span>
+</span></span><span style="display:flex;"><span>    );
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">public</span> String <span style="color:#50fa7b">genSingleLightCommand</span>(
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">boolean</span> z, <span style="color:#8be9fd">int</span> i, <span style="color:#8be9fd">int</span> i2, <span style="color:#8be9fd">int</span> i3, <span style="color:#8be9fd">int</span> i4, <span style="color:#8be9fd">int</span> i5, <span style="color:#8be9fd">int</span> i6,
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">boolean</span> z2, <span style="color:#8be9fd">int</span> i7, <span style="color:#8be9fd">int</span> i8, <span style="color:#8be9fd">boolean</span> z3, <span style="color:#8be9fd">boolean</span> z4
+</span></span><span style="display:flex;"><span>);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>看到这样的函数重载和参数，<del>当时人就傻掉</del>。仅有的方案就是一点一点用 rust 重写，
+并无其他捷径。</p>
+<hr>
+<p><strong>于是决定跳过这段无聊的重写，直接关注 native 库的逆向过程。</strong></p>
+<hr>
+<h2 id="再次逆向-native-库">
+  （再次）逆向 native 库
+  <a class="heading-link" href="#%e5%86%8d%e6%ac%a1%e9%80%86%e5%90%91-native-%e5%ba%93">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>整个 native 库四十多个 JNI 函数，在上文仅出现了一个。因为好戏还在后头：</p>
+<p>就拿用于控制单个等开关的函数 <code>singleOnOff</code> 为例，从封装函数开始，到最终数据被广播出去：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#6272a4">/*Java*/</span> Helper.<span style="color:#50fa7b">singleOnOff</span>(<span style="color:#8be9fd">int</span> i, <span style="color:#8be9fd">boolean</span> z);
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">/*Java*/</span> Helper.<span style="color:#50fa7b">singleControl</span>(<span style="color:#8be9fd">int</span> i, String data);
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">/*Java*/</span> BLSBleLight.<span style="color:#50fa7b">controlWithDevice</span>(<span style="color:#8be9fd">int</span> i, String data, <span style="color:#8be9fd">int</span> delay);
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">/*Java*/</span> BLEFastconHelper.<span style="color:#50fa7b">controlLightSingle</span>(<span style="color:#8be9fd">int</span> i, String data, <span style="color:#8be9fd">int</span> delay);
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">/*C++ */</span> package_device_control(<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd;font-style:italic">const</span> <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>, <span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>); <span style="color:#6272a4">// 打包设备控制指令</span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">/*Java*/</span> BLEFastconHelper.<span style="color:#50fa7b">sendCommand</span>(<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">byte</span><span style="color:#ff79c6">[]</span>, <span style="color:#8be9fd">byte</span><span style="color:#ff79c6">[]</span>, ...);
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">/*Java*/</span> BLEFastconHelper.<span style="color:#50fa7b">sendCommand</span>(<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">byte</span><span style="color:#ff79c6">[]</span>, <span style="color:#8be9fd">byte</span><span style="color:#ff79c6">[]</span>, ...);
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">/*Java*/</span> BLEFastconHelper.<span style="color:#50fa7b">doSendCommand</span>(<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">byte</span><span style="color:#ff79c6">[]</span>, <span style="color:#8be9fd">byte</span><span style="color:#ff79c6">[]</span>, ...);
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">/*Java*/</span> BLEFastconHelper.<span style="color:#50fa7b">getPayloadWithInnerRetry</span>(<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">byte</span><span style="color:#ff79c6">[]</span>, <span style="color:#8be9fd">byte</span><span style="color:#ff79c6">[]</span>,);
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">/*C++ */</span> package_ble_fastcon_body(<span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>, <span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>, <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>);
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">/*Java*/</span> BLEFastconHelper.<span style="color:#50fa7b">XdoSendCommand</span>(<span style="color:#8be9fd">byte</span><span style="color:#ff79c6">[]</span>, <span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">boolean</span>, <span style="color:#8be9fd">boolean</span>, <span style="color:#8be9fd">boolean</span>);
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">/*C++ */</span> get_rf_payload(<span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>, <span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>, <span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>); <span style="color:#6272a4">// 获取 RF payload</span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">/*Java*/</span> BluetoothLeAdvertiser.<span style="color:#50fa7b">startAdvertising</span>(...); <span style="color:#6272a4">// 终于把数据发出去了</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>其中涉及了三次 native 调用，那么就从第一个开始做吧。</p>
+<h2 id="1-package_device_control">
+  1. package_device_control
+  <a class="heading-link" href="#1-package_device_control">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>看名字应该是用于 「打包设备控制指令」，首先打开 Binja，找到对应的 JNI 入口：</p>
+<p><img alt="package_device_control" src="/posts/2023-04/reverse-the-fastcon-ble-protocol-2/package_device_control.png"></p>
+<p>乍一看，这个函数怎么这么短？</p>
+<p>仔细观察才发现这只是一个 wrapper，大概做的就是先 <code>malloc</code> 出一份工作用的 buffer，讲传入的 <code>JByteArray</code>
+内容解包到 buffer 里，随后调用真正的函数，最后将 buffer 里的内容打包到返回用的 <code>JByteArray</code> 里。</p>
+<p>并没有什么特别的地方，遂跳到真正的函数 <code>package_device_control</code> 去一探究竟：</p>
+<p><img alt="package_device_control-real" src="/posts/2023-04/reverse-the-fastcon-ble-protocol-2/package_device_control-real.png"></p>
+<p>函数的开头和最后几行通常是 stack smashing protector，与我们无关，所以只需要关注中间的部分：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8be9fd">uint64_t</span> len_add_1 <span style="color:#ff79c6">=</span> ((<span style="color:#8be9fd">uint64_t</span>)(src_len <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">1</span>));
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">*</span>(<span style="color:#8be9fd">int8_t</span><span style="color:#ff79c6">*</span>)result <span style="color:#ff79c6">=</span> (<span style="color:#bd93f9">2</span> <span style="color:#ff79c6">|</span> ((<span style="color:#8be9fd">int8_t</span>)((<span style="color:#bd93f9">0xfffffff</span> <span style="color:#ff79c6">&amp;</span> len_add_1) <span style="color:#ff79c6">&lt;&lt;</span> <span style="color:#bd93f9">4</span>)));
+</span></span><span style="display:flex;"><span>result[<span style="color:#bd93f9">1</span>] <span style="color:#ff79c6">=</span> device_id;
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">memcpy</span>(<span style="color:#ff79c6">&amp;</span>result[<span style="color:#bd93f9">2</span>], src_buf, ((<span style="color:#8be9fd">int64_t</span>)src_len));
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">char</span> x10_1 <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span><span style="color:#f1fa8c">&#34;0123456789abcdef&#34;</span>[(len_add_1 <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">0xf</span>)];
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">int32_t</span> x9_1 <span style="color:#ff79c6">=</span> (len_add_1 <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">0xf</span>);
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">int128_t</span> v0;
+</span></span><span style="display:flex;"><span>v0 <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>;
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">char</span> var_c0[<span style="color:#bd93f9">0x12</span>];
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">__builtin_memset</span>(var_c0[<span style="color:#bd93f9">0</span>], <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">0x80</span>);
+</span></span><span style="display:flex;"><span>var_c0[<span style="color:#bd93f9">0</span>] <span style="color:#ff79c6">=</span> x10_1;
+</span></span><span style="display:flex;"><span>var_c0[<span style="color:#bd93f9">1</span>] <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0x32</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">if</span> (x9_1 <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">0</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">int32_t</span> x9_2 <span style="color:#ff79c6">=</span> x9_1;
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">char</span><span style="color:#ff79c6">*</span> x10_2 <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">&amp;</span>result[<span style="color:#bd93f9">1</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">void</span><span style="color:#ff79c6">*</span> x11_1 <span style="color:#ff79c6">=</span> (<span style="color:#ff79c6">&amp;</span>var_c0 <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">3</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">int32_t</span> temp0_1;
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">do</span>
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#8be9fd">char</span> c <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span>(<span style="color:#8be9fd">int8_t</span><span style="color:#ff79c6">*</span>)x10_2;
+</span></span><span style="display:flex;"><span>        x10_2 <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">&amp;</span>x10_2[<span style="color:#bd93f9">1</span>];
+</span></span><span style="display:flex;"><span>        temp0_1 <span style="color:#ff79c6">=</span> x9_2;
+</span></span><span style="display:flex;"><span>        x9_2 <span style="color:#ff79c6">=</span> (x9_2 <span style="color:#ff79c6">-</span> <span style="color:#bd93f9">1</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#8be9fd">char</span> cc <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span><span style="color:#f1fa8c">&#34;0123456789abcdef&#34;</span>[(c <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">0xf</span>)];
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">*</span>(<span style="color:#8be9fd">int8_t</span><span style="color:#ff79c6">*</span>)((<span style="color:#8be9fd">char</span><span style="color:#ff79c6">*</span>)x11_1 <span style="color:#ff79c6">-</span> <span style="color:#bd93f9">1</span>) <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span><span style="color:#f1fa8c">&#34;0123456789abcdef&#34;</span>[(c <span style="color:#ff79c6">&gt;&gt;</span> <span style="color:#bd93f9">4</span>)];
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">*</span>(<span style="color:#8be9fd">int8_t</span><span style="color:#ff79c6">*</span>)x11_1 <span style="color:#ff79c6">=</span> cc;
+</span></span><span style="display:flex;"><span>        x11_1 <span style="color:#ff79c6">=</span> ((<span style="color:#8be9fd">char</span><span style="color:#ff79c6">*</span>)x11_1 <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">2</span>);
+</span></span><span style="display:flex;"><span>    } <span style="color:#ff79c6">while</span> (temp0_1 <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">1</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">__android_log_print</span>(<span style="color:#bd93f9">4</span>, <span style="color:#f1fa8c">&#34;jyq_jni&#34;</span>, <span style="color:#f1fa8c">&#34;package_device_control output: %s...&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">&amp;</span>var_c0, ((<span style="color:#8be9fd">uint64_t</span>)device_id));
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这段代码最后调用了 <code>__android_log_print</code>，那么参数 <code>var_c0</code> 就一定是某个字符串，看来看去，似乎这整个串
+与我们的实际操作毫无关系，于是把代码扔到编辑器里，一个一个删变量，让 Language Server 的报错来帮忙：</p>
+<p>最终一个个删完，只剩下了这四行代码：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8be9fd">uint64_t</span> len_add_1 <span style="color:#ff79c6">=</span> ((<span style="color:#8be9fd">uint64_t</span>)(src_len <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">1</span>));
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">*</span>(<span style="color:#8be9fd">int8_t</span><span style="color:#ff79c6">*</span>)result <span style="color:#ff79c6">=</span> (<span style="color:#bd93f9">2</span> <span style="color:#ff79c6">|</span> ((<span style="color:#8be9fd">int8_t</span>)((<span style="color:#bd93f9">0xfffffff</span> <span style="color:#ff79c6">&amp;</span> len_add_1) <span style="color:#ff79c6">&lt;&lt;</span> <span style="color:#bd93f9">4</span>)));
+</span></span><span style="display:flex;"><span>result[<span style="color:#bd93f9">1</span>] <span style="color:#ff79c6">=</span> device_id;
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">memcpy</span>(<span style="color:#ff79c6">&amp;</span>result[<span style="color:#bd93f9">2</span>], src_buf, ((<span style="color:#8be9fd">int64_t</span>)src_len));
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>看来这个 result 的第一个 byte 是长度 + 1 左移四位后与 2 取按位或，第二个 byte 是设备 id，后面的内容
+就是我们传入的数据了。</p>
+<p>（怎么这么简单？）</p>
+<h2 id="2-package_ble_fastcon_body">
+  2. package_ble_fastcon_body
+  <a class="heading-link" href="#2-package_ble_fastcon_body">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>有了上个函数的 &ldquo;经验&rdquo;，我兴冲冲打开了这个函数体。</p>
+<p>JNI 入口函数仍然是十分类似的 wrapper，首先 <code>malloc</code> 了一份 buffer，然后调用真正的函数，最后将 buffer
+重新打包到返回用的 <code>JByteArray</code> 里，于是直接前往真正的函数体：<code>package_ble_fastcon_body</code>。</p>
+<p>这个函数比上一个长很多，而且里面有很多的与上个函数内类似的 <code>bytes-to-hex-string</code> 代码：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#6272a4">// bytes-to-hex-string 大概长这样：
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4">// 其中，x19 是某些 char 指针，x9_12 似乎是一个计数器
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4">// x8_12 则应该是指向 hex-string 的指针
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4">// 值得注意的是，这里的循环似乎是两 bytes 为一组赋值，所以 x8_12 会每次增加 2
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4">// （不过这与我们的实际操作毫无关系，只是顺便说说）
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">do</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">uint64_t</span> x10_16 <span style="color:#ff79c6">=</span> ((<span style="color:#8be9fd">uint64_t</span>)<span style="color:#ff79c6">*</span>(<span style="color:#8be9fd">int8_t</span><span style="color:#ff79c6">*</span>)x19);
+</span></span><span style="display:flex;"><span>    x19 <span style="color:#ff79c6">=</span> ((<span style="color:#8be9fd">char</span><span style="color:#ff79c6">*</span>)x19 <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">1</span>);
+</span></span><span style="display:flex;"><span>    temp2_1 <span style="color:#ff79c6">=</span> x9_12;
+</span></span><span style="display:flex;"><span>    x9_12 <span style="color:#ff79c6">=</span> (x9_12 <span style="color:#ff79c6">-</span> <span style="color:#bd93f9">1</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">char</span> x10_18 <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span><span style="color:#f1fa8c">&#34;0123456789abcdef&#34;</span>[(x10_16 <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">0xf</span>)];
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">*</span>(<span style="color:#8be9fd">int8_t</span><span style="color:#ff79c6">*</span>)x8_12 <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span><span style="color:#f1fa8c">&#34;0123456789abcdef&#34;</span>[(x10_16 <span style="color:#ff79c6">&gt;&gt;</span> <span style="color:#bd93f9">4</span>)];
+</span></span><span style="display:flex;"><span>    x8_12[<span style="color:#bd93f9">1</span>] <span style="color:#ff79c6">=</span> x10_18;
+</span></span><span style="display:flex;"><span>    x8_12 <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">&amp;</span>x8_12[<span style="color:#bd93f9">2</span>];
+</span></span><span style="display:flex;"><span>} <span style="color:#ff79c6">while</span> (temp2_1 <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">1</span>);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>在本函数体内，类似的代码出现了四次，其中两次循环后都跟有 <code>__android_log_print</code>，所以我大胆设想
+这些代码都与实际操作无关。（<del>另外两次为什么没 <code>print</code> 我暂且蒙在鼓里</del>）</p>
+<p>为了方便，我制作了一个 header，里面包含一些常用的 <code>typedef</code>：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#6272a4">// 没什么特别的，也不需要保证正确，仅仅是为了方便
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">typedef</span> <span style="color:#8be9fd">signed</span> <span style="color:#8be9fd">char</span> <span style="color:#8be9fd">int8_t</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">typedef</span> <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">char</span> <span style="color:#8be9fd">uint8_t</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">typedef</span> <span style="color:#8be9fd">short</span> <span style="color:#8be9fd">int16_t</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">typedef</span> <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">short</span> <span style="color:#8be9fd">uint16_t</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">typedef</span> <span style="color:#8be9fd">int</span> <span style="color:#8be9fd">int32_t</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">typedef</span> <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">int</span> <span style="color:#8be9fd">uint32_t</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">typedef</span> <span style="color:#8be9fd">long</span> <span style="color:#8be9fd">long</span> <span style="color:#8be9fd">int64_t</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">typedef</span> <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> <span style="color:#8be9fd">long</span> <span style="color:#8be9fd">uint64_t</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">typedef</span> <span style="color:#ff79c6">struct</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">int64_t</span> __val[<span style="color:#bd93f9">2</span>];
+</span></span><span style="display:flex;"><span>} <span style="color:#8be9fd">int128_t</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">typedef</span> <span style="color:#ff79c6">struct</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">uint64_t</span> __val[<span style="color:#bd93f9">2</span>];
+</span></span><span style="display:flex;"><span>} <span style="color:#8be9fd">uint128_t</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">void</span> <span style="color:#50fa7b">__android_log_print</span>(<span style="color:#8be9fd">int32_t</span> prio, <span style="color:#ff79c6">const</span> <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>tag, <span style="color:#ff79c6">const</span> <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>fmt, ...);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这样每次 copy 出来的代码就不用再改类型了，直接 include 头。</p>
+<hr>
+<p>值得记录一下的是，Binary Ninja 将这个函数反编译成了这样：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8be9fd">char</span> var_100 <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span><span style="color:#f1fa8c">&#34;0123456789abcdef&#34;</span>[((<span style="color:#8be9fd">uint64_t</span>) ((x24_1 <span style="color:#ff79c6">&gt;&gt;</span> <span style="color:#bd93f9">4</span>) <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">0xf</span>))];
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">char</span> var_ff <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span><span style="color:#f1fa8c">&#34;0123456789abcdef&#34;</span>[(x24_1 <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">0xf</span>)];
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">char</span> var_fe <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span><span style="color:#f1fa8c">&#34;0123456789abcdef&#34;</span>[((<span style="color:#8be9fd">uint64_t</span>) ((x26 <span style="color:#ff79c6">&gt;&gt;</span> <span style="color:#bd93f9">4</span>) <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">0xf</span>))];
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">char</span> var_fd <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span><span style="color:#f1fa8c">&#34;0123456789abcdef&#34;</span>[(x26 <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">0xf</span>)];
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">char</span> x8_6 <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span><span style="color:#f1fa8c">&#34;0123456789abcdef&#34;</span>[((<span style="color:#8be9fd">uint64_t</span>) ((x25 <span style="color:#ff79c6">&gt;&gt;</span> <span style="color:#bd93f9">4</span>) <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">0xf</span>))];
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">char</span> x9_5 <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span><span style="color:#f1fa8c">&#34;0123456789abcdef&#34;</span>[(x25 <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">0xf</span>)];
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">char</span> x10_6 <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span><span style="color:#f1fa8c">&#34;0123456789abcdef&#34;</span>[((<span style="color:#8be9fd">uint64_t</span>) ((x23_3 <span style="color:#ff79c6">&gt;&gt;</span> <span style="color:#bd93f9">4</span>) <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">0xf</span>))];
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">char</span> x11_5 <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span><span style="color:#f1fa8c">&#34;0123456789abcdef&#34;</span>[(x23_3 <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">0xf</span>)];
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>x27 <span style="color:#ff79c6">=</span> arg9;
+</span></span><span style="display:flex;"><span>v0 <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>;
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">int128_t</span> var_f8;
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">__builtin_memset</span>(var_f8, <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">0x78</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// 后面：
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">__builtin_memset</span>(var_100, <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">0x80</span>);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>经过一段时间的研究，我认为 <code>var_100</code> 的实际类型应该是 <code>char[0x80]</code>，而上面所有的赋值应该都是
+对这个数组的赋值。</p>
+<hr>
+<p><code>var_100</code> 似乎是专门用来存放 hex-string 的。仍然与我们的操作无关，所以干脆全部删掉。去掉了所有
+SIMD 指令后，我得到了这样的代码：</p>
+<p>第一部分：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>result[<span style="color:#bd93f9">0</span>] <span style="color:#ff79c6">=</span> (<span style="color:#bd93f9">0x7f</span> <span style="color:#ff79c6">&amp;</span> ((<span style="color:#bd93f9">0x8f</span> <span style="color:#ff79c6">&amp;</span> i2) <span style="color:#ff79c6">|</span> ((<span style="color:#bd93f9">0x7</span> <span style="color:#ff79c6">&amp;</span> i) <span style="color:#ff79c6">&lt;&lt;</span> <span style="color:#bd93f9">4</span>))) <span style="color:#ff79c6">|</span> (forward <span style="color:#ff79c6">&lt;&lt;</span> <span style="color:#bd93f9">7</span>);
+</span></span><span style="display:flex;"><span>result[<span style="color:#bd93f9">1</span>] <span style="color:#ff79c6">=</span> sequence;
+</span></span><span style="display:flex;"><span>result[<span style="color:#bd93f9">2</span>] <span style="color:#ff79c6">=</span> safe_key;
+</span></span><span style="display:flex;"><span>result[<span style="color:#bd93f9">3</span>] <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>;
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">memcpy</span>(<span style="color:#ff79c6">&amp;</span>result[<span style="color:#bd93f9">4</span>], data, data_len);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>很明显是一些包头的赋值，不过为什么</p>
+<p>第二部分：</p>
+<p><img alt="package_ble_fastcon_body-1" src="/posts/2023-04/reverse-the-fastcon-ble-protocol-2/package_ble_fastcon_body-1.png"></p>
+<p>第三部分：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>result[<span style="color:#bd93f9">0</span>] <span style="color:#ff79c6">=</span> result[<span style="color:#bd93f9">0</span>] <span style="color:#ff79c6">^</span> <span style="color:#bd93f9">0x5e</span>;
+</span></span><span style="display:flex;"><span>result[<span style="color:#bd93f9">1</span>] <span style="color:#ff79c6">=</span> sequence <span style="color:#ff79c6">^</span> <span style="color:#bd93f9">0x36</span>;
+</span></span><span style="display:flex;"><span>result[<span style="color:#bd93f9">2</span>] <span style="color:#ff79c6">=</span> safe_key <span style="color:#ff79c6">^</span> <span style="color:#bd93f9">0x7b</span>;
+</span></span><span style="display:flex;"><span>result[<span style="color:#bd93f9">3</span>] <span style="color:#ff79c6">=</span> x23_3 <span style="color:#ff79c6">^</span> <span style="color:#bd93f9">0xc4</span>;   <span style="color:#6272a4">// 在第二部分算出的某个结果
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>key <span style="color:#ff79c6">=</span> keyptr;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// 如果 keyptr 为 NULL，则使用（默认的） HEADER_XOR_KEY
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">if</span> (key <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">0</span>)
+</span></span><span style="display:flex;"><span>    key <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">&amp;</span>HEADER_XOR_KEY;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">if</span> (data_len <span style="color:#ff79c6">&gt;</span> <span style="color:#bd93f9">0</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 一些 xor 运算
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> counter <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">do</span>
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        data[counter] <span style="color:#ff79c6">=</span> key[counter <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">3</span>] <span style="color:#ff79c6">^</span> data[counter];
+</span></span><span style="display:flex;"><span>        counter <span style="color:#ff79c6">=</span> (counter <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">1</span>);
+</span></span><span style="display:flex;"><span>    } <span style="color:#ff79c6">while</span> (data_len <span style="color:#ff79c6">!=</span> counter);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// 将 xor 的结果写入 result
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">memcpy</span>(<span style="color:#ff79c6">&amp;</span>result[<span style="color:#bd93f9">4</span>], data, data_len);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>接下来工作的重点就是个第二部分了，在经过{数据测试，阅读 ASM，<del>询问 ChatGPT</del>}之后，我终于得到了
+这样的结论：</p>
+<ul>
+<li><strong>第二部分其实就是一个 checksum，但由于 <code>result[3]</code> 是 checksum 本身，所以在循环 sum 的时候跳过了 <code>index = 3</code></strong></li>
+</ul>
+<p>那么这个函数的逻辑就很清晰了：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">let</span> <span style="color:#ff79c6">mut</span> body <span style="color:#ff79c6">=</span> vec![<span style="color:#bd93f9">0</span>; data.len() <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">4</span>]; <span style="color:#6272a4">// 4 bytes for header
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>
+</span></span><span style="display:flex;"><span>body[<span style="color:#bd93f9">0</span>] <span style="color:#ff79c6">=</span> (i2 <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">0b1111</span>) <span style="color:#ff79c6">&lt;&lt;</span> <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">|</span> (i <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">0b111</span>) <span style="color:#ff79c6">&lt;&lt;</span> <span style="color:#bd93f9">4</span> <span style="color:#ff79c6">|</span> <span style="color:#8be9fd">u8</span>::from(forward) <span style="color:#ff79c6">&lt;&lt;</span> <span style="color:#bd93f9">7</span>;
+</span></span><span style="display:flex;"><span>body[<span style="color:#bd93f9">1</span>] <span style="color:#ff79c6">=</span> sequence <span style="color:#ff79c6">as</span> <span style="color:#8be9fd">u8</span>;
+</span></span><span style="display:flex;"><span>body[<span style="color:#bd93f9">2</span>] <span style="color:#ff79c6">=</span> safe_key;
+</span></span><span style="display:flex;"><span>body[<span style="color:#bd93f9">3</span>] <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>; <span style="color:#6272a4">// checksum placeholder
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>
+</span></span><span style="display:flex;"><span>body[<span style="color:#bd93f9">4</span><span style="color:#ff79c6">..</span>].copy_from_slice(data);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">let</span> <span style="color:#ff79c6">mut</span> checksum: <span style="color:#8be9fd">u8</span> <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">in</span> <span style="color:#bd93f9">0</span><span style="color:#ff79c6">..</span>body.len() {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> i <span style="color:#ff79c6">==</span> <span style="color:#bd93f9">3</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">continue</span>; <span style="color:#6272a4">// skip checksum itself
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    }
+</span></span><span style="display:flex;"><span>    checksum <span style="color:#ff79c6">=</span> checksum.wrapping_add(body[i]);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>body[<span style="color:#bd93f9">3</span>] <span style="color:#ff79c6">=</span> checksum;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// encrypt the header, the same as bl_ble_fastcon_header_encrty
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">in</span> <span style="color:#bd93f9">0</span><span style="color:#ff79c6">..</span><span style="color:#bd93f9">4</span> {
+</span></span><span style="display:flex;"><span>    body[i] <span style="color:#ff79c6">=</span> DEFAULT_ENCRYPT_KEY[i <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">3</span>] <span style="color:#ff79c6">^</span> body[i];
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// encrypt the body with given key
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#8be9fd;font-style:italic">let</span> real_key <span style="color:#ff79c6">=</span> key.unwrap_or(<span style="color:#ff79c6">&amp;</span>DEFAULT_ENCRYPT_KEY);
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">in</span> <span style="color:#bd93f9">0</span><span style="color:#ff79c6">..</span>data_size {
+</span></span><span style="display:flex;"><span>    body[<span style="color:#bd93f9">4</span> <span style="color:#ff79c6">+</span> i] <span style="color:#ff79c6">=</span> real_key[i <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">3</span>] <span style="color:#ff79c6">^</span> body[<span style="color:#bd93f9">4</span> <span style="color:#ff79c6">+</span> i];
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>body <span style="color:#6272a4">// return the encrypted body
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="3-get_rf_payload">
+  3. get_rf_payload
+  <a class="heading-link" href="#3-get_rf_payload">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>万万想不到这个函数竟然是本期的主角，函数传入 <code>addr</code> 地址, <code>addr_len</code> 地址长度, <code>data</code> 数据, <code>data_len</code>
+数据长度，最终将数据写如 <code>result</code> 返回结果。</p>
+<p>首先映入眼帘的是两个 <code>whitening_init</code> 调用，看名字似乎是在初始化什么东西，然后是一个 <code>operator new[]</code>，
+在这里申请了 <code>0x12 + addr_len + data_len + 2</code> 大小的内存。</p>
+<p>这块内存最终被 copy 到了 <code>result</code> 内，合理猜测这就是所需的最终结果。</p>
+<p>函数内部的逻辑很简单，看着反汇编就能把大概逻辑描述出来：</p>
+<ol>
+<li>
+<p>这一段是对申请后的内存进行初始化，似乎在 <code>0x0f</code> 和 <code>0x10</code>, <code>0x11</code> 进行 hard-coded：</p>
+<p><img alt="rf-1" src="/posts/2023-04/reverse-the-fastcon-ble-protocol-2/rf_payload-1.png"></p>
+</li>
+<li>
+<p>随后是一段带有 SIMD 优化的循环，我们不管 SIMD 部分，直接跳到 <code>label_1320c</code>：</p>
+<p><img alt="rf-2" src="/posts/2023-04/reverse-the-fastcon-ble-protocol-2/rf_payload-2.png"></p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">label_1320c</span>:
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">int64_t</span> rest <span style="color:#ff79c6">=</span> (addr_len <span style="color:#ff79c6">-</span> copied_offset_1);
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">char</span><span style="color:#ff79c6">*</span> addrbuf_tmp <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">&amp;</span>resultbuf[(copied_offset_1 <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">0x12</span>)];
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd">int32_t</span> some_left <span style="color:#ff79c6">=</span> ((addr_len <span style="color:#ff79c6">-</span> <span style="color:#bd93f9">1</span>) <span style="color:#ff79c6">-</span> x12_1);
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">do</span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">char</span> c <span style="color:#ff79c6">=</span> addr_ptr[((<span style="color:#8be9fd">int64_t</span>)some_left)]; <span style="color:#6272a4">// c = addr[some_left]
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    rest <span style="color:#ff79c6">=</span> (rest <span style="color:#ff79c6">-</span> <span style="color:#bd93f9">1</span>);                       <span style="color:#6272a4">// rest--
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    some_left <span style="color:#ff79c6">=</span> (some_left <span style="color:#ff79c6">-</span> <span style="color:#bd93f9">1</span>);             <span style="color:#6272a4">// some_left--
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">*</span>(<span style="color:#8be9fd">int8_t</span><span style="color:#ff79c6">*</span>)addrbuf_tmp <span style="color:#ff79c6">=</span> c;               <span style="color:#6272a4">// addrbuf_tmp[0] = c
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    addrbuf_tmp <span style="color:#ff79c6">=</span> ((<span style="color:#8be9fd">char</span><span style="color:#ff79c6">*</span>)addrbuf_tmp <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">1</span>);  <span style="color:#6272a4">// addrbuf_tmp++
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>} <span style="color:#ff79c6">while</span> (rest <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">0</span>);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>不难看出这是对 <code>addr</code> 的逆序拷贝，<code>copied_offset_1</code> 和 <code>x12_1</code> 是用于记录在 SIMD
+部分已经拷贝了多少字节，因为无需关心 SIMD 部分，所以直接把他当作 0 即可。</p>
+<p>这段代码把 <code>addr</code> 复制到了 <code>resultbuf</code> 的 <code>0x12</code> 处。</p>
+</li>
+<li>
+<p>接下来是对 <code>data</code> 的拷贝，与上面不一样的是，这次的拷贝是正常顺序的：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">label_13274</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">char</span><span style="color:#ff79c6">*</span> data_dst <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">&amp;</span>resultbuf[(x10_5 <span style="color:#ff79c6">+</span> (addr_len <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">0x12</span>))];
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">int64_t</span> x9_1 <span style="color:#ff79c6">=</span> (data_len_copy <span style="color:#ff79c6">-</span> x10_5);
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">char</span><span style="color:#ff79c6">*</span> data_src <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">&amp;</span>data_ptr[x10_5];
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">int64_t</span> exit_cond;
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">do</span>
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#8be9fd">char</span> c <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span>(<span style="color:#8be9fd">int8_t</span><span style="color:#ff79c6">*</span>)data_src;
+</span></span><span style="display:flex;"><span>        data_src <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">&amp;</span>datasrcptr[<span style="color:#bd93f9">1</span>];
+</span></span><span style="display:flex;"><span>        exit_cond <span style="color:#ff79c6">=</span> x9_1;
+</span></span><span style="display:flex;"><span>        x9_1 <span style="color:#ff79c6">=</span> (x9_1 <span style="color:#ff79c6">-</span> <span style="color:#bd93f9">1</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">*</span>(<span style="color:#8be9fd">int8_t</span><span style="color:#ff79c6">*</span>)data_dst <span style="color:#ff79c6">=</span> c;
+</span></span><span style="display:flex;"><span>        data_dst <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">&amp;</span>data_dst[<span style="color:#bd93f9">1</span>];
+</span></span><span style="display:flex;"><span>    } <span style="color:#ff79c6">while</span> (exit_cond <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">1</span>);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>同样，<code>x10_5</code> 和 <code>data_len_copy</code> 是可以直接当作 0 的。</p>
+<p>值得注意的是，我们的 <code>data_dst</code> 是从 <code>resultbuf</code> 的 <code>addr_len + 0x12</code> 开始的，这是因为
+要将 <code>data</code> 拼接在 <code>addr</code> 之后。</p>
+</li>
+<li>
+<p>随后是一个奇怪的循环：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ff79c6">if</span> ((addr_len <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">3</span>) <span style="color:#ff79c6">&gt;=</span> <span style="color:#bd93f9">1</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// count down from addr_len + 3
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">uint64_t</span> x27_1 <span style="color:#ff79c6">=</span> ((<span style="color:#8be9fd">uint64_t</span>)(addr_len <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">3</span>));
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">int8_t</span><span style="color:#ff79c6">*</span> x19_1 <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">&amp;</span>resultbuf[<span style="color:#bd93f9">0xf</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">uint64_t</span> temp0_1; <span style="color:#6272a4">// exit condition
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">do</span>
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        temp0_1 <span style="color:#ff79c6">=</span> x27_1;
+</span></span><span style="display:flex;"><span>        x27_1 <span style="color:#ff79c6">=</span> (x27_1 <span style="color:#ff79c6">-</span> <span style="color:#bd93f9">1</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">*</span>x19_1 <span style="color:#ff79c6">=</span> <span style="color:#50fa7b">invert_8</span>(<span style="color:#ff79c6">*</span>(<span style="color:#8be9fd">int8_t</span><span style="color:#ff79c6">*</span>)x19_1);
+</span></span><span style="display:flex;"><span>        x19_1 <span style="color:#ff79c6">=</span> ((<span style="color:#8be9fd">char</span><span style="color:#ff79c6">*</span>)x19_1 <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">1</span>);
+</span></span><span style="display:flex;"><span>    } <span style="color:#ff79c6">while</span> (temp0_1 <span style="color:#ff79c6">!=</span> <span style="color:#bd93f9">1</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>还记得之前硬编码的 <code>0xf</code> 和 <code>0x10</code>, <code>0x11</code> 位置的数据吗，这段代码对此处从 <code>0xf</code> 开始的
+<code>[3 + addr_len]</code> 个字节进行了 &ldquo;invert&rdquo;。</p>
+<p>说到这里，就不得不提到 <code>invert_8</code> 这个函数：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span><span style="color:#50fa7b">uint64_t</span> invert_8(int32_t arg1)
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">int32_t</span> arg1  {Register x0}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">lsl</span>     w11, w0, <span style="color:#6272a4">#0x5           ; w11 = w0 &lt;&lt; 0x5
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">and</span>     w11, w11, <span style="color:#6272a4">#0x40         ; w11 = w11 &amp; 0x40
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">lsr</span>     w10, w0, <span style="color:#6272a4">#0x2           ; w10 = w0 &gt;&gt; 0x2
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">bfi</span>     w11, w0, <span style="color:#6272a4">#0x7, #0x19    ; w11 = w11 | (w0 &lt;&lt; 0x7)
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">lsr</span>     w9, w0, <span style="color:#6272a4">#0x3            ; w9 = w0 &gt;&gt; 0x3
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">bfi</span>     w11, w10, <span style="color:#6272a4">#0x5, #0x1    ; w11 = w11 | (w10 &lt;&lt; 0x5)
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">ubfx</span>    w10, w0, <span style="color:#6272a4">#0x1, #0x7     ; w10 = w0 &amp; 0x7f
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">bfi</span>     w11, w9, <span style="color:#6272a4">#0x4, #0x1     ; w11 = w11 | (w9 &lt;&lt; 0x4)
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">ubfx</span>    w9, w0, <span style="color:#6272a4">#0x3, #0x5      ; w9 = w0 &amp; 0x1f
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">and</span>     w10, w10, <span style="color:#6272a4">#0x8          ; w10 = w10 &amp; 0x8
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">ubfx</span>    w12, w0, <span style="color:#6272a4">#0x5, #0x3     ; w12 = w0 &amp; 0x7
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">and</span>     w9, w9, <span style="color:#6272a4">#0x4            ; w9 = w9 &amp; 0x4
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">orr</span>     w10, w11, w10           <span style="color:#6272a4">; w10 = w11 | w10
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">orr</span>     w9, w10, w9             <span style="color:#6272a4">; w9 = w10 | w9
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">and</span>     w10, w12, <span style="color:#6272a4">#0x2          ; w10 = w12 &amp; 0x2
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">and</span>     w8, w0, <span style="color:#6272a4">#0xff           ; w8 = w0 &amp; 0xff
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">orr</span>     w9, w9, w10             <span style="color:#6272a4">; w9 = w9 | w10
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">orr</span>     w0, w9, w8, lsr <span style="color:#6272a4">#0x7    ; w0 = w9 | (w8 &gt;&gt; 0x7)
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">ret</span>                             <span style="color:#6272a4">; return w0
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>这个函数明明做的是 <code>reverse</code>，但是却叫 <code>invert</code>，可想而知这位开发者可能在写的时候走神了：</p>
+<ul>
+<li><code>invert(0b00111111) = 0b11000000</code></li>
+<li><code>reverse(0b00111111) = 0b11111000</code></li>
+</ul>
+<p>这个 <code>invert_8</code> 函数下面还有一个 <code>invert_16</code>，于是直接当作 <code>reverse</code> 了。</p>
+</li>
+<li>
+<p>在 reverse 一部分 bytes 后，这个函数又计算了 <code>addr</code> 和 <code>data</code> 的 CRC-16，将得到的 16 位
+CRC 拼接在了最后（这就是为什么一开始申请内存的时候要加 2 了）：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ff79c6">const</span> <span style="color:#8be9fd">int32_t</span> crc_start <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0x12</span> <span style="color:#ff79c6">+</span> addr_len <span style="color:#ff79c6">+</span> data_len;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">const</span> <span style="color:#8be9fd">int16_t</span> crc <span style="color:#ff79c6">=</span> <span style="color:#50fa7b">check_crc16</span>(addr_ptr, addr_len, data_ptr, data_len);
+</span></span><span style="display:flex;"><span>resultbuf[crc_start] <span style="color:#ff79c6">=</span> x0_5;          <span style="color:#6272a4">// crc low byte
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>resultbuf[crc_start <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">1</span>] <span style="color:#ff79c6">=</span> x0_5 <span style="color:#ff79c6">&gt;&gt;</span> <span style="color:#bd93f9">8</span>; <span style="color:#6272a4">// crc high byte
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>这个 CRC 函数十分 sus：他接受两个 buffer，所以我严重怀疑是什么自己的轮子：</p>
+<p><img alt="rf_payload-crc1" src="/posts/2023-04/reverse-the-fastcon-ble-protocol-2/rf_payload-crc1.png"></p>
+<p>这是一坨什么大便，我不想看了。</p>
+<p>经过千辛万苦地化简，我终于把这个函数化简成了这样：</p>
+<p><img alt="crc16" src="/posts/2023-04/reverse-the-fastcon-ble-protocol-2/crc16.png"></p>
+</li>
+<li>
+<p>whitening_init</p>
+<blockquote>
+<p>信号的白化是一种常见的信号处理技术，它的目的是将信号的频谱分布均匀化，使得信号的频谱
+更加平滑，从而使得信号更加稳定。
+&mdash; GitHub Copilot</p>
+</blockquote>
+<p>这段代码（上文提到过）涉及到了两次 <code>whitening_init</code> 调用和一次 <code>whitening_encode</code>：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8be9fd">whitening_ctx_t</span> var_88; <span style="color:#6272a4">// 感觉像是一个 struct，但是被优化掉了
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#8be9fd">whitening_ctx_t</span> var_a8;
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">whitening_init</span>(<span style="color:#bd93f9">0x25</span>, <span style="color:#ff79c6">&amp;</span>var_88);
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">whitening_init</span>(<span style="color:#bd93f9">0x3f</span>, <span style="color:#ff79c6">&amp;</span>var_a8);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// 在计算好 CRC 之后
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">whitenging_encode</span>(resultbuf, (result_data_size <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">2</span>), <span style="color:#ff79c6">&amp;</span>var_88);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>很有意思的是，<code>var_a8</code> 从来没有使用过，这个变量是不是多余的呢？</p>
+<p>这就要去看看 <code>whitening_init</code> 有没有副作用了：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span><span style="color:#6272a4">; whitening_ctx_t 是目前还不知道的一个 struct
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4">; void whitening_init(int64_t arg1, whitening_ctx_t* arg2)
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4">; int64_t arg1           {Register x0}
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4">; whitening_ctx_t* arg2  {Register x1}
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">; 这两行把 data_31ac0 加载到 q0
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4">; 在 ARM 中，q0 寄存器是一个 128 位的寄存器，用于在 SIMD 指令中存储数据
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4">; 我们这里的 data_31ac0 其实就是 [5, 4, 3, 2] 四个 32 位的整数
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">adrp</span>    x8, <span style="color:#bd93f9">0x31000</span>
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">ldr</span>     q0, [x8, <span style="color:#6272a4">#0xac0]  {data_31ac0}
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">dup</span>     v1.4s, w0            <span style="color:#6272a4">; v1 = [arg1, arg1, arg1, arg1]
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">orr</span>     w8, wzr, <span style="color:#6272a4">#0x1        ; w8 = 0x1
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">str</span>     w8, [x1]  {<span style="color:#bd93f9">0x1</span>}      <span style="color:#6272a4">; 将 w8 存入 x1 指向的内存（0x1 是什么我不知道）
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">neg</span>     v0.4s, v0.4s         <span style="color:#6272a4">; v0 = ~v0
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">ushl</span>    v0.4s, v1.4s, v0.4s  <span style="color:#6272a4">; v0 = v0 &lt;&lt; v1
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">movi</span>    v1.4s, <span style="color:#6272a4">#0x1          ; v1 = [1, 1, 1, 1]
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">ubfx</span>    w8, w0, <span style="color:#6272a4">#0x1, #0x1       ; w8 = (w0 &gt;&gt; 0x1) &amp; 0x1
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">and</span>     w9, w0, <span style="color:#6272a4">#0x1             ; w9 = w0 &amp; 0x1
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">and</span>     v0.16b, v0.16b, v1.16b   <span style="color:#6272a4">; v0 = v0 &amp; v1 按位与
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">stur</span>    q0, [x1, <span style="color:#6272a4">#0x4]       ; [x1, #0x4] = v0
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">stp</span>     w8, w9, [x1, <span style="color:#6272a4">#0x14]  ; [x1] = w8, [x1, #0x8] = w9
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">; 拜拜～～～
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#50fa7b">ret</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>值得注意的是，这个先取反再左移的操作，在实际情况中其实就是右移……我被这个问题困扰了很久。
+最终甚至还在 Android 上挂了 lldb 调试，才发现了这个问题：</p>
+<p><img alt="whitening-1" src="/posts/2023-04/reverse-the-fastcon-ble-protocol-2/whitening-1.png"></p>
+<p>接下来的步骤就是将其翻译为 Rust：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#ff79c6">#[derive(Debug, Clone, Copy, Default)]</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">pub</span>(<span style="color:#ff79c6">crate</span>) <span style="color:#ff79c6">struct</span> <span style="color:#50fa7b">WhiteningContext</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 我完全不知道这些字段是什么意思，所以直接用偏移量作为字段名了
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>    f_0x0: <span style="color:#8be9fd">u32</span>,
+</span></span><span style="display:flex;"><span>    f_0x4: <span style="color:#8be9fd">u32</span>,
+</span></span><span style="display:flex;"><span>    f_0x8: <span style="color:#8be9fd">u32</span>,
+</span></span><span style="display:flex;"><span>    f_0xc: <span style="color:#8be9fd">u32</span>,
+</span></span><span style="display:flex;"><span>    f_0x10: <span style="color:#8be9fd">u32</span>,
+</span></span><span style="display:flex;"><span>    f_0x14: <span style="color:#8be9fd">u32</span>,
+</span></span><span style="display:flex;"><span>    f_0x18: <span style="color:#8be9fd">u32</span>,
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">pub</span>(<span style="color:#ff79c6">crate</span>) <span style="color:#ff79c6">fn</span> <span style="color:#50fa7b">whitening_init</span>(val: <span style="color:#8be9fd">u32</span>, ctx: <span style="color:#ff79c6">&amp;</span><span style="color:#50fa7b">mut</span> WhiteningContext) {
+</span></span><span style="display:flex;"><span>     <span style="color:#8be9fd;font-style:italic">let</span> v0 <span style="color:#ff79c6">=</span> [(val <span style="color:#ff79c6">&gt;&gt;</span> <span style="color:#bd93f9">5</span>), (val <span style="color:#ff79c6">&gt;&gt;</span> <span style="color:#bd93f9">4</span>), (val <span style="color:#ff79c6">&gt;&gt;</span> <span style="color:#bd93f9">3</span>), (val <span style="color:#ff79c6">&gt;&gt;</span> <span style="color:#bd93f9">2</span>)];
+</span></span><span style="display:flex;"><span>     ctx.f_0x0 <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">1</span>;
+</span></span><span style="display:flex;"><span>     ctx.f_0x4 <span style="color:#ff79c6">=</span> v0[<span style="color:#bd93f9">0</span>] <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">1</span>;
+</span></span><span style="display:flex;"><span>     ctx.f_0x8 <span style="color:#ff79c6">=</span> v0[<span style="color:#bd93f9">1</span>] <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">1</span>;
+</span></span><span style="display:flex;"><span>     ctx.f_0xc <span style="color:#ff79c6">=</span> v0[<span style="color:#bd93f9">2</span>] <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">1</span>;
+</span></span><span style="display:flex;"><span>     ctx.f_0x10 <span style="color:#ff79c6">=</span> v0[<span style="color:#bd93f9">3</span>] <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">1</span>;
+</span></span><span style="display:flex;"><span>     ctx.f_0x14 <span style="color:#ff79c6">=</span> (val <span style="color:#ff79c6">&gt;&gt;</span> <span style="color:#bd93f9">1</span>) <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">1</span>;
+</span></span><span style="display:flex;"><span>     ctx.f_0x18 <span style="color:#ff79c6">=</span> val <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">1</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p>whitening_encode</p>
+<ul>
+<li>好消息：这是我们最后一个函数了！</li>
+<li>好消息：这个函数逻辑非常简单，没有 SIMD，没有怪异的位运算</li>
+<li>好消息：这个函数里面就一个循环，每次循环更新 data 内的一个字节，并且更新 ctx</li>
+<li>好消息：直接从 Binary Ninja 中复制出代码进行翻译即可</li>
+</ul>
+<p>甚至没有什么值得说的：</p>
+<p><img alt="whitening-2" src="/posts/2023-04/reverse-the-fastcon-ble-protocol-2/whitening-2.png"></p>
+</li>
+</ol>
+<p>至此，我就完成了所需 native 函数的逆向，接下来就是将其整合并重构成一个看起来舒服的 Rust 库了。</p>
+<p>在下一篇文章中，我大概会介绍 Fastcon 的大致逻辑。</p>
+<p>所以，晚安～</p>
+
+      </div>
+
+
+      <footer>
+        
+
+
+        
+        
+        <div class="comments">
+  <script>
+
+    let getTheme = window.localStorage && window.localStorage.getItem("colorscheme");
+    let themeInParams = '';
+
+    if (getTheme == null) {
+      if (themeInParams !== '' && themeInParams !== 'auto') {
+        getTheme = themeInParams;
+      }
+      else {
+        getTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
+      }
+    }
+
+    let theme = getTheme === 'dark' ? 'github-dark' : 'github-light';
+    let s = document.createElement('script');
+    s.src = 'https://utteranc.es/client.js';
+    s.setAttribute('repo', 'moodyhunter\/moodyhunter.github.io');
+    s.setAttribute('issue-term', 'pathname');
+    s.setAttribute('theme', theme);
+    s.setAttribute('crossorigin', 'anonymous');
+    s.setAttribute('async', '');
+    document.querySelector('div.comments').innerHTML = '';
+    document.querySelector('div.comments').appendChild(s);
+
+  </script>
+</div>
+        
+        
+
+        
+      </footer>
+    </article>
+
+    
+  </section>
+
+    </div>
+
+    <footer class="footer">
+  <section class="container">
+    ©
+    
+      2021 -
+    
+    2024
+     Moody 
+    ·
+    
+      许可依据 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA-4.0</a>
+    ·
+    
+    技术支持 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/" target="_blank" rel="noopener">Coder</a>.
+    
+  </section>
+</footer>
+
+  </main>
+
+  
+
+  
+  
+  <script src="/js/coder.min.6ae284be93d2d19dad1f02b0039508d9aab3180a12a06dcc71b0b0ef7825a317.js" integrity="sha256-auKEvpPS0Z2tHwKwA5UI2aqzGAoSoG3McbCw73gloxc="></script>
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  <script type="text/javascript">
+    !function(T,l,y){var S=T.location,k="script",D="connectionString",C="ingestionendpoint",I="disableExceptionTracking",E="ai.device.",b="toLowerCase",w="crossOrigin",N="POST",e="appInsightsSDK",t=y.name||"appInsights";(y.name||T[e])&&(T[e]=t);var n=T[t]||function(d){var g=!1,f=!1,m={initialize:!0,queue:[],sv:"5",version:2,config:d};function v(e,t){var n={},a="Browser";return n[E+"id"]=a[b](),n[E+"type"]=a,n["ai.operation.name"]=S&&S.pathname||"_unknown_",n["ai.internal.sdkVersion"]="javascript:snippet_"+(m.sv||m.version),{time:function(){var e=new Date;function t(e){var t=""+e;return 1===t.length&&(t="0"+t),t}return e.getUTCFullYear()+"-"+t(1+e.getUTCMonth())+"-"+t(e.getUTCDate())+"T"+t(e.getUTCHours())+":"+t(e.getUTCMinutes())+":"+t(e.getUTCSeconds())+"."+((e.getUTCMilliseconds()/1e3).toFixed(3)+"").slice(2,5)+"Z"}(),name:"Microsoft.ApplicationInsights."+e.replace(/-/g,"")+"."+t,sampleRate:100,tags:n,data:{baseData:{ver:2}}}}var h=d.url||y.src;if(h){function a(e){var t,n,a,i,r,o,s,c,u,p,l;g=!0,m.queue=[],f||(f=!0,t=h,s=function(){var e={},t=d.connectionString;if(t)for(var n=t.split(";"),a=0;a<n.length;a++){var i=n[a].split("=");2===i.length&&(e[i[0][b]()]=i[1])}if(!e[C]){var r=e.endpointsuffix,o=r?e.location:null;e[C]="https://"+(o?o+".":"")+"dc."+(r||"services.visualstudio.com")}return e}(),c=s[D]||d[D]||"",u=s[C],p=u?u+"/v2/track":d.endpointUrl,(l=[]).push((n="SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details)",a=t,i=p,(o=(r=v(c,"Exception")).data).baseType="ExceptionData",o.baseData.exceptions=[{typeName:"SDKLoadFailed",message:n.replace(/\./g,"-"),hasFullStack:!1,stack:n+"\nSnippet failed to load ["+a+"] -- Telemetry is disabled\nHelp Link: https://go.microsoft.com/fwlink/?linkid=2128109\nHost: "+(S&&S.pathname||"_unknown_")+"\nEndpoint: "+i,parsedStack:[]}],r)),l.push(function(e,t,n,a){var i=v(c,"Message"),r=i.data;r.baseType="MessageData";var o=r.baseData;return o.message='AI (Internal): 99 message:"'+("SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details) ("+n+")").replace(/\"/g,"")+'"',o.properties={endpoint:a},i}(0,0,t,p)),function(e,t){if(JSON){var n=T.fetch;if(n&&!y.useXhr)n(t,{method:N,body:JSON.stringify(e),mode:"cors"});else if(XMLHttpRequest){var a=new XMLHttpRequest;a.open(N,t),a.setRequestHeader("Content-type","application/json"),a.send(JSON.stringify(e))}}}(l,p))}function i(e,t){f||setTimeout(function(){!t&&m.core||a()},500)}var e=function(){var n=l.createElement(k);n.src=h;var e=y[w];return!e&&""!==e||"undefined"==n[w]||(n[w]=e),n.onload=i,n.onerror=a,n.onreadystatechange=function(e,t){"loaded"!==n.readyState&&"complete"!==n.readyState||i(0,t)},n}();y.ld<0?l.getElementsByTagName("head")[0].appendChild(e):setTimeout(function(){l.getElementsByTagName(k)[0].parentNode.appendChild(e)},y.ld||0)}try{m.cookie=l.cookie}catch(p){}function t(e){for(;e.length;)!function(t){m[t]=function(){var e=arguments;g||m.queue.push(function(){m[t].apply(m,e)})}}(e.pop())}var n="track",r="TrackPage",o="TrackEvent";t([n+"Event",n+"PageView",n+"Exception",n+"Trace",n+"DependencyData",n+"Metric",n+"PageViewPerformance","start"+r,"stop"+r,"start"+o,"stop"+o,"addTelemetryInitializer","setAuthenticatedUserContext","clearAuthenticatedUserContext","flush"]),m.SeverityLevel={Verbose:0,Information:1,Warning:2,Error:3,Critical:4};var s=(d.extensionConfig||{}).ApplicationInsightsAnalytics||{};if(!0!==d[I]&&!0!==s[I]){var c="onerror";t(["_"+c]);var u=T[c];T[c]=function(e,t,n,a,i){var r=u&&u(e,t,n,a,i);return!0!==r&&m["_"+c]({message:e,url:t,lineNumber:n,columnNumber:a,error:i}),r},d.autoExceptionInstrumented=!0}return m}(y.cfg);function a(){y.onInit&&y.onInit(n)}(T[t]=n).queue&&0===n.queue.length?(n.queue.push(a),n.trackPageView({})):a()}(window,document,{
+    src: "https://js.monitor.azure.com/scripts/b/ai.2.min.js", 
+    
+    
+    
+    crossOrigin: "anonymous", 
+    
+    cfg: { 
+        connectionString: "InstrumentationKey=5a5bbde5-faba-4982-8376-789e51b32d12;IngestionEndpoint=https:\/\/uksouth-1.in.applicationinsights.azure.com\/;LiveEndpoint=https:\/\/uksouth.livediagnostics.monitor.azure.com\/"
+         
+    }});
+    </script>    
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+
+</html>

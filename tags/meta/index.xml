@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Meta on Moody&#39;s</title>
+    <link>https://mooody.me/tags/meta/</link>
+    <description>Recent content in Meta on Moody&#39;s</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 14 Apr 2022 00:07:37 +0100</lastBuildDate><atom:link href="https://mooody.me/tags/meta/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>PLCT 初体验</title>
+      <link>https://mooody.me/posts/2022-04/plct-experience-1/</link>
+      <pubDate>Thu, 14 Apr 2022 00:07:37 +0100</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-04/plct-experience-1/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;&amp;ldquo;啊？ 系统镜像还没有啊？&amp;rdquo;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;本篇文章记录的是我在 PLCT &lt;del&gt;实习&lt;/del&gt;当工具人的初体验&lt;/p&gt;
+&lt;h2 id=&#34;开端&#34;&gt;
+  《开端》
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%bc%80%e7%ab%af&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;就是羡慕。&lt;/p&gt;
+&lt;p&gt;有一著名人士曾经说过：&lt;code&gt;群我不 plct&lt;/code&gt;，有一瞬间我确实感觉到: &amp;ldquo;怎么他们都在？&amp;quot;，于是我开始
+四处调查，我想起之前在 B 站看过 PLCT 编译器小组的 Report 感觉非常厉害，在内心里一瞬间燃
+起了一株小小的火苗：&amp;ldquo;我也想像他们一样&amp;rdquo;。&lt;/p&gt;
+&lt;p&gt;在经过了长达（一天）的调查以后，我终于全面了解了实习的不同种类，（身为 Arch 用户外加身边很多朋友都在 Arch RISC-V 打包小组），我也就选择了这里。我还了解到了 ArchRV 小组的申请要求
+： 一个 &lt;code&gt;addpkg&lt;/code&gt; PR 和简历（据说不看？，但还是战战兢兢地完善了一下），一篇不长于 300
+汉字的小短文。&lt;/p&gt;
+&lt;p&gt;花了一晚上时间准备好资料，终于把邮件发了出去（几个 addpkg 的包也都合并了，都是很简单的修复
+简直不敢说是 fix），关机睡觉&lt;/p&gt;
+&lt;h3 id=&#34;第二天&#34;&gt;
+  第二天
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e7%ac%ac%e4%ba%8c%e5%a4%a9&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;KMail 坑我 :) 明明已经收到了回邮，但是并未提醒我新邮件，直接咕了&lt;/p&gt;
+&lt;h3 id=&#34;第三天&#34;&gt;
+  第三天
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e7%ac%ac%e4%b8%89%e5%a4%a9&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;&lt;del&gt;一个自称 Wu Wei&lt;/del&gt; 的人联系到了我：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;我: 我想问一下，有面试环节什么的吗？&lt;/p&gt;
+&lt;p&gt;对面：面试了，面试通过了&lt;/p&gt;
+&lt;p&gt;我: ？？？？？&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;接下来就是各种资料的填写，签字，提交一系列 paperwork，很标准地走个流程。&lt;/p&gt;
+&lt;h2 id=&#34;我的第一个正经的-fix&#34;&gt;
+  我的第一个正经的 fix
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%88%91%e7%9a%84%e7%ac%ac%e4%b8%80%e4%b8%aa%e6%ad%a3%e7%bb%8f%e7%9a%84-fix&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;下一篇再说&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>五月</title>
+      <link>https://mooody.me/posts/2021-05/may-review/</link>
+      <pubDate>Tue, 01 Jun 2021 13:34:00 +0000</pubDate>
+      
+      <guid>https://mooody.me/posts/2021-05/may-review/</guid>
+      <description>&lt;h2 id=&#34;一个平平淡淡的五月就这么过去了&#34;&gt;
+  一个平平淡淡的五月就这么过去了
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e4%b8%80%e4%b8%aa%e5%b9%b3%e5%b9%b3%e6%b7%a1%e6%b7%a1%e7%9a%84%e4%ba%94%e6%9c%88%e5%b0%b1%e8%bf%99%e4%b9%88%e8%bf%87%e5%8e%bb%e4%ba%86&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;总想写点什么记录一下，但后来发现真的没啥能写&lt;/p&gt;
+&lt;p&gt;六月考试月来了，&lt;del&gt;希望 CS126 的题不要出的像 Coursework 那样恶心谢谢&lt;/del&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Hello, World!</title>
+      <link>https://mooody.me/posts/2021-05/hello-world/</link>
+      <pubDate>Sun, 23 May 2021 04:21:21 +0000</pubDate>
+      
+      <guid>https://mooody.me/posts/2021-05/hello-world/</guid>
+      <description>&lt;p&gt;这里是 Moody 的第一个 Post！&lt;/p&gt;
+&lt;p&gt;有人问我你咋不用 WASM 自己写 blog system&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;del&gt;（其实也不是不行）&lt;/del&gt; 等填坑吧&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+  <title>
+  Qt 6.3 中的一些 CMake 函数 · Moody&#39;s
+</title>
+  <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+
+
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; block-all-mixed-content; default-src 'self'; child-src 'self'; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; form-action 'self' https://utteranc.es; frame-src 'self' https://utteranc.es; img-src 'self' https:; object-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://utteranc.es; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://utteranc.es https://static.cloudflareinsights.com https://js.monitor.azure.com; connect-src 'self' https://utteranc.es https://uksouth-1.in.applicationinsights.azure.com;">
+
+
+
+
+<meta name="author" content="Moody">
+<meta name="description" content="写在前面 链接到标题 今天心血来潮想写点东西，发现之前挖的各种大坑都没填好…… dbq）
+说点什么呢 链接到标题 翻消息记录突然看到下面这条评论：
+作者写的挺好的，如果能把下面这个官网上面对这个模块功能描述加进去完美了&hellip;
+哇） 居然在认真的看我的 Blog，突然有点被感动到。 那么今天就先来聊 Qt 6.3 中的 CMake 函数
+1. qt6_add_qml_module 链接到标题 先来说说大名鼎鼎（？）的 qt6_add_qml_module：
+细数近期的 Qt Declarative 库中的 commits 不难发现，Qt 还在给这个本就已经很复杂的函数添加参数：FOLLOW_FOREIGN_VERSIONING，SKIP_TYPE_REGISTRATION，NO_IMPORT_SCAN，NO_RESOURCE_TARGET_PATH，NO_PLUGIN
+这都啥玩意？ 链接到标题 a. FOLLOW_FOREIGN_VERSIONING 链接到标题 没用过，也没看懂 Doc 在说什么
+b. SKIP_TYPE_REGISTRATION 链接到标题 震惊！这个函数居然没有对应官方文档！
+根据相关 commit 记载： 如果指定了参数，那么生成出的 qmldir 文件中将不会出现任何 QML 文件中的类型。
+意思就是运行时 &ldquo;我想手动注册自己的类型&rdquo; （使用 qmlRegister[Anonymous|Singleton]Type&lt;T&gt;(...) 一类的函数）
+c. NO_IMPORT_SCAN 链接到标题 理论上只适用于静态编译的 Qt （因为 Shared Qt 是支持加载动态链接的插件的（QML 组件高强度依赖 Qt Plugin System），而静态无法进行运行时加载 DLLs）
+默认情况下，静态编译的 Qt 会在执行 CMake 时运行 qmlimportscanner 扫描指定目录下所有 qml 文件的 import 列表，从而列出需要进行链接的库 （比如 QtCharts, QtWebEngine, QtPositioning, QtGraphicalEffects），这些库将会以 target_link_libraries 的形式链接到依赖他们的 QML 模块中，从而进行 「另一种形式的运行时加载」（可能会再水一篇说这个？）">
+<meta name="keywords" content="blog,personal,中文,个人">
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Qt 6.3 中的一些 CMake 函数"/>
+<meta name="twitter:description" content="写在前面 链接到标题 今天心血来潮想写点东西，发现之前挖的各种大坑都没填好…… dbq）
+说点什么呢 链接到标题 翻消息记录突然看到下面这条评论：
+作者写的挺好的，如果能把下面这个官网上面对这个模块功能描述加进去完美了&hellip;
+哇） 居然在认真的看我的 Blog，突然有点被感动到。 那么今天就先来聊 Qt 6.3 中的 CMake 函数
+1. qt6_add_qml_module 链接到标题 先来说说大名鼎鼎（？）的 qt6_add_qml_module：
+细数近期的 Qt Declarative 库中的 commits 不难发现，Qt 还在给这个本就已经很复杂的函数添加参数：FOLLOW_FOREIGN_VERSIONING，SKIP_TYPE_REGISTRATION，NO_IMPORT_SCAN，NO_RESOURCE_TARGET_PATH，NO_PLUGIN
+这都啥玩意？ 链接到标题 a. FOLLOW_FOREIGN_VERSIONING 链接到标题 没用过，也没看懂 Doc 在说什么
+b. SKIP_TYPE_REGISTRATION 链接到标题 震惊！这个函数居然没有对应官方文档！
+根据相关 commit 记载： 如果指定了参数，那么生成出的 qmldir 文件中将不会出现任何 QML 文件中的类型。
+意思就是运行时 &ldquo;我想手动注册自己的类型&rdquo; （使用 qmlRegister[Anonymous|Singleton]Type&lt;T&gt;(...) 一类的函数）
+c. NO_IMPORT_SCAN 链接到标题 理论上只适用于静态编译的 Qt （因为 Shared Qt 是支持加载动态链接的插件的（QML 组件高强度依赖 Qt Plugin System），而静态无法进行运行时加载 DLLs）
+默认情况下，静态编译的 Qt 会在执行 CMake 时运行 qmlimportscanner 扫描指定目录下所有 qml 文件的 import 列表，从而列出需要进行链接的库 （比如 QtCharts, QtWebEngine, QtPositioning, QtGraphicalEffects），这些库将会以 target_link_libraries 的形式链接到依赖他们的 QML 模块中，从而进行 「另一种形式的运行时加载」（可能会再水一篇说这个？）"/>
+
+<meta property="og:title" content="Qt 6.3 中的一些 CMake 函数" />
+<meta property="og:description" content="写在前面 链接到标题 今天心血来潮想写点东西，发现之前挖的各种大坑都没填好…… dbq）
+说点什么呢 链接到标题 翻消息记录突然看到下面这条评论：
+作者写的挺好的，如果能把下面这个官网上面对这个模块功能描述加进去完美了&hellip;
+哇） 居然在认真的看我的 Blog，突然有点被感动到。 那么今天就先来聊 Qt 6.3 中的 CMake 函数
+1. qt6_add_qml_module 链接到标题 先来说说大名鼎鼎（？）的 qt6_add_qml_module：
+细数近期的 Qt Declarative 库中的 commits 不难发现，Qt 还在给这个本就已经很复杂的函数添加参数：FOLLOW_FOREIGN_VERSIONING，SKIP_TYPE_REGISTRATION，NO_IMPORT_SCAN，NO_RESOURCE_TARGET_PATH，NO_PLUGIN
+这都啥玩意？ 链接到标题 a. FOLLOW_FOREIGN_VERSIONING 链接到标题 没用过，也没看懂 Doc 在说什么
+b. SKIP_TYPE_REGISTRATION 链接到标题 震惊！这个函数居然没有对应官方文档！
+根据相关 commit 记载： 如果指定了参数，那么生成出的 qmldir 文件中将不会出现任何 QML 文件中的类型。
+意思就是运行时 &ldquo;我想手动注册自己的类型&rdquo; （使用 qmlRegister[Anonymous|Singleton]Type&lt;T&gt;(...) 一类的函数）
+c. NO_IMPORT_SCAN 链接到标题 理论上只适用于静态编译的 Qt （因为 Shared Qt 是支持加载动态链接的插件的（QML 组件高强度依赖 Qt Plugin System），而静态无法进行运行时加载 DLLs）
+默认情况下，静态编译的 Qt 会在执行 CMake 时运行 qmlimportscanner 扫描指定目录下所有 qml 文件的 import 列表，从而列出需要进行链接的库 （比如 QtCharts, QtWebEngine, QtPositioning, QtGraphicalEffects），这些库将会以 target_link_libraries 的形式链接到依赖他们的 QML 模块中，从而进行 「另一种形式的运行时加载」（可能会再水一篇说这个？）" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mooody.me/posts/2022-02/qt-6.3-cmakefunctions/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-02-24T22:56:28+00:00" />
+<meta property="article:modified_time" content="2022-02-24T22:56:28+00:00" />
+
+
+
+
+<link rel="canonical" href="https://mooody.me/posts/2022-02/qt-6.3-cmakefunctions/">
+
+
+<link rel="preload" href="/fonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+
+
+  
+  
+  <link rel="stylesheet" href="/css/coder.min.38c4552ac40f9ae3408bad40358f654ebd8804412fe74ed56f2d6c8a7af82dd3.css" integrity="sha256-OMRVKsQPmuNAi61ANY9lTr2IBEEv507Vby1sinr4LdM=" crossorigin="anonymous" media="screen" />
+
+
+
+
+
+
+  
+    
+    
+    <link rel="stylesheet" href="/css/coder-dark.min.a00e6364bacbc8266ad1cc81230774a1397198f8cfb7bcba29b7d6fcb54ce57f.css" integrity="sha256-oA5jZLrLyCZq0cyBIwd0oTlxmPjPt7y6KbfW/LVM5X8=" crossorigin="anonymous" media="screen" />
+  
+
+
+
+ 
+
+
+  
+  
+    
+    <link rel="stylesheet" href="/scss/cards.min.66689eb6794f4d37bf49748d47a91d8dc5918d78d800a8fae4f1a9649ce35145.css" integrity="sha256-ZmietnlPTTe/SXSNR6kdjcWRjXjYAKj65PGpZJzjUUU=" crossorigin="anonymous" media="screen" />
+  
+
+  
+  
+    
+    <link rel="stylesheet" href="/scss/spoiler.min.6758d9b6919e25bb0a3c105fb53c53d4329838c7c3c6c41a4443a232bcca0886.css" integrity="sha256-Z1jZtpGeJbsKPBBftTxT1DKYOMfDxsQaREOiMrzKCIY=" crossorigin="anonymous" media="screen" />
+  
+
+
+
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg" sizes="any">
+<link rel="icon" type="image/png" href="/images/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/png" href="/images/favicon.ico" sizes="16x16">
+
+<link rel="apple-touch-icon" href="/images/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico">
+
+<link rel="manifest" href="/site.webmanifest">
+<link rel="mask-icon" href="/images/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"
+/>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"
+></script>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"
+></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+      ],
+    });
+  });
+</script>
+
+
+
+</head>
+
+
+
+
+
+
+<body class="preload-transitions colorscheme-auto">
+  
+<div class="float-container">
+    <a id="dark-mode-toggle" class="colorscheme-toggle">
+        <i class="fa-solid fa-adjust fa-fw" aria-hidden="true"></i>
+    </a>
+</div>
+
+
+  <main class="wrapper">
+    <nav class="navigation">
+  <section class="container">
+    
+    <a class="navigation-title" href="https://mooody.me/">
+      Moody&#39;s
+    </a>
+    
+    
+      <input type="checkbox" id="menu-toggle" />
+      <label class="menu-button float-right" for="menu-toggle">
+        <i class="fa-solid fa-bars fa-fw" aria-hidden="true"></i>
+      </label>
+      <ul class="navigation-list">
+        
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/">主页</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/posts/">文章</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/friends/">友链</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/about/">我</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="https://g.mooody.me/public-dashboards/305e9305e46240eb80345e055738c236?orgId=1&amp;theme=light&amp;refresh=10s">服务状态</a>
+            </li>
+          
+        
+        
+          
+          
+          
+            
+          
+            
+              
+                <li class="navigation-item menu-separator">
+                  <span>|</span>
+                </li>
+                
+              
+              <li class="navigation-item">
+                <a href="/en/">🇬🇧</a>
+              </li>
+            
+          
+        
+      </ul>
+    
+  </section>
+</nav>
+
+
+    <div class="content">
+      
+  <section class="container post">
+    <article>
+      <header>
+        <div class="post-title">
+          <h1 class="title">
+            <a class="title-link" href="https://mooody.me/posts/2022-02/qt-6.3-cmakefunctions/">
+              Qt 6.3 中的一些 CMake 函数
+            </a>
+          </h1>
+        </div>
+        <div class="post-meta">
+          <div class="date">
+            <span class="posted-on">
+              <i class="fa-solid fa-calendar" aria-hidden="true"></i>
+              <time datetime="2022-02-24T22:56:28Z">
+                February 24, 2022
+              </time>
+            </span>
+            <span class="reading-time">
+              <i class="fa-solid fa-clock" aria-hidden="true"></i>
+              阅读时间：2 分钟
+            </span>
+          </div>
+          
+          
+          <div class="tags">
+  <i class="fa-solid fa-tag" aria-hidden="true"></i>
+    <span class="tag">
+      <a href="/tags/qt-6/">Qt 6</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/cmake/">CMake</a>
+    </span></div>
+
+        </div>
+      </header>
+
+      <div class="post-content">
+        
+        <h2 id="写在前面">
+  写在前面
+  <a class="heading-link" href="#%e5%86%99%e5%9c%a8%e5%89%8d%e9%9d%a2">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>今天心血来潮想写点东西，发现之前挖的各种大坑都没填好…… dbq）</p>
+<h2 id="说点什么呢">
+  说点什么呢
+  <a class="heading-link" href="#%e8%af%b4%e7%82%b9%e4%bb%80%e4%b9%88%e5%91%a2">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>翻消息记录突然看到下面这条评论：</p>
+<blockquote>
+<p>作者写的挺好的，如果能把下面这个官网上面对这个模块功能描述加进去完美了&hellip;</p>
+</blockquote>
+<p>哇） 居然在认真的看我的 Blog，<del>突然有点被感动到</del>。 那么今天就先来聊 Qt 6.3 中的 CMake 函数</p>
+<h3 id="1-qt6_add_qml_module">
+  1. qt6_add_qml_module
+  <a class="heading-link" href="#1-qt6_add_qml_module">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>先来说说大名鼎鼎（？）的 <code>qt6_add_qml_module</code>：</p>
+<p>细数近期的 Qt Declarative 库中的 <a href="https://github.com/qt/qtdeclarative/blame/9b56042f8445fa8c8119cf2d980d8a1698950483/src/qml/Qt6QmlMacros.cmake"  class="external-link" target="_blank" rel="noopener">commits</a> 不难发现，Qt 还在给这个本就已经很复杂的函数添加参数：<code>FOLLOW_FOREIGN_VERSIONING</code>，<code>SKIP_TYPE_REGISTRATION</code>，<code>NO_IMPORT_SCAN</code>，<code>NO_RESOURCE_TARGET_PATH</code>，<code>NO_PLUGIN</code></p>
+<h4 id="这都啥玩意">
+  这都啥玩意？
+  <a class="heading-link" href="#%e8%bf%99%e9%83%bd%e5%95%a5%e7%8e%a9%e6%84%8f">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h4>
+<h5 id="a-follow_foreign_versioning">
+  a. FOLLOW_FOREIGN_VERSIONING
+  <a class="heading-link" href="#a-follow_foreign_versioning">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h5>
+<blockquote>
+<p>没用过，也没看懂 Doc 在说什么</p>
+</blockquote>
+<h5 id="b-skip_type_registration">
+  b. SKIP_TYPE_REGISTRATION
+  <a class="heading-link" href="#b-skip_type_registration">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h5>
+<p>震惊！这个函数居然没有对应官方文档！</p>
+<p>根据相关 <a href="https://github.com/qt/qtdeclarative/commit/caa062e30a719911d88c9197c4783f5bff50f044#diff-73cbd2ad4c1d08551953953d4a049d0673d3ec1041c1e2acbd77536896c93bf0R64"  class="external-link" target="_blank" rel="noopener">commit</a> 记载：
+如果指定了参数，那么生成出的 <code>qmldir</code> 文件中将不会出现任何 QML 文件中的类型。</p>
+<p>意思就是运行时 &ldquo;我想手动注册自己的类型&rdquo; （使用 <code>qmlRegister[Anonymous|Singleton]Type&lt;T&gt;(...)</code> 一类的函数）</p>
+<h5 id="c-no_import_scan">
+  c. NO_IMPORT_SCAN
+  <a class="heading-link" href="#c-no_import_scan">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h5>
+<p>理论上只适用于静态编译的 Qt （因为 Shared Qt 是支持加载动态链接的插件的（QML 组件高强度依赖 Qt Plugin System），而静态无法进行运行时加载 DLLs）</p>
+<p>默认情况下，静态编译的 Qt 会在执行 CMake 时运行 <code>qmlimportscanner</code> 扫描指定目录下所有 <code>qml</code> 文件的 <code>import</code> 列表，从而列出需要进行链接的库
+（比如 QtCharts, QtWebEngine, QtPositioning, <del>QtGraphicalEffects</del>），这些库将会以 <code>target_link_libraries</code> 的形式链接到依赖他们的
+QML 模块中，从而进行 「另一种形式的运行时加载」（可能会再水一篇说这个？）</p>
+<p>加了 <code>NO_IMPORT_SCAN</code> 就不一样了，啥也不干，全靠自己（所以完全有可能在运行时产生 <code>Module .... is not installed.</code> 错误）。</p>
+<h5 id="d-no_resource_target_path">
+  d. NO_RESOURCE_TARGET_PATH
+  <a class="heading-link" href="#d-no_resource_target_path">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h5>
+<p><del>是一个偷懒小技巧</del>：仅适用于 Executable Target</p>
+<p>一般情况下，假设有一个 QML Module 的 URI 是 <code>mymodule.mooody.me</code>，那么对应的 QML 文件应该位于 <code>Prefix/mymodule/mooody/me/*.qml</code>。
+（也就是将 URI 中的 <code>.</code> 替换为目录分隔符），加了此参数后，所有的 QML 文件将会直接被放到 <code>Prefix/</code> （没有很长一段 URI 了）</p>
+<p>Qt 文档说：<code>...which may only be used if the backing target is an executable...</code></p>
+<p>确实如此，在调用 <code>QQmlApplicationEngine::load(const [QUrl|QString] &amp;)</code> 时，不再需要指定过于冗长的 URI 了。</p>
+<h5 id="e-no_plugin">
+  e. NO_PLUGIN
+  <a class="heading-link" href="#e-no_plugin">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h5>
+<p>前一篇文似乎说过 Backing Target 和 Plugin Target 的区别，此参数会让 Qt &ldquo;不再&rdquo; 生成一个 Plugin Target，并且直接链接到 Backing Target</p>
+<h3 id="2-qt_android_abis">
+  2. QT_ANDROID_ABIS
+  <a class="heading-link" href="#2-qt_android_abis">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>经历了万水千山，从 Qt5 中加入 MultiAbi 到 Qt6 <code>qmake</code> 转 CMake 时万不得已 Drop 掉 MultiAbi</p>
+<p>现在多 ABI 支持又回来了（以一种看起来极为 Hacky 的方式……）</p>
+<p><del>不太干净，不想说</del></p>
+<h3 id="3-qt_target_compile_qml_to_cpp">
+  3. qt_target_compile_qml_to_cpp
+  <a class="heading-link" href="#3-qt_target_compile_qml_to_cpp">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>是 <code>qmltc</code>！</p>
+<p>用法大概就是 <code>qt_target_compile_qml_to_cpp(qmltc_test FILES item.qml)</code> 能将 QML 文件生成为 C++ 类，并从 C++ side 创建和修改</p>
+<p>注意：在一月份测试时，QMLTC 生成的类并不能正常操作从 <code>QQmlApplicationEngine</code> （也就是常规方式）初始化的 QML 对象</p>
+<p>不过还是蛮好玩的</p>
+<h3 id="4-qt_standard_project_setup">
+  4. qt_standard_project_setup
+  <a class="heading-link" href="#4-qt_standard_project_setup">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>顾名思义：<code>Qt 标准项目设置</code></p>
+<h4 id="设置啥了">
+  设置啥了？
+  <a class="heading-link" href="#%e8%ae%be%e7%bd%ae%e5%95%a5%e4%ba%86">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h4>
+<ol>
+<li>导入了 <code>GNUInstallDirs</code> （也就是 <code>CMAKE_INSTALL_??DIR</code>）</li>
+<li>对非 Windows 亦或 macOS （Linux / Android / iOS / WASM / ……） 设置合理的 RPATH</li>
+<li>设置了 <code>CMAKE_AUTOMOC</code> 和 <code>CMAKE_AUTOUIC</code> 为 <code>TRUE</code></li>
+</ol>
+<p>问：怎么没有 <code>CMAKE_AUTORCC</code>？
+答：新时代了，快去用 <code>qt_add_resources</code>，别手写 <code>qrc</code> 了</p>
+<hr>
+<p>今天大概就罗嗦这么多，愿天下太平</p>
+<p>Seeya <code>:)</code></p>
+
+      </div>
+
+
+      <footer>
+        
+
+
+        
+        
+        <div class="comments">
+  <script>
+
+    let getTheme = window.localStorage && window.localStorage.getItem("colorscheme");
+    let themeInParams = '';
+
+    if (getTheme == null) {
+      if (themeInParams !== '' && themeInParams !== 'auto') {
+        getTheme = themeInParams;
+      }
+      else {
+        getTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
+      }
+    }
+
+    let theme = getTheme === 'dark' ? 'github-dark' : 'github-light';
+    let s = document.createElement('script');
+    s.src = 'https://utteranc.es/client.js';
+    s.setAttribute('repo', 'moodyhunter\/moodyhunter.github.io');
+    s.setAttribute('issue-term', 'pathname');
+    s.setAttribute('theme', theme);
+    s.setAttribute('crossorigin', 'anonymous');
+    s.setAttribute('async', '');
+    document.querySelector('div.comments').innerHTML = '';
+    document.querySelector('div.comments').appendChild(s);
+
+  </script>
+</div>
+        
+        
+
+        
+      </footer>
+    </article>
+
+    
+  </section>
+
+    </div>
+
+    <footer class="footer">
+  <section class="container">
+    ©
+    
+      2021 -
+    
+    2024
+     Moody 
+    ·
+    
+      许可依据 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA-4.0</a>
+    ·
+    
+    技术支持 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/" target="_blank" rel="noopener">Coder</a>.
+    
+  </section>
+</footer>
+
+  </main>
+
+  
+
+  
+  
+  <script src="/js/coder.min.6ae284be93d2d19dad1f02b0039508d9aab3180a12a06dcc71b0b0ef7825a317.js" integrity="sha256-auKEvpPS0Z2tHwKwA5UI2aqzGAoSoG3McbCw73gloxc="></script>
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  <script type="text/javascript">
+    !function(T,l,y){var S=T.location,k="script",D="connectionString",C="ingestionendpoint",I="disableExceptionTracking",E="ai.device.",b="toLowerCase",w="crossOrigin",N="POST",e="appInsightsSDK",t=y.name||"appInsights";(y.name||T[e])&&(T[e]=t);var n=T[t]||function(d){var g=!1,f=!1,m={initialize:!0,queue:[],sv:"5",version:2,config:d};function v(e,t){var n={},a="Browser";return n[E+"id"]=a[b](),n[E+"type"]=a,n["ai.operation.name"]=S&&S.pathname||"_unknown_",n["ai.internal.sdkVersion"]="javascript:snippet_"+(m.sv||m.version),{time:function(){var e=new Date;function t(e){var t=""+e;return 1===t.length&&(t="0"+t),t}return e.getUTCFullYear()+"-"+t(1+e.getUTCMonth())+"-"+t(e.getUTCDate())+"T"+t(e.getUTCHours())+":"+t(e.getUTCMinutes())+":"+t(e.getUTCSeconds())+"."+((e.getUTCMilliseconds()/1e3).toFixed(3)+"").slice(2,5)+"Z"}(),name:"Microsoft.ApplicationInsights."+e.replace(/-/g,"")+"."+t,sampleRate:100,tags:n,data:{baseData:{ver:2}}}}var h=d.url||y.src;if(h){function a(e){var t,n,a,i,r,o,s,c,u,p,l;g=!0,m.queue=[],f||(f=!0,t=h,s=function(){var e={},t=d.connectionString;if(t)for(var n=t.split(";"),a=0;a<n.length;a++){var i=n[a].split("=");2===i.length&&(e[i[0][b]()]=i[1])}if(!e[C]){var r=e.endpointsuffix,o=r?e.location:null;e[C]="https://"+(o?o+".":"")+"dc."+(r||"services.visualstudio.com")}return e}(),c=s[D]||d[D]||"",u=s[C],p=u?u+"/v2/track":d.endpointUrl,(l=[]).push((n="SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details)",a=t,i=p,(o=(r=v(c,"Exception")).data).baseType="ExceptionData",o.baseData.exceptions=[{typeName:"SDKLoadFailed",message:n.replace(/\./g,"-"),hasFullStack:!1,stack:n+"\nSnippet failed to load ["+a+"] -- Telemetry is disabled\nHelp Link: https://go.microsoft.com/fwlink/?linkid=2128109\nHost: "+(S&&S.pathname||"_unknown_")+"\nEndpoint: "+i,parsedStack:[]}],r)),l.push(function(e,t,n,a){var i=v(c,"Message"),r=i.data;r.baseType="MessageData";var o=r.baseData;return o.message='AI (Internal): 99 message:"'+("SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details) ("+n+")").replace(/\"/g,"")+'"',o.properties={endpoint:a},i}(0,0,t,p)),function(e,t){if(JSON){var n=T.fetch;if(n&&!y.useXhr)n(t,{method:N,body:JSON.stringify(e),mode:"cors"});else if(XMLHttpRequest){var a=new XMLHttpRequest;a.open(N,t),a.setRequestHeader("Content-type","application/json"),a.send(JSON.stringify(e))}}}(l,p))}function i(e,t){f||setTimeout(function(){!t&&m.core||a()},500)}var e=function(){var n=l.createElement(k);n.src=h;var e=y[w];return!e&&""!==e||"undefined"==n[w]||(n[w]=e),n.onload=i,n.onerror=a,n.onreadystatechange=function(e,t){"loaded"!==n.readyState&&"complete"!==n.readyState||i(0,t)},n}();y.ld<0?l.getElementsByTagName("head")[0].appendChild(e):setTimeout(function(){l.getElementsByTagName(k)[0].parentNode.appendChild(e)},y.ld||0)}try{m.cookie=l.cookie}catch(p){}function t(e){for(;e.length;)!function(t){m[t]=function(){var e=arguments;g||m.queue.push(function(){m[t].apply(m,e)})}}(e.pop())}var n="track",r="TrackPage",o="TrackEvent";t([n+"Event",n+"PageView",n+"Exception",n+"Trace",n+"DependencyData",n+"Metric",n+"PageViewPerformance","start"+r,"stop"+r,"start"+o,"stop"+o,"addTelemetryInitializer","setAuthenticatedUserContext","clearAuthenticatedUserContext","flush"]),m.SeverityLevel={Verbose:0,Information:1,Warning:2,Error:3,Critical:4};var s=(d.extensionConfig||{}).ApplicationInsightsAnalytics||{};if(!0!==d[I]&&!0!==s[I]){var c="onerror";t(["_"+c]);var u=T[c];T[c]=function(e,t,n,a,i){var r=u&&u(e,t,n,a,i);return!0!==r&&m["_"+c]({message:e,url:t,lineNumber:n,columnNumber:a,error:i}),r},d.autoExceptionInstrumented=!0}return m}(y.cfg);function a(){y.onInit&&y.onInit(n)}(T[t]=n).queue&&0===n.queue.length?(n.queue.push(a),n.trackPageView({})):a()}(window,document,{
+    src: "https://js.monitor.azure.com/scripts/b/ai.2.min.js", 
+    
+    
+    
+    crossOrigin: "anonymous", 
+    
+    cfg: { 
+        connectionString: "InstrumentationKey=5a5bbde5-faba-4982-8376-789e51b32d12;IngestionEndpoint=https:\/\/uksouth-1.in.applicationinsights.azure.com\/;LiveEndpoint=https:\/\/uksouth.livediagnostics.monitor.azure.com\/"
+         
+    }});
+    </script>    
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+
+</html>

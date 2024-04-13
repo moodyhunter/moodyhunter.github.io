@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Qt on Moody&#39;s</title>
+    <link>https://mooody.me/tags/qt/</link>
+    <description>Recent content in Qt on Moody&#39;s</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 18 Jun 2022 13:10:07 +0100</lastBuildDate><atom:link href="https://mooody.me/tags/qt/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>流水帐 之 &#39;JasPer 3&#39;</title>
+      <link>https://mooody.me/posts/2022-06/jasper3-crash-analysis/</link>
+      <pubDate>Sat, 18 Jun 2022 13:10:07 +0100</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-06/jasper3-crash-analysis/</guid>
+      <description>&lt;h1 id=&#34;放假了&#34;&gt;
+  &lt;strong&gt;放假了!&lt;/strong&gt;
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%94%be%e5%81%87%e4%ba%86&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h1&gt;
+&lt;p&gt;&lt;del&gt;由于 qmlls 崩溃了一整天，我终于放弃调查了，于是开始水群：&lt;/del&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;#archlinux-cn&lt;/code&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;CuiHao&lt;/strong&gt;: &lt;em&gt;最近 Spectacle 和 Plasmashell 在截图后疯狂 segfault，有人遇到吗&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;CuiHao&lt;/strong&gt;: &lt;code&gt;#4 0x00007fd47872e774 in jas_stream_putc_func () from /usr/lib/libjasper.so.6&lt;/code&gt; &lt;em&gt;Spactacle 崩这儿了&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;hosiet&lt;/strong&gt;: &lt;em&gt;libjapser? 为啥 arch 还在用这个&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;CuiHao&lt;/strong&gt;: &lt;em&gt;&lt;a href=&#34;https://bugs.kde.org/show_bug.cgi?id=455362&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://bugs.kde.org/show_bug.cgi?id=455362&lt;/a&gt;&lt;/em&gt; &lt;em&gt;扔了个 bug，但感觉是 qt 的 bug&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;csslayer&lt;/strong&gt;: &lt;em&gt;不能修一下吗，是不是什么时候就和 jasper 不兼容了&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;CuiHao&lt;/strong&gt;: &lt;em&gt;&lt;a href=&#34;https://bugreports.qt.io/browse/QTBUG-104398&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://bugreports.qt.io/browse/QTBUG-104398&lt;/a&gt; 报了反正&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;del&gt;仔细&lt;/del&gt;查看 &lt;code&gt;QTBUG-104398&lt;/code&gt; 后，我也在本地成功用 Qt 6.5 复现了这个 crash：&lt;/p&gt;
+&lt;p&gt;首先写一个 cpp&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;lt;QCoreApplication&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;lt;QImage&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8be9fd&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#50fa7b&#34;&gt;main&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;int&lt;/span&gt; argc, &lt;span style=&#34;color:#8be9fd&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;argv[])
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    QCoreApplication a(argc, argv);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    QImage image(&lt;span style=&#34;color:#bd93f9&#34;&gt;64&lt;/span&gt;, &lt;span style=&#34;color:#bd93f9&#34;&gt;64&lt;/span&gt;, QImage&lt;span style=&#34;color:#ff79c6&#34;&gt;::&lt;/span&gt;Format_Grayscale8);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    image.fill(&lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    image.save(&lt;span style=&#34;color:#f1fa8c&#34;&gt;&amp;#34;test.jp2&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;然后尝试编译：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;- &amp;gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;export&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;MY_QT_PATH&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;$HOME&lt;/span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;/Projects/qt/build/qtbase&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;~ &amp;gt; g++ ./main.cpp &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    -I &lt;span style=&#34;color:#f1fa8c&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;$MY_QT_PATH&lt;/span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;/include&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    -I &lt;span style=&#34;color:#f1fa8c&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;$MY_QT_PATH&lt;/span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;/include/QtCore&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    -I &lt;span style=&#34;color:#f1fa8c&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;$MY_QT_PATH&lt;/span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;/include/QtGui&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    -L &lt;span style=&#34;color:#f1fa8c&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;$MY_QT_PATH&lt;/span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;/lib&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    -lQt6Core &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    -lQt6Gui &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    -o &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;test&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;运行并进行爆炸观测：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;~ &amp;gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;LD_LIBRARY_PATH&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;$MY_QT_PATH&lt;/span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;/lib&amp;#34;&lt;/span&gt; ./test
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;WARNING: YOUR CODE IS RELYING ON DEPRECATED FUNCTIONALITY IN THE JASPER
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;LIBRARY.  THIS FUNCTIONALITY WILL BE REMOVED IN THE NEAR FUTURE. PLEASE
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;FIX THIS PROBLEM BEFORE YOUR CODE STOPS WORKING.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;deprecation warning: use of jas_init is deprecated
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;warning: The application program did not &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;set&lt;/span&gt; the memory limit &lt;span style=&#34;color:#ff79c6&#34;&gt;for&lt;/span&gt; the
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;JasPer library.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;warning: The JasPer memory limit is being defaulted to a value that may be
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;inappropriate &lt;span style=&#34;color:#ff79c6&#34;&gt;for&lt;/span&gt; the system.  If the default is too small, some reasonable
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;encoding/decoding operations will fail.  If the default is too large, security
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;vulnerabilities will result &lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;e.g., decoding a malicious image could
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;exhaust all memory and crash the system.
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;warning: setting JasPer memory limit to &lt;span style=&#34;color:#bd93f9&#34;&gt;16715984896&lt;/span&gt; bytes
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;fish: Job 1, &lt;span style=&#34;color:#f1fa8c&#34;&gt;&amp;#39;./test&amp;#39;&lt;/span&gt; terminated by signal SIGSEGV &lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;Address boundary error&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;首先映入眼帘的就是一串大写的 &lt;code&gt;WARNING&lt;/code&gt;：&amp;ldquo;你的代码用了老旧 API，这 API 马上就要删了 blablablabla……&amp;quot;，随后是
+关键性的 &lt;code&gt;use of jas_init is deprecated&lt;/code&gt;&lt;br&gt;
+而这之后是一个没有设置内存上限的警告&lt;br&gt;
+再之后就是爆炸现场了：&lt;code&gt;&#39;./test&#39; terminated by signal SIGSEGV&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;首先使用 gdb 进行一个 backtrace 的查：&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;gdb-colortable&#34; src=&#34;https://mooody.me/posts/2022-06/jasper3-crash-analysis/jasper-qimage-colortable-gdb.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;可以观测到（&lt;code&gt;#6&lt;/code&gt;）这里的一个 ASSERT 炸掉了：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;QRgb QImage&lt;span style=&#34;color:#ff79c6&#34;&gt;::&lt;/span&gt;color(&lt;span style=&#34;color:#8be9fd&#34;&gt;int&lt;/span&gt; i) &lt;span style=&#34;color:#ff79c6&#34;&gt;const&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Q_ASSERT(i &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;lt;&lt;/span&gt; colorCount());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;return&lt;/span&gt; d &lt;span style=&#34;color:#ff79c6&#34;&gt;?&lt;/span&gt; d&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;colortable.at(i) &lt;span style=&#34;color:#ff79c6&#34;&gt;:&lt;/span&gt; QRgb(uint(&lt;span style=&#34;color:#ff79c6&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#bd93f9&#34;&gt;1&lt;/span&gt;));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;继续跟进后，发现 &lt;code&gt;colorCount()&lt;/code&gt; 的返回值是 &lt;code&gt;0&lt;/code&gt;，即 Color Table 的大小为 0，后来经过研究发现是这个
+复现例子写错了：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;If format is an indexed color format, the image color table is initially empty
+and must be sufficiently expanded with &lt;code&gt;setColorCount()&lt;/code&gt; or &lt;code&gt;setColorTable()&lt;/code&gt; before
+the image is used.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;（尽管同样是崩溃，但 &lt;code&gt;QImage::Format_Grayscale8&lt;/code&gt; 导致没初始化 color table 触发的崩溃与 Jasper 无关）&lt;/p&gt;
+&lt;p&gt;于是把 &lt;code&gt;QImage::Format_Grayscale8&lt;/code&gt; 改成 &lt;code&gt;QImage::Format_RGB32&lt;/code&gt; 后，得到了另一个错误：&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;gdb2&#34; src=&#34;https://mooody.me/posts/2022-06/jasper3-crash-analysis/jasper-memory-too-large.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;再次查看源码，可以得知 &lt;code&gt;memory_stream&lt;/code&gt; 其实是个 &lt;code&gt;nullptr&lt;/code&gt;：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;// Open an empty jasper stream that grows automatically
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;jas_stream_t &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt; memory_stream &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; jas_stream_memopen(&lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#ff79c6&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#bd93f9&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;// Jasper wants a non-const string.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#8be9fd&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;str &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; qstrdup(jasperFormatString.toLatin1().constData());
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;jas_image_encode(jasper_image, memory_stream, fmtid, str);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;delete&lt;/span&gt;[] str;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;jas_stream_flush(memory_stream);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;最后定位到根本原因是 &lt;code&gt;jas_stream_memopen&lt;/code&gt; 的第二个参数不应为 &lt;code&gt;-1&lt;/code&gt;，而应该是 0。&lt;/p&gt;
+&lt;p&gt;传入 &lt;code&gt;-1&lt;/code&gt; 后会因为参数类型是 &lt;code&gt;size_t&lt;/code&gt; 而被转换成 &lt;code&gt;18446744073709551615&lt;/code&gt;，由于无法进行如此巨大量的 malloc 分配，
+&lt;code&gt;jas_stream_memopen&lt;/code&gt; 返回了 0，也最终导致在后续函数中进行了空指针解引用。&lt;/p&gt;
+&lt;p&gt;于是一篇文章就这么水完了 :)&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;为对应的函数添加 Deprecated 警告: &lt;a href=&#34;https://github.com/jasper-software/jasper/pull/327&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://github.com/jasper-software/jasper/pull/327&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;为 JasPer 3 使用新的 API &lt;a href=&#34;https://codereview.qt-project.org/c/qt/qtimageformats/&amp;#43;/417088&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://codereview.qt-project.org/c/qt/qtimageformats/+/417088&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;修复错误的 buffer size: &lt;a href=&#34;https://codereview.qt-project.org/c/qt/qtimageformats/&amp;#43;/417082&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://codereview.qt-project.org/c/qt/qtimageformats/+/417082&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

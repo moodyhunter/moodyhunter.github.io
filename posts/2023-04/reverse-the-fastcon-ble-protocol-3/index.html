@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+  <title>
+  逆向 Fastcon BLE 协议 - 3 · Moody&#39;s
+</title>
+  <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+
+
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; block-all-mixed-content; default-src 'self'; child-src 'self'; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; form-action 'self' https://utteranc.es; frame-src 'self' https://utteranc.es; img-src 'self' https:; object-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://utteranc.es; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://utteranc.es https://static.cloudflareinsights.com https://js.monitor.azure.com; connect-src 'self' https://utteranc.es https://uksouth-1.in.applicationinsights.azure.com;">
+
+
+
+
+<meta name="author" content="Moody">
+<meta name="description" content="本文内容不得用于商业用途
+经过了过去一周的努力，Fastcon BLE 协议终于被（大半部分）逆向出来了 链接到标题 目前已经可以正常控制一只灯，因为我只有这一只灯。
+逆向的一些值得记录的过程，已经发在了 part 1 和 part 2 中。这里主要记录一下最后的结果，也就是 Fastcon BLE 协议本身。
+Fastcon BLE 协议 链接到标题 Fastcon BLE 是由 broadlink 公司（https://www.ibroadlink.com）于 2021 年推出的一款基于蓝牙的 通信协议。协议本身似乎有专利注册或版权保护。（因此，本文不得用于商业用途）
+下文记录我对手中这只 BLE 灯的观察结果，以及我对 Fastcon BLE 协议的理解，以下内容可能随时过时， 并不保证正确性。
+数据从上到下传输的过程如下：
+0. 设备相关数据 链接到标题 就拿我的灯来说，大概就是这样的：
+随后此数据会随 Device Address 会作为 Data 传入下一层，打包为单个设备控制包。
+Device Address 是一个 8 位无符号整数，用于标识设备 1. 单个设备控制包 链接到标题 单个设备控制包的结构如下：
+| Starting Byte | Length | Content | | ------------- | -------- | ------------------------- | | 0x1 | 0x1 | (data.">
+<meta name="keywords" content="blog,personal,中文,个人">
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="逆向 Fastcon BLE 协议 - 3"/>
+<meta name="twitter:description" content="本文内容不得用于商业用途
+经过了过去一周的努力，Fastcon BLE 协议终于被（大半部分）逆向出来了 链接到标题 目前已经可以正常控制一只灯，因为我只有这一只灯。
+逆向的一些值得记录的过程，已经发在了 part 1 和 part 2 中。这里主要记录一下最后的结果，也就是 Fastcon BLE 协议本身。
+Fastcon BLE 协议 链接到标题 Fastcon BLE 是由 broadlink 公司（https://www.ibroadlink.com）于 2021 年推出的一款基于蓝牙的 通信协议。协议本身似乎有专利注册或版权保护。（因此，本文不得用于商业用途）
+下文记录我对手中这只 BLE 灯的观察结果，以及我对 Fastcon BLE 协议的理解，以下内容可能随时过时， 并不保证正确性。
+数据从上到下传输的过程如下：
+0. 设备相关数据 链接到标题 就拿我的灯来说，大概就是这样的：
+随后此数据会随 Device Address 会作为 Data 传入下一层，打包为单个设备控制包。
+Device Address 是一个 8 位无符号整数，用于标识设备 1. 单个设备控制包 链接到标题 单个设备控制包的结构如下：
+| Starting Byte | Length | Content | | ------------- | -------- | ------------------------- | | 0x1 | 0x1 | (data."/>
+
+<meta property="og:title" content="逆向 Fastcon BLE 协议 - 3" />
+<meta property="og:description" content="本文内容不得用于商业用途
+经过了过去一周的努力，Fastcon BLE 协议终于被（大半部分）逆向出来了 链接到标题 目前已经可以正常控制一只灯，因为我只有这一只灯。
+逆向的一些值得记录的过程，已经发在了 part 1 和 part 2 中。这里主要记录一下最后的结果，也就是 Fastcon BLE 协议本身。
+Fastcon BLE 协议 链接到标题 Fastcon BLE 是由 broadlink 公司（https://www.ibroadlink.com）于 2021 年推出的一款基于蓝牙的 通信协议。协议本身似乎有专利注册或版权保护。（因此，本文不得用于商业用途）
+下文记录我对手中这只 BLE 灯的观察结果，以及我对 Fastcon BLE 协议的理解，以下内容可能随时过时， 并不保证正确性。
+数据从上到下传输的过程如下：
+0. 设备相关数据 链接到标题 就拿我的灯来说，大概就是这样的：
+随后此数据会随 Device Address 会作为 Data 传入下一层，打包为单个设备控制包。
+Device Address 是一个 8 位无符号整数，用于标识设备 1. 单个设备控制包 链接到标题 单个设备控制包的结构如下：
+| Starting Byte | Length | Content | | ------------- | -------- | ------------------------- | | 0x1 | 0x1 | (data." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mooody.me/posts/2023-04/reverse-the-fastcon-ble-protocol-3/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-04-08T00:00:00+00:00" />
+<meta property="article:modified_time" content="2023-04-08T00:00:00+00:00" />
+
+
+
+
+<link rel="canonical" href="https://mooody.me/posts/2023-04/reverse-the-fastcon-ble-protocol-3/">
+
+
+<link rel="preload" href="/fonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+
+
+  
+  
+  <link rel="stylesheet" href="/css/coder.min.38c4552ac40f9ae3408bad40358f654ebd8804412fe74ed56f2d6c8a7af82dd3.css" integrity="sha256-OMRVKsQPmuNAi61ANY9lTr2IBEEv507Vby1sinr4LdM=" crossorigin="anonymous" media="screen" />
+
+
+
+
+
+
+  
+    
+    
+    <link rel="stylesheet" href="/css/coder-dark.min.a00e6364bacbc8266ad1cc81230774a1397198f8cfb7bcba29b7d6fcb54ce57f.css" integrity="sha256-oA5jZLrLyCZq0cyBIwd0oTlxmPjPt7y6KbfW/LVM5X8=" crossorigin="anonymous" media="screen" />
+  
+
+
+
+ 
+
+
+  
+  
+    
+    <link rel="stylesheet" href="/scss/cards.min.66689eb6794f4d37bf49748d47a91d8dc5918d78d800a8fae4f1a9649ce35145.css" integrity="sha256-ZmietnlPTTe/SXSNR6kdjcWRjXjYAKj65PGpZJzjUUU=" crossorigin="anonymous" media="screen" />
+  
+
+  
+  
+    
+    <link rel="stylesheet" href="/scss/spoiler.min.6758d9b6919e25bb0a3c105fb53c53d4329838c7c3c6c41a4443a232bcca0886.css" integrity="sha256-Z1jZtpGeJbsKPBBftTxT1DKYOMfDxsQaREOiMrzKCIY=" crossorigin="anonymous" media="screen" />
+  
+
+
+
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg" sizes="any">
+<link rel="icon" type="image/png" href="/images/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/png" href="/images/favicon.ico" sizes="16x16">
+
+<link rel="apple-touch-icon" href="/images/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico">
+
+<link rel="manifest" href="/site.webmanifest">
+<link rel="mask-icon" href="/images/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"
+/>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"
+></script>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"
+></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+      ],
+    });
+  });
+</script>
+
+
+
+</head>
+
+
+
+
+
+
+<body class="preload-transitions colorscheme-auto">
+  
+<div class="float-container">
+    <a id="dark-mode-toggle" class="colorscheme-toggle">
+        <i class="fa-solid fa-adjust fa-fw" aria-hidden="true"></i>
+    </a>
+</div>
+
+
+  <main class="wrapper">
+    <nav class="navigation">
+  <section class="container">
+    
+    <a class="navigation-title" href="https://mooody.me/">
+      Moody&#39;s
+    </a>
+    
+    
+      <input type="checkbox" id="menu-toggle" />
+      <label class="menu-button float-right" for="menu-toggle">
+        <i class="fa-solid fa-bars fa-fw" aria-hidden="true"></i>
+      </label>
+      <ul class="navigation-list">
+        
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/">主页</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/posts/">文章</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/friends/">友链</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/about/">我</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="https://g.mooody.me/public-dashboards/305e9305e46240eb80345e055738c236?orgId=1&amp;theme=light&amp;refresh=10s">服务状态</a>
+            </li>
+          
+        
+        
+          
+          
+          
+            
+          
+            
+              
+                <li class="navigation-item menu-separator">
+                  <span>|</span>
+                </li>
+                
+              
+              <li class="navigation-item">
+                <a href="/en/">🇬🇧</a>
+              </li>
+            
+          
+        
+      </ul>
+    
+  </section>
+</nav>
+
+
+    <div class="content">
+      
+  <section class="container post">
+    <article>
+      <header>
+        <div class="post-title">
+          <h1 class="title">
+            <a class="title-link" href="https://mooody.me/posts/2023-04/reverse-the-fastcon-ble-protocol-3/">
+              逆向 Fastcon BLE 协议 - 3
+            </a>
+          </h1>
+        </div>
+        <div class="post-meta">
+          <div class="date">
+            <span class="posted-on">
+              <i class="fa-solid fa-calendar" aria-hidden="true"></i>
+              <time datetime="2023-04-08T00:00:00Z">
+                April 8, 2023
+              </time>
+            </span>
+            <span class="reading-time">
+              <i class="fa-solid fa-clock" aria-hidden="true"></i>
+              阅读时间：3 分钟
+            </span>
+          </div>
+          
+          
+          <div class="tags">
+  <i class="fa-solid fa-tag" aria-hidden="true"></i>
+    <span class="tag">
+      <a href="/tags/reverse-engineering/">Reverse Engineering</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/ble/">BLE</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/fastcon/">Fastcon</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/bluetooth/">Bluetooth</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/rust/">Rust</a>
+    </span></div>
+
+        </div>
+      </header>
+
+      <div class="post-content">
+        
+        <p><strong>本文内容不得用于商业用途</strong></p>
+<h2 id="经过了过去一周的努力fastcon-ble-协议终于被大半部分逆向出来了">
+  经过了过去一周的努力，Fastcon BLE 协议终于被（大半部分）逆向出来了
+  <a class="heading-link" href="#%e7%bb%8f%e8%bf%87%e4%ba%86%e8%bf%87%e5%8e%bb%e4%b8%80%e5%91%a8%e7%9a%84%e5%8a%aa%e5%8a%9bfastcon-ble-%e5%8d%8f%e8%ae%ae%e7%bb%88%e4%ba%8e%e8%a2%ab%e5%a4%a7%e5%8d%8a%e9%83%a8%e5%88%86%e9%80%86%e5%90%91%e5%87%ba%e6%9d%a5%e4%ba%86">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>目前已经可以正常控制一只灯，<span class="spoiler" title="你知道的太多了"
+  >因为我只有这一只灯</span
+>。</p>
+<p>逆向的一些值得记录的过程，已经发在了 part 1 和 part 2 中。这里主要记录一下最后的结果，也就是
+Fastcon BLE 协议本身。</p>
+<h2 id="fastcon-ble-协议">
+  Fastcon BLE 协议
+  <a class="heading-link" href="#fastcon-ble-%e5%8d%8f%e8%ae%ae">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>Fastcon BLE 是由 broadlink 公司（<a href="https://www.ibroadlink.com"  class="external-link" target="_blank" rel="noopener">https://www.ibroadlink.com</a>）于 2021 年推出的一款基于蓝牙的
+通信协议。协议本身似乎有专利注册或版权保护。（因此，本文不得用于商业用途）</p>
+<p>下文记录我对手中这只 BLE 灯的观察结果，以及我对 Fastcon BLE 协议的理解，以下内容可能随时过时，
+并不保证正确性。</p>
+<p>数据从上到下传输的过程如下：</p>
+<h3 id="0-设备相关数据">
+  0. 设备相关数据
+  <a class="heading-link" href="#0-%e8%ae%be%e5%a4%87%e7%9b%b8%e5%85%b3%e6%95%b0%e6%8d%ae">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>就拿我的灯来说，大概就是这样的：</p>
+<p><img alt="light-command" src="/posts/2023-04/reverse-the-fastcon-ble-protocol-3/light-command.png"></p>
+<p>随后此数据会随 Device Address 会作为 Data 传入下一层，打包为单个设备控制包。</p>
+<ul>
+<li>Device Address 是一个 8 位无符号整数，用于标识设备</li>
+</ul>
+<h3 id="1-单个设备控制包">
+  1. 单个设备控制包
+  <a class="heading-link" href="#1-%e5%8d%95%e4%b8%aa%e8%ae%be%e5%a4%87%e6%8e%a7%e5%88%b6%e5%8c%85">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>单个设备控制包的结构如下：</p>
+<pre tabindex="0"><code class="language-raw" data-lang="raw">| Starting Byte | Length   | Content                   |
+| ------------- | -------- | ------------------------- |
+| 0x1           | 0x1      | (data.len() + 1) &lt;&lt; 4 | 2 |
+| 0x2           | 0x1      | Target Device Address     |
+| 0x3           | data_len | Data                      |
+</code></pre><p>其中，<code>data</code> 是上一层传入的数据，<code>data_len</code> 是 <code>data.len()</code>，<code>Target Device Address</code>
+则是上一层传入的设备地址。</p>
+<p>可以看到，这一层中，仅仅是将数据加了一个包头，并没有做其他的处理。</p>
+<h3 id="2-ble-fastcon-数据层">
+  2. BLE Fastcon 数据层
+  <a class="heading-link" href="#2-ble-fastcon-%e6%95%b0%e6%8d%ae%e5%b1%82">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>Body 未加密的内容如下：</p>
+<pre tabindex="0"><code class="language-raw" data-lang="raw">| Starting Byte | Length   | Content                                          |
+| ------------- | -------- | ------------------------------------------------ |
+| 0x1           | 0x1      | (i2 &amp; 0b1111) | (i &amp; 0b111) &lt;&lt; 4 | forward &lt;&lt; 7; |
+| 0x2           | 0x1      | sequence                                         |
+| 0x3           | 0x1      | safe_key                                         |
+| 0x4           | 0x1      | checksum                                         |
+| 0x5           | data_len | Data                                             |
+</code></pre><p>Body 的加密过程：</p>
+<ul>
+<li>
+<p>前四字节（<code>i2</code>、<code>sequence</code>、<code>safe_key</code>、<code>checksum</code>）分别与 <code>[0x5e, 0x36, 0x7b, 0xc4]</code> 进行异或运算。</p>
+</li>
+<li>
+<p>剩下的数据（<code>data</code>），则与传入的 <code>key</code> 进行异或运算，也就是：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#ff79c6">for</span> i <span style="color:#ff79c6">in</span> <span style="color:#bd93f9">0</span><span style="color:#ff79c6">..</span>data.len() {
+</span></span><span style="display:flex;"><span>    data[i] <span style="color:#ff79c6">=</span> key[i <span style="color:#ff79c6">&amp;</span> <span style="color:#bd93f9">3</span>] <span style="color:#ff79c6">^</span> data[i];
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+<p>需要注意的是：</p>
+<ul>
+<li><code>i</code> 似乎是某些 command type，但是仍不确定</li>
+<li><code>i2</code> 是设备地址除以 255 的结果，也不确定具体用途</li>
+<li><code>forward</code> 是从 Java 里面抄过来的名字，依然不确定具体用途</li>
+<li><code>sequence</code> 是一个 8 位循环计数器，Java 里面是从当前秒的毫秒数初始化，每次发送都会加 1</li>
+<li><code>safe_key</code> 是一个 8 为数字，如果 <code>key</code> 不为空，则使用 <code>key</code> 的第三个字节，否则使用 <code>0xff</code>（即 255）</li>
+<li><code>checksum</code> 是 body 内所有字节（不包含 <code>checksum</code>）的和，取低 8 位（即 <code>&amp; 0xff</code>）</li>
+</ul>
+<p>此层加密后的数据会被传入下一层。</p>
+<h3 id="3-rf-payload-层">
+  3. RF Payload 层
+  <a class="heading-link" href="#3-rf-payload-%e5%b1%82">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>因为我只有一只灯，所以我只能对这只灯进行分析。因此，我只能对 RF Payload 进行分析。</p>
+<p>RF Payload 的结构如下：</p>
+<pre tabindex="0"><code class="language-raw" data-lang="raw">| Starting Byte | Length   | Content                    |
+| ------------- | -------- | -------------------------- |
+| 0x1           | 0xe      | Useless                    |
+| 0xf           | 0x1      | 0x71                       |
+| 0x10          | 0x1      | 0x0f                       |
+| 0x11          | 0x1      | 0x55                       |
+| 0x12          | addr_len | Address (In Reverse Order) |
+| +addr_len     | data_len | Data                       |
+| +data_len     | 0x1      | CRC low                    |
+| +data_len+1   | 0x1      | CRC high                   |
+</code></pre><p>需要注意的是：</p>
+<ul>
+<li>对于 RF，Address 固定为 <code>[0xC1, 0xC2, 0xC3]</code></li>
+<li>前面 0xe 个字节是无用的，不会被发送到设备上，但是仍然参与了下层的白化处理。只不过在最后被从 <code>0xf</code> 截断掉了。</li>
+<li>CRC 的计算方法建议直接看代码，<del>我也不知道怎么解释</del></li>
+</ul>
+<p>在此层的数据会被传入下一层，进行白化处理。</p>
+<h3 id="4-数据白化层">
+  4. 数据白化层
+  <a class="heading-link" href="#4-%e6%95%b0%e6%8d%ae%e7%99%bd%e5%8c%96%e5%b1%82">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>白化算法见 Part 2（更建议直接看代码），这里不再赘述。</p>
+<p>有趣的是，每个 Whitening Context 只会用于白化单个数据包，而不是整个会话，也就是说，每个数据包
+都会有一个新的，一致的 Whitening Context。</p>
+<p>白化后的数据会从 0xf 截断（也就是上文提到的无用数据），后面的数据是真正需要发送的数据。</p>
+<h3 id="5-最底层蓝牙广播包">
+  5. 最底层：蓝牙广播包
+  <a class="heading-link" href="#5-%e6%9c%80%e5%ba%95%e5%b1%82%e8%93%9d%e7%89%99%e5%b9%bf%e6%92%ad%e5%8c%85">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>协议基于的是蓝牙 BLE Advertising Packet，并使用 Manufacturer Specific Data 作为数据载体，</p>
+<p>在我的灯上观测到 Manufacturer ID 是 0xFFF0。</p>
+<h2 id="我的收获">
+  我的收获
+  <a class="heading-link" href="#%e6%88%91%e7%9a%84%e6%94%b6%e8%8e%b7">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<ul>
+<li>了解了 BLE 的一些基本概念，比如 Advertising Packet，Manufacturer Specific Data</li>
+<li>体验了对于 ARM64 Neon 指令集的初级逆向</li>
+<li>使用 Rust 进行库的编程</li>
+<li>了解了编译器优化的一些细节，比如 SIMD 指令的生成</li>
+<li><span class="spoiler" title="你知道的太多了"
+  >可以（重新）在群里直接使用 <strong>/开灯</strong> 了</span
+></li>
+</ul>
+<h2 id="番外篇对-bluez-进行-patch">
+  番外篇：对 bluez 进行 patch
+  <a class="heading-link" href="#%e7%95%aa%e5%a4%96%e7%af%87%e5%af%b9-bluez-%e8%bf%9b%e8%a1%8c-patch">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>在进行逆向成果的测试过程中，我发现了一个问题：在 Linux （非 Android） 上，使用 bluez 发送的
+Advertising Packet，尽管数据内容完全一致，但灯仍然无法响应。</p>
+<p>通过使用 <a href="https://github.com/quvox/raw_ble_advertise"  class="external-link" target="_blank" rel="noopener">raw_ble_advertise</a> 的 <code>-r</code> 参数，
+我得以对裸数据包进行 dump，并发现：</p>
+<p>在使用 bluez 发送包时，发送的 Flags 位于 Manufacturer Specific Data 的后面，而使用
+手机（Android，iPhone）发送时，这些 flags 位于整个包的最前面：</p>
+<p><img alt="bluez-packet" src="/posts/2023-04/reverse-the-fastcon-ble-protocol-3/bluez-packet.jpg"></p>
+<p>上图中，<code>02 01 1A</code> 三个字节代表 Flags（<code>02</code> 表示长度，<code>01</code> 表示类型，<code>1A</code> 表示值），上半部分是
+手机发送的包，下半部分是 bluez 发送的包，可以看到，两者的 Flags 位置不同。</p>
+<p>那么，这个问题的解决方案就很简单了：在发送数据包时，将 Flags 放在最前面即可。</p>
+<p>于是随手写了个 patch：</p>
+<p><a href="https://github.com/moodyhunter/repo/blob/main/moody/bluez-ble-patched/hack-ble-flags.patch"  class="external-link" target="_blank" rel="noopener">https://github.com/moodyhunter/repo/blob/main/moody/bluez-ble-patched/hack-ble-flags.patch</a></p>
+<h2 id="thanks">
+  Thanks
+  <a class="heading-link" href="#thanks">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<ul>
+<li>群里朋友们</li>
+<li>bluez 开发者们</li>
+<li>bluer，一个封装 Bluez 的 Rust 库</li>
+<li>VSCode，好用的编辑器！</li>
+<li>Binary Ninja，逆向工具</li>
+<li>Cutter/Ghidra，在某些时候能生成更简洁的反编译结果</li>
+<li>Rust</li>
+<li><span class="spoiler" title="你知道的太多了"
+  >我的灯</span
+></li>
+</ul>
+
+      </div>
+
+
+      <footer>
+        
+
+
+        
+        
+        <div class="comments">
+  <script>
+
+    let getTheme = window.localStorage && window.localStorage.getItem("colorscheme");
+    let themeInParams = '';
+
+    if (getTheme == null) {
+      if (themeInParams !== '' && themeInParams !== 'auto') {
+        getTheme = themeInParams;
+      }
+      else {
+        getTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
+      }
+    }
+
+    let theme = getTheme === 'dark' ? 'github-dark' : 'github-light';
+    let s = document.createElement('script');
+    s.src = 'https://utteranc.es/client.js';
+    s.setAttribute('repo', 'moodyhunter\/moodyhunter.github.io');
+    s.setAttribute('issue-term', 'pathname');
+    s.setAttribute('theme', theme);
+    s.setAttribute('crossorigin', 'anonymous');
+    s.setAttribute('async', '');
+    document.querySelector('div.comments').innerHTML = '';
+    document.querySelector('div.comments').appendChild(s);
+
+  </script>
+</div>
+        
+        
+
+        
+      </footer>
+    </article>
+
+    
+  </section>
+
+    </div>
+
+    <footer class="footer">
+  <section class="container">
+    ©
+    
+      2021 -
+    
+    2024
+     Moody 
+    ·
+    
+      许可依据 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA-4.0</a>
+    ·
+    
+    技术支持 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/" target="_blank" rel="noopener">Coder</a>.
+    
+  </section>
+</footer>
+
+  </main>
+
+  
+
+  
+  
+  <script src="/js/coder.min.6ae284be93d2d19dad1f02b0039508d9aab3180a12a06dcc71b0b0ef7825a317.js" integrity="sha256-auKEvpPS0Z2tHwKwA5UI2aqzGAoSoG3McbCw73gloxc="></script>
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  <script type="text/javascript">
+    !function(T,l,y){var S=T.location,k="script",D="connectionString",C="ingestionendpoint",I="disableExceptionTracking",E="ai.device.",b="toLowerCase",w="crossOrigin",N="POST",e="appInsightsSDK",t=y.name||"appInsights";(y.name||T[e])&&(T[e]=t);var n=T[t]||function(d){var g=!1,f=!1,m={initialize:!0,queue:[],sv:"5",version:2,config:d};function v(e,t){var n={},a="Browser";return n[E+"id"]=a[b](),n[E+"type"]=a,n["ai.operation.name"]=S&&S.pathname||"_unknown_",n["ai.internal.sdkVersion"]="javascript:snippet_"+(m.sv||m.version),{time:function(){var e=new Date;function t(e){var t=""+e;return 1===t.length&&(t="0"+t),t}return e.getUTCFullYear()+"-"+t(1+e.getUTCMonth())+"-"+t(e.getUTCDate())+"T"+t(e.getUTCHours())+":"+t(e.getUTCMinutes())+":"+t(e.getUTCSeconds())+"."+((e.getUTCMilliseconds()/1e3).toFixed(3)+"").slice(2,5)+"Z"}(),name:"Microsoft.ApplicationInsights."+e.replace(/-/g,"")+"."+t,sampleRate:100,tags:n,data:{baseData:{ver:2}}}}var h=d.url||y.src;if(h){function a(e){var t,n,a,i,r,o,s,c,u,p,l;g=!0,m.queue=[],f||(f=!0,t=h,s=function(){var e={},t=d.connectionString;if(t)for(var n=t.split(";"),a=0;a<n.length;a++){var i=n[a].split("=");2===i.length&&(e[i[0][b]()]=i[1])}if(!e[C]){var r=e.endpointsuffix,o=r?e.location:null;e[C]="https://"+(o?o+".":"")+"dc."+(r||"services.visualstudio.com")}return e}(),c=s[D]||d[D]||"",u=s[C],p=u?u+"/v2/track":d.endpointUrl,(l=[]).push((n="SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details)",a=t,i=p,(o=(r=v(c,"Exception")).data).baseType="ExceptionData",o.baseData.exceptions=[{typeName:"SDKLoadFailed",message:n.replace(/\./g,"-"),hasFullStack:!1,stack:n+"\nSnippet failed to load ["+a+"] -- Telemetry is disabled\nHelp Link: https://go.microsoft.com/fwlink/?linkid=2128109\nHost: "+(S&&S.pathname||"_unknown_")+"\nEndpoint: "+i,parsedStack:[]}],r)),l.push(function(e,t,n,a){var i=v(c,"Message"),r=i.data;r.baseType="MessageData";var o=r.baseData;return o.message='AI (Internal): 99 message:"'+("SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details) ("+n+")").replace(/\"/g,"")+'"',o.properties={endpoint:a},i}(0,0,t,p)),function(e,t){if(JSON){var n=T.fetch;if(n&&!y.useXhr)n(t,{method:N,body:JSON.stringify(e),mode:"cors"});else if(XMLHttpRequest){var a=new XMLHttpRequest;a.open(N,t),a.setRequestHeader("Content-type","application/json"),a.send(JSON.stringify(e))}}}(l,p))}function i(e,t){f||setTimeout(function(){!t&&m.core||a()},500)}var e=function(){var n=l.createElement(k);n.src=h;var e=y[w];return!e&&""!==e||"undefined"==n[w]||(n[w]=e),n.onload=i,n.onerror=a,n.onreadystatechange=function(e,t){"loaded"!==n.readyState&&"complete"!==n.readyState||i(0,t)},n}();y.ld<0?l.getElementsByTagName("head")[0].appendChild(e):setTimeout(function(){l.getElementsByTagName(k)[0].parentNode.appendChild(e)},y.ld||0)}try{m.cookie=l.cookie}catch(p){}function t(e){for(;e.length;)!function(t){m[t]=function(){var e=arguments;g||m.queue.push(function(){m[t].apply(m,e)})}}(e.pop())}var n="track",r="TrackPage",o="TrackEvent";t([n+"Event",n+"PageView",n+"Exception",n+"Trace",n+"DependencyData",n+"Metric",n+"PageViewPerformance","start"+r,"stop"+r,"start"+o,"stop"+o,"addTelemetryInitializer","setAuthenticatedUserContext","clearAuthenticatedUserContext","flush"]),m.SeverityLevel={Verbose:0,Information:1,Warning:2,Error:3,Critical:4};var s=(d.extensionConfig||{}).ApplicationInsightsAnalytics||{};if(!0!==d[I]&&!0!==s[I]){var c="onerror";t(["_"+c]);var u=T[c];T[c]=function(e,t,n,a,i){var r=u&&u(e,t,n,a,i);return!0!==r&&m["_"+c]({message:e,url:t,lineNumber:n,columnNumber:a,error:i}),r},d.autoExceptionInstrumented=!0}return m}(y.cfg);function a(){y.onInit&&y.onInit(n)}(T[t]=n).queue&&0===n.queue.length?(n.queue.push(a),n.trackPageView({})):a()}(window,document,{
+    src: "https://js.monitor.azure.com/scripts/b/ai.2.min.js", 
+    
+    
+    
+    crossOrigin: "anonymous", 
+    
+    cfg: { 
+        connectionString: "InstrumentationKey=5a5bbde5-faba-4982-8376-789e51b32d12;IngestionEndpoint=https:\/\/uksouth-1.in.applicationinsights.azure.com\/;LiveEndpoint=https:\/\/uksouth.livediagnostics.monitor.azure.com\/"
+         
+    }});
+    </script>    
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+
+</html>

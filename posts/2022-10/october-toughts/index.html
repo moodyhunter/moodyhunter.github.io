@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+  <title>
+  10 月份深夜 emo · Moody&#39;s
+</title>
+  <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+
+
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; block-all-mixed-content; default-src 'self'; child-src 'self'; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; form-action 'self' https://utteranc.es; frame-src 'self' https://utteranc.es; img-src 'self' https:; object-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://utteranc.es; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://utteranc.es https://static.cloudflareinsights.com https://js.monitor.azure.com; connect-src 'self' https://utteranc.es https://uksouth-1.in.applicationinsights.azure.com;">
+
+
+
+
+<meta name="author" content="Moody">
+<meta name="description" content="以下内容不建议阅读
+《寄明月》 链接到标题 今天晚上复习Compiler Design的时候无意间听到了「寄明月」这首歌。 回想起高中时期，在学校组织的圣诞晚会上，本年级女生们还跳过寄明月，于是打开 B 站搜索……
+我的印象很深刻，这段视频是唯一一个我校播放量过 5W 的视频。里面弹幕很多，评论也很多。（但是我没有评论，因为我就是官号）。
+一边看着四年前的视频，一边看弹幕，发现了一条很有意思的弹幕：「哇左一小姐姐笑得好美」。
+可惜她可能再也不会这样笑了……
+六年前 链接到标题 六年前，他在学生会任职某一重要职位，她也在学生会（没记错的话是媒体部），他们俩是同班同学。人们都说他俩是地表最强 cp， 就连班主任也偷偷跟（我的一个朋友）这么说。
+二人从高一开始就一直在一起，他们俩的关系一直都很好。虽然偶尔会吵架、或是有些小矛盾，但是他们俩都很努力地解决问题，最终都能和好。
+疫情爆发 链接到标题 2020 年 1 月，疫情爆发，学校停课，学生回家，开始了长达六个月的线上教学。
+2020 年 4 月，CIE 考试局通知 6 月大考取消，直接用预估成绩加权算出最终成绩，这样以来，高中生活就结束了。
+当时我们高四，同年八、九月收到大学 offer，他十月份就到了英国，而她因为疫情原因，选择在家网课。
+异国恋 链接到标题 异地恋最难的是，在一方需要帮助的时候，另一方却心有余而力不足。
+于是二人开始了长达（据说六个多月？）的异国恋，他们联系的次数就大不如以前。
+2021 年 11 月 链接到标题 中间经过了很多事情，他们二人也很长时间没见面了。估计是关系淡了吧。
+这里需要再提到另一个人，叫 C 就好了，是个女生，也是我们同学。
+他和 C 在英国某高等学府，应该算是同学吧……
+2021 年 12 月 链接到标题 他和她分手了，他就像是换了一个人一样，一反常态地开始和 C 聊天，而且还是很多很多。
+C 的朋友 D（女） （没错也是我的朋友） 跟 C 住在一起，一天早上起来，发现 C 的拖鞋摆在门口，动动脑子（推测）就知道 C 跑去哪了。
+2022 年 1 月 链接到标题 C 和他在一起了，她在国内哭成小泪人，给朋友打电话聊天排解心情。">
+<meta name="keywords" content="blog,personal,中文,个人">
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="10 月份深夜 emo"/>
+<meta name="twitter:description" content="以下内容不建议阅读
+《寄明月》 链接到标题 今天晚上复习Compiler Design的时候无意间听到了「寄明月」这首歌。 回想起高中时期，在学校组织的圣诞晚会上，本年级女生们还跳过寄明月，于是打开 B 站搜索……
+我的印象很深刻，这段视频是唯一一个我校播放量过 5W 的视频。里面弹幕很多，评论也很多。（但是我没有评论，因为我就是官号）。
+一边看着四年前的视频，一边看弹幕，发现了一条很有意思的弹幕：「哇左一小姐姐笑得好美」。
+可惜她可能再也不会这样笑了……
+六年前 链接到标题 六年前，他在学生会任职某一重要职位，她也在学生会（没记错的话是媒体部），他们俩是同班同学。人们都说他俩是地表最强 cp， 就连班主任也偷偷跟（我的一个朋友）这么说。
+二人从高一开始就一直在一起，他们俩的关系一直都很好。虽然偶尔会吵架、或是有些小矛盾，但是他们俩都很努力地解决问题，最终都能和好。
+疫情爆发 链接到标题 2020 年 1 月，疫情爆发，学校停课，学生回家，开始了长达六个月的线上教学。
+2020 年 4 月，CIE 考试局通知 6 月大考取消，直接用预估成绩加权算出最终成绩，这样以来，高中生活就结束了。
+当时我们高四，同年八、九月收到大学 offer，他十月份就到了英国，而她因为疫情原因，选择在家网课。
+异国恋 链接到标题 异地恋最难的是，在一方需要帮助的时候，另一方却心有余而力不足。
+于是二人开始了长达（据说六个多月？）的异国恋，他们联系的次数就大不如以前。
+2021 年 11 月 链接到标题 中间经过了很多事情，他们二人也很长时间没见面了。估计是关系淡了吧。
+这里需要再提到另一个人，叫 C 就好了，是个女生，也是我们同学。
+他和 C 在英国某高等学府，应该算是同学吧……
+2021 年 12 月 链接到标题 他和她分手了，他就像是换了一个人一样，一反常态地开始和 C 聊天，而且还是很多很多。
+C 的朋友 D（女） （没错也是我的朋友） 跟 C 住在一起，一天早上起来，发现 C 的拖鞋摆在门口，动动脑子（推测）就知道 C 跑去哪了。
+2022 年 1 月 链接到标题 C 和他在一起了，她在国内哭成小泪人，给朋友打电话聊天排解心情。"/>
+
+<meta property="og:title" content="10 月份深夜 emo" />
+<meta property="og:description" content="以下内容不建议阅读
+《寄明月》 链接到标题 今天晚上复习Compiler Design的时候无意间听到了「寄明月」这首歌。 回想起高中时期，在学校组织的圣诞晚会上，本年级女生们还跳过寄明月，于是打开 B 站搜索……
+我的印象很深刻，这段视频是唯一一个我校播放量过 5W 的视频。里面弹幕很多，评论也很多。（但是我没有评论，因为我就是官号）。
+一边看着四年前的视频，一边看弹幕，发现了一条很有意思的弹幕：「哇左一小姐姐笑得好美」。
+可惜她可能再也不会这样笑了……
+六年前 链接到标题 六年前，他在学生会任职某一重要职位，她也在学生会（没记错的话是媒体部），他们俩是同班同学。人们都说他俩是地表最强 cp， 就连班主任也偷偷跟（我的一个朋友）这么说。
+二人从高一开始就一直在一起，他们俩的关系一直都很好。虽然偶尔会吵架、或是有些小矛盾，但是他们俩都很努力地解决问题，最终都能和好。
+疫情爆发 链接到标题 2020 年 1 月，疫情爆发，学校停课，学生回家，开始了长达六个月的线上教学。
+2020 年 4 月，CIE 考试局通知 6 月大考取消，直接用预估成绩加权算出最终成绩，这样以来，高中生活就结束了。
+当时我们高四，同年八、九月收到大学 offer，他十月份就到了英国，而她因为疫情原因，选择在家网课。
+异国恋 链接到标题 异地恋最难的是，在一方需要帮助的时候，另一方却心有余而力不足。
+于是二人开始了长达（据说六个多月？）的异国恋，他们联系的次数就大不如以前。
+2021 年 11 月 链接到标题 中间经过了很多事情，他们二人也很长时间没见面了。估计是关系淡了吧。
+这里需要再提到另一个人，叫 C 就好了，是个女生，也是我们同学。
+他和 C 在英国某高等学府，应该算是同学吧……
+2021 年 12 月 链接到标题 他和她分手了，他就像是换了一个人一样，一反常态地开始和 C 聊天，而且还是很多很多。
+C 的朋友 D（女） （没错也是我的朋友） 跟 C 住在一起，一天早上起来，发现 C 的拖鞋摆在门口，动动脑子（推测）就知道 C 跑去哪了。
+2022 年 1 月 链接到标题 C 和他在一起了，她在国内哭成小泪人，给朋友打电话聊天排解心情。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mooody.me/posts/2022-10/october-toughts/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2022-10-16T00:00:00+00:00" />
+<meta property="article:modified_time" content="2022-10-16T00:00:00+00:00" />
+
+
+
+
+<link rel="canonical" href="https://mooody.me/posts/2022-10/october-toughts/">
+
+
+<link rel="preload" href="/fonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+
+
+  
+  
+  <link rel="stylesheet" href="/css/coder.min.38c4552ac40f9ae3408bad40358f654ebd8804412fe74ed56f2d6c8a7af82dd3.css" integrity="sha256-OMRVKsQPmuNAi61ANY9lTr2IBEEv507Vby1sinr4LdM=" crossorigin="anonymous" media="screen" />
+
+
+
+
+
+
+  
+    
+    
+    <link rel="stylesheet" href="/css/coder-dark.min.a00e6364bacbc8266ad1cc81230774a1397198f8cfb7bcba29b7d6fcb54ce57f.css" integrity="sha256-oA5jZLrLyCZq0cyBIwd0oTlxmPjPt7y6KbfW/LVM5X8=" crossorigin="anonymous" media="screen" />
+  
+
+
+
+ 
+
+
+  
+  
+    
+    <link rel="stylesheet" href="/scss/cards.min.66689eb6794f4d37bf49748d47a91d8dc5918d78d800a8fae4f1a9649ce35145.css" integrity="sha256-ZmietnlPTTe/SXSNR6kdjcWRjXjYAKj65PGpZJzjUUU=" crossorigin="anonymous" media="screen" />
+  
+
+  
+  
+    
+    <link rel="stylesheet" href="/scss/spoiler.min.6758d9b6919e25bb0a3c105fb53c53d4329838c7c3c6c41a4443a232bcca0886.css" integrity="sha256-Z1jZtpGeJbsKPBBftTxT1DKYOMfDxsQaREOiMrzKCIY=" crossorigin="anonymous" media="screen" />
+  
+
+
+
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg" sizes="any">
+<link rel="icon" type="image/png" href="/images/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/png" href="/images/favicon.ico" sizes="16x16">
+
+<link rel="apple-touch-icon" href="/images/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico">
+
+<link rel="manifest" href="/site.webmanifest">
+<link rel="mask-icon" href="/images/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"
+/>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"
+></script>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"
+></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+      ],
+    });
+  });
+</script>
+
+
+
+</head>
+
+
+
+
+
+
+<body class="preload-transitions colorscheme-auto">
+  
+<div class="float-container">
+    <a id="dark-mode-toggle" class="colorscheme-toggle">
+        <i class="fa-solid fa-adjust fa-fw" aria-hidden="true"></i>
+    </a>
+</div>
+
+
+  <main class="wrapper">
+    <nav class="navigation">
+  <section class="container">
+    
+    <a class="navigation-title" href="https://mooody.me/">
+      Moody&#39;s
+    </a>
+    
+    
+      <input type="checkbox" id="menu-toggle" />
+      <label class="menu-button float-right" for="menu-toggle">
+        <i class="fa-solid fa-bars fa-fw" aria-hidden="true"></i>
+      </label>
+      <ul class="navigation-list">
+        
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/">主页</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/posts/">文章</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/friends/">友链</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/about/">我</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="https://g.mooody.me/public-dashboards/305e9305e46240eb80345e055738c236?orgId=1&amp;theme=light&amp;refresh=10s">服务状态</a>
+            </li>
+          
+        
+        
+          
+          
+          
+            
+          
+            
+              
+                <li class="navigation-item menu-separator">
+                  <span>|</span>
+                </li>
+                
+              
+              <li class="navigation-item">
+                <a href="/en/">🇬🇧</a>
+              </li>
+            
+          
+        
+      </ul>
+    
+  </section>
+</nav>
+
+
+    <div class="content">
+      
+  <section class="container post">
+    <article>
+      <header>
+        <div class="post-title">
+          <h1 class="title">
+            <a class="title-link" href="https://mooody.me/posts/2022-10/october-toughts/">
+              10 月份深夜 emo
+            </a>
+          </h1>
+        </div>
+        <div class="post-meta">
+          <div class="date">
+            <span class="posted-on">
+              <i class="fa-solid fa-calendar" aria-hidden="true"></i>
+              <time datetime="2022-10-16T00:00:00Z">
+                October 16, 2022
+              </time>
+            </span>
+            <span class="reading-time">
+              <i class="fa-solid fa-clock" aria-hidden="true"></i>
+              阅读时间：1 分钟
+            </span>
+          </div>
+          
+          
+          <div class="tags">
+  <i class="fa-solid fa-tag" aria-hidden="true"></i>
+    <span class="tag">
+      <a href="/tags/emo/">Emo</a>
+    </span></div>
+
+        </div>
+      </header>
+
+      <div class="post-content">
+        
+        <p><strong><em>以下内容不建议阅读</em></strong></p>
+<hr>
+<h2 id="寄明月">
+  《寄明月》
+  <a class="heading-link" href="#%e5%af%84%e6%98%8e%e6%9c%88">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>今天晚上复习<span class="spoiler" title="你知道的太多了"
+  >Compiler Design</span
+>的时候无意间听到了「寄明月」这首歌。
+回想起高中时期，在学校组织的圣诞晚会上，本年级女生们还跳过寄明月，于是打开 B 站搜索……</p>
+<p>我的印象很深刻，这段视频是唯一一个我校播放量过 5W 的视频。里面弹幕很多，评论也很多。（但是我没有评论，<span class="spoiler" title="你知道的太多了"
+  >因为我就是官号</span
+>）。</p>
+<p>一边看着四年前的视频，一边看弹幕，发现了一条很有意思的弹幕：「哇左一小姐姐笑得好美」。</p>
+<p>可惜她可能再也不会这样笑了……</p>
+<h2 id="六年前">
+  六年前
+  <a class="heading-link" href="#%e5%85%ad%e5%b9%b4%e5%89%8d">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>六年前，他在学生会任职某一重要职位，她也在学生会（没记错的话是媒体部），他们俩是同班同学。人们都说他俩是地表最强 cp，
+就连班主任也偷偷跟（我的一个朋友）这么说。</p>
+<p>二人从高一开始就一直在一起，他们俩的关系一直都很好。虽然偶尔会吵架、或是有些小矛盾，但是他们俩都很努力地解决问题，最终都能和好。</p>
+<h2 id="疫情爆发">
+  疫情爆发
+  <a class="heading-link" href="#%e7%96%ab%e6%83%85%e7%88%86%e5%8f%91">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>2020 年 1 月，疫情爆发，学校停课，学生回家，开始了长达六个月的线上教学。</p>
+<p>2020 年 4 月，CIE 考试局通知 6 月大考取消，直接用预估成绩加权算出最终成绩，这样以来，高中生活就结束了。</p>
+<p>当时我们高四，同年八、九月收到大学 offer，他十月份就到了英国，而她因为疫情原因，选择在家网课。</p>
+<h2 id="异国恋">
+  异国恋
+  <a class="heading-link" href="#%e5%bc%82%e5%9b%bd%e6%81%8b">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<blockquote>
+<p>异地恋最难的是，在一方需要帮助的时候，另一方却心有余而力不足。</p>
+</blockquote>
+<p>于是二人开始了长达（据说六个多月？）的异国恋，他们联系的次数就大不如以前。</p>
+<h2 id="2021-年-11-月">
+  2021 年 11 月
+  <a class="heading-link" href="#2021-%e5%b9%b4-11-%e6%9c%88">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>中间经过了很多事情，他们二人也很长时间没见面了。估计是关系淡了吧。</p>
+<p>这里需要再提到另一个人，叫 C 就好了，是个女生，也是我们同学。</p>
+<p>他和 C 在英国某高等学府，应该算是同学吧……</p>
+<h2 id="2021-年-12-月">
+  2021 年 12 月
+  <a class="heading-link" href="#2021-%e5%b9%b4-12-%e6%9c%88">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>他和她分手了，他就像是换了一个人一样，一反常态地开始和 C 聊天，而且还是很多很多。</p>
+<p>C 的朋友 D（女） <span class="spoiler" title="你知道的太多了"
+  >（没错也是我的朋友）</span
+> 跟 C 住在一起，一天早上起来，发现
+C 的拖鞋摆在门口，动动脑子<span class="spoiler" title="你知道的太多了"
+  >（推测）</span
+>就知道 C 跑去哪了。</p>
+<h2 id="2022-年-1-月">
+  2022 年 1 月
+  <a class="heading-link" href="#2022-%e5%b9%b4-1-%e6%9c%88">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>C 和他在一起了，她在国内哭成小泪人，给朋友打电话聊天排解心情。</p>
+<h2 id="现在">
+  现在
+  <a class="heading-link" href="#%e7%8e%b0%e5%9c%a8">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>关于他为什么和前女友分手，我不好说，但是这段长达六年的恋情，如果说仅在六个月的异国恋中就结束了，那么这段恋情就是六年的空话。</p>
+<h3 id="他">
+  他
+  <a class="heading-link" href="#%e4%bb%96">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>他曾经是个很好的人，但是现在他找到她，要来了所有她打过电话的人名单，一个个回拨说：&ldquo;我是无辜的&rdquo;，（据说）还背刺了 D。</p>
+<h3 id="她">
+  她
+  <a class="heading-link" href="#%e5%a5%b9">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>她曾经是个很开朗的人，「左一小姐姐笑得真美」。但她现在已经潜心求佛，听说每天背诵佛经，可能是真的看透了这个世界。</p>
+<h2 id="乱七八糟的结语">
+  乱七八糟的结语
+  <a class="heading-link" href="#%e4%b9%b1%e4%b8%83%e5%85%ab%e7%b3%9f%e7%9a%84%e7%bb%93%e8%af%ad">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>人心隔肚皮，不知道他现在是怎么想的，但是既然事情已经发生了，我希望他能好好珍惜 C，不要再做出同样的事情了。</p>
+<p>D 实在是太可怜了，因为他的事情，她和 C 每天见也不是，不见也不是，<span class="spoiler" title="你知道的太多了"
+  >（不过还好 D 她能躲男朋友家）</span
+>。</p>
+<p>其他的几位朋友（E, F, G）在了解了他的事情后，都不再跟他联系了。</p>
+<h2 id="我">
+  我
+  <a class="heading-link" href="#%e6%88%91">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>C 是我的初中/高中同学<span class="spoiler" title="你知道的太多了"
+  >（也是我初中时候曾经喜欢过的女生）</span
+>，虽然一直很少联系，但知道了这些事以后
+仍然为她感到难过，不仅仅是这个选择，而是这个选择背后的故事，明知道他对她做过的事情，还是选择和他在一起……</p>
+<p>我只想跟女朋友贴贴 🥰<span class="spoiler" title="你知道的太多了"
+  >（可爱喵）</span
+>，<span class="spoiler" title="你知道的太多了"
+  >但残酷的现实是，她也会经常跟我提起这边类似的事情，<del>简直防不胜防</del></span
+>。</p>
+
+      </div>
+
+
+      <footer>
+        
+
+
+        
+        
+        <div class="comments">
+  <script>
+
+    let getTheme = window.localStorage && window.localStorage.getItem("colorscheme");
+    let themeInParams = '';
+
+    if (getTheme == null) {
+      if (themeInParams !== '' && themeInParams !== 'auto') {
+        getTheme = themeInParams;
+      }
+      else {
+        getTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
+      }
+    }
+
+    let theme = getTheme === 'dark' ? 'github-dark' : 'github-light';
+    let s = document.createElement('script');
+    s.src = 'https://utteranc.es/client.js';
+    s.setAttribute('repo', 'moodyhunter\/moodyhunter.github.io');
+    s.setAttribute('issue-term', 'pathname');
+    s.setAttribute('theme', theme);
+    s.setAttribute('crossorigin', 'anonymous');
+    s.setAttribute('async', '');
+    document.querySelector('div.comments').innerHTML = '';
+    document.querySelector('div.comments').appendChild(s);
+
+  </script>
+</div>
+        
+        
+
+        
+      </footer>
+    </article>
+
+    
+  </section>
+
+    </div>
+
+    <footer class="footer">
+  <section class="container">
+    ©
+    
+      2021 -
+    
+    2024
+     Moody 
+    ·
+    
+      许可依据 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA-4.0</a>
+    ·
+    
+    技术支持 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/" target="_blank" rel="noopener">Coder</a>.
+    
+  </section>
+</footer>
+
+  </main>
+
+  
+
+  
+  
+  <script src="/js/coder.min.6ae284be93d2d19dad1f02b0039508d9aab3180a12a06dcc71b0b0ef7825a317.js" integrity="sha256-auKEvpPS0Z2tHwKwA5UI2aqzGAoSoG3McbCw73gloxc="></script>
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  <script type="text/javascript">
+    !function(T,l,y){var S=T.location,k="script",D="connectionString",C="ingestionendpoint",I="disableExceptionTracking",E="ai.device.",b="toLowerCase",w="crossOrigin",N="POST",e="appInsightsSDK",t=y.name||"appInsights";(y.name||T[e])&&(T[e]=t);var n=T[t]||function(d){var g=!1,f=!1,m={initialize:!0,queue:[],sv:"5",version:2,config:d};function v(e,t){var n={},a="Browser";return n[E+"id"]=a[b](),n[E+"type"]=a,n["ai.operation.name"]=S&&S.pathname||"_unknown_",n["ai.internal.sdkVersion"]="javascript:snippet_"+(m.sv||m.version),{time:function(){var e=new Date;function t(e){var t=""+e;return 1===t.length&&(t="0"+t),t}return e.getUTCFullYear()+"-"+t(1+e.getUTCMonth())+"-"+t(e.getUTCDate())+"T"+t(e.getUTCHours())+":"+t(e.getUTCMinutes())+":"+t(e.getUTCSeconds())+"."+((e.getUTCMilliseconds()/1e3).toFixed(3)+"").slice(2,5)+"Z"}(),name:"Microsoft.ApplicationInsights."+e.replace(/-/g,"")+"."+t,sampleRate:100,tags:n,data:{baseData:{ver:2}}}}var h=d.url||y.src;if(h){function a(e){var t,n,a,i,r,o,s,c,u,p,l;g=!0,m.queue=[],f||(f=!0,t=h,s=function(){var e={},t=d.connectionString;if(t)for(var n=t.split(";"),a=0;a<n.length;a++){var i=n[a].split("=");2===i.length&&(e[i[0][b]()]=i[1])}if(!e[C]){var r=e.endpointsuffix,o=r?e.location:null;e[C]="https://"+(o?o+".":"")+"dc."+(r||"services.visualstudio.com")}return e}(),c=s[D]||d[D]||"",u=s[C],p=u?u+"/v2/track":d.endpointUrl,(l=[]).push((n="SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details)",a=t,i=p,(o=(r=v(c,"Exception")).data).baseType="ExceptionData",o.baseData.exceptions=[{typeName:"SDKLoadFailed",message:n.replace(/\./g,"-"),hasFullStack:!1,stack:n+"\nSnippet failed to load ["+a+"] -- Telemetry is disabled\nHelp Link: https://go.microsoft.com/fwlink/?linkid=2128109\nHost: "+(S&&S.pathname||"_unknown_")+"\nEndpoint: "+i,parsedStack:[]}],r)),l.push(function(e,t,n,a){var i=v(c,"Message"),r=i.data;r.baseType="MessageData";var o=r.baseData;return o.message='AI (Internal): 99 message:"'+("SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details) ("+n+")").replace(/\"/g,"")+'"',o.properties={endpoint:a},i}(0,0,t,p)),function(e,t){if(JSON){var n=T.fetch;if(n&&!y.useXhr)n(t,{method:N,body:JSON.stringify(e),mode:"cors"});else if(XMLHttpRequest){var a=new XMLHttpRequest;a.open(N,t),a.setRequestHeader("Content-type","application/json"),a.send(JSON.stringify(e))}}}(l,p))}function i(e,t){f||setTimeout(function(){!t&&m.core||a()},500)}var e=function(){var n=l.createElement(k);n.src=h;var e=y[w];return!e&&""!==e||"undefined"==n[w]||(n[w]=e),n.onload=i,n.onerror=a,n.onreadystatechange=function(e,t){"loaded"!==n.readyState&&"complete"!==n.readyState||i(0,t)},n}();y.ld<0?l.getElementsByTagName("head")[0].appendChild(e):setTimeout(function(){l.getElementsByTagName(k)[0].parentNode.appendChild(e)},y.ld||0)}try{m.cookie=l.cookie}catch(p){}function t(e){for(;e.length;)!function(t){m[t]=function(){var e=arguments;g||m.queue.push(function(){m[t].apply(m,e)})}}(e.pop())}var n="track",r="TrackPage",o="TrackEvent";t([n+"Event",n+"PageView",n+"Exception",n+"Trace",n+"DependencyData",n+"Metric",n+"PageViewPerformance","start"+r,"stop"+r,"start"+o,"stop"+o,"addTelemetryInitializer","setAuthenticatedUserContext","clearAuthenticatedUserContext","flush"]),m.SeverityLevel={Verbose:0,Information:1,Warning:2,Error:3,Critical:4};var s=(d.extensionConfig||{}).ApplicationInsightsAnalytics||{};if(!0!==d[I]&&!0!==s[I]){var c="onerror";t(["_"+c]);var u=T[c];T[c]=function(e,t,n,a,i){var r=u&&u(e,t,n,a,i);return!0!==r&&m["_"+c]({message:e,url:t,lineNumber:n,columnNumber:a,error:i}),r},d.autoExceptionInstrumented=!0}return m}(y.cfg);function a(){y.onInit&&y.onInit(n)}(T[t]=n).queue&&0===n.queue.length?(n.queue.push(a),n.trackPageView({})):a()}(window,document,{
+    src: "https://js.monitor.azure.com/scripts/b/ai.2.min.js", 
+    
+    
+    
+    crossOrigin: "anonymous", 
+    
+    cfg: { 
+        connectionString: "InstrumentationKey=5a5bbde5-faba-4982-8376-789e51b32d12;IngestionEndpoint=https:\/\/uksouth-1.in.applicationinsights.azure.com\/;LiveEndpoint=https:\/\/uksouth.livediagnostics.monitor.azure.com\/"
+         
+    }});
+    </script>    
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+
+</html>

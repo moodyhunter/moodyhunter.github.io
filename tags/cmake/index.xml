@@ -1,0 +1,872 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>CMake on Moody&#39;s</title>
+    <link>https://mooody.me/tags/cmake/</link>
+    <description>Recent content in CMake on Moody&#39;s</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Fri, 13 May 2022 02:09:05 +0100</lastBuildDate><atom:link href="https://mooody.me/tags/cmake/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Android &#39;Deploy&#39; Qt?</title>
+      <link>https://mooody.me/posts/2022-05/android-deploy-qt/</link>
+      <pubDate>Fri, 13 May 2022 02:09:05 +0100</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-05/android-deploy-qt/</guid>
+      <description>&lt;h2 id=&#34;你这-androiddeployqt-可能没法正常-deploy-qt&#34;&gt;
+  你这 &lt;code&gt;androiddeployqt&lt;/code&gt; 可能没法正常 deploy Qt
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e4%bd%a0%e8%bf%99-androiddeployqt-%e5%8f%af%e8%83%bd%e6%b2%a1%e6%b3%95%e6%ad%a3%e5%b8%b8-deploy-qt&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;h3 id=&#34;一些无聊的概念&#34;&gt;
+  一些无聊的概念
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e4%b8%80%e4%ba%9b%e6%97%a0%e8%81%8a%e7%9a%84%e6%a6%82%e5%bf%b5&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;Moody&amp;rsquo;s Utility Bot&lt;/em&gt; 是一个与&lt;a href=&#34;https://github.com/moodyhunter/MoodyAPI&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;此仓库&lt;/a&gt; GitHub Actions &lt;del&gt;梦幻联动&lt;/del&gt; 的 Telegram Bot&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;负责发送消息和最新 build 产物，&lt;/li&gt;
+&lt;li&gt;&lt;del&gt;同时也负责提醒蔡队起来（出处：&lt;a href=&#34;https://github.com/moodyhunter/MoodyAPI/blob/1f1d32a8c761c7c13d486cd4e7af657e838cd44f/Server/main.go#L70&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&amp;ldquo;我起来了&amp;rdquo;&lt;/a&gt;）&lt;/del&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Qt 是 ……&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;这还用介绍吗&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;QtGraphicalEffects 是 ……&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Qt5 时期的一个 Qt module，顾名思义负责 “图形特效” 比如渐变，阴影甚至 GLSL 效果&lt;/li&gt;
+&lt;li&gt;但在 Qt6 中被 deprecate 了&lt;/li&gt;
+&lt;li&gt;但我硬是强行将其 port 到 Qt6，其实是一种 “又不是不能用” 的状态&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3 id=&#34;开端&#34;&gt;
+  《开端》？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%bc%80%e7%ab%af&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;2022 年 5 月 1 日凌晨 1 点 00 分 56 秒：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Moody&amp;rsquo;s Utils Bot:&lt;/p&gt;
+&lt;p&gt;Successfully built the client app, [File : MoodyAppMain.apk]&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;我随即下载并安装了新版 &lt;code&gt;MoodyAppMain.apk&lt;/code&gt;，&lt;del&gt;笑死&lt;/del&gt;，直接崩掉。&lt;/p&gt;
+&lt;p&gt;当时我心里很清楚这玩意已经炸了一个月了，从愚人节当天的 &lt;a href=&#34;https://github.com/moodyhunter/MoodyAPI/commit/ad042600dfed5bc44efe5fccca7888ae8247befd&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;ad042600&lt;/a&gt; 以后就全盘裂开，但这 commit 只是简单的升级了一下 Qt 版本（622 到 630），并不应该引入新的问题。&lt;/p&gt;
+&lt;p&gt;为什么那天要迁移 Build Server？ 答：之前的编译机炸了。&lt;/p&gt;
+&lt;p&gt;因为前段时间有考试，此时（五月一号）还处于考完试疯玩期间，就并没有对此进行调查。&lt;/p&gt;
+&lt;p&gt;…………&lt;/p&gt;
+&lt;h3 id=&#34;复现&#34;&gt;
+  复现
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%a4%8d%e7%8e%b0&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;意思是这个 bug 4 月 1 号的 commit 开始出现，一直咕到现在才开始修（大概是玩够了，该老老实实把 broken build 修一修了），于是我开始重新拿起 QtCreator&lt;/p&gt;
+&lt;p&gt;首先使用 QtCreator 直接编译（我都多长时间没写过 QML 了）&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;首先我得 Build 个 Qt，或者从 Qt installer 下载一份 Qt for Android，但是我有 &lt;a href=&#34;https://github.com/moodyhunter/QtBuildScript&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;QtBuildScript&lt;/a&gt;，直接 &lt;code&gt;./build-qt.fish -p android -a x86_64&lt;/code&gt; 即可编译 Qt &lt;del&gt;（什么王婆卖瓜环节）&lt;/del&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;在等了半个小时以后，打开 QtCreator 并（从头）（重新）配置 Qt 环境（这种东西没必要赘述）&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;使用以下 CMake 参数~~（这个得记，下次要考）~~ 进行 configure 并开始 build&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cmake&#34; data-lang=&#34;cmake&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-DCMAKE_TOOLCHAIN_FILE=/PATH/TO/VCPKG/scripts/buildsystems/vcpkg.cmake
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=/PATH/TO/NDK/build/cmake/android.toolchain.cmake
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;-DVCPKG_TARGET_TRIPLET=x64-android
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;上文 CMake 参数只适用于在 QtCreator 中使用 vcpkg 和 Android toolchain，而在命令行
+中使用 qt-cmake 则需要另一个变量&lt;/p&gt;
+&lt;p&gt;也就是把 &lt;code&gt;CMAKE_TOOLCHAIN_FILE&lt;/code&gt; 换为 &lt;code&gt;QT_CHAINLOAD_TOOLCHAIN_FILE&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;随后启动 Android 虚拟机进行测试，结果 &lt;strong&gt;BANG&lt;/strong&gt;&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-log&#34; data-lang=&#34;log&#34;&gt;W MoodyApp: QQmlApplicationEngine failed to load component
+W MoodyApp: qrc:/client/api/mooody/me/qml/main.qml:5:1: module &amp;#34;QtGraphicalEffects&amp;#34; is not installed
+W MoodyApp: exit app 0
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;想起之前写过一篇 &lt;a href=&#34;https://mooody.me/posts/2021-09/qt6-cmake-porting-guide/&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;code&gt;qt_add_qml_module&lt;/code&gt;&lt;/a&gt; CMake 函数的&amp;quot;详&amp;quot;解，但现在反过来看了看，并没有着重说明 &lt;code&gt;IMPORT_PATH&lt;/code&gt; 的重要性，于是打开 &lt;a href=&#34;https://doc-snapshots.qt.io/qt6-dev/qt-add-qml-module.html#qt6-add-qml-module&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Qt 文档 (dev 分支版)&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;文档里说：&lt;em&gt;&lt;code&gt;IMPORT_PATH&lt;/code&gt; 可以用来添加被依赖的 QML 模块的搜索路径。这里指定的位置需要包含 &lt;code&gt;qmldir&lt;/code&gt; 文件来标明此文件夹代表了一个 QML 模块。&lt;/em&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;那看来我加一个就行？在项目里添加了 &lt;code&gt;IMPORT_PATH ${CMAKE_BINARY_DIR}&lt;/code&gt; 并重新 build，果然效果拔群！&lt;/p&gt;
+&lt;p&gt;到现在为止，程序成功地在 Android VM 中运行了。于是我又进行了一轮实体机的测试，终于成功在生产环境（一台三星手机）上成功运行起这个 APK。&lt;/p&gt;
+&lt;p&gt;最后的最后，我进行了 &lt;code&gt;git push&lt;/code&gt;，并准备休息&lt;/p&gt;
+&lt;h3 id=&#34;就这就这能水一篇文章&#34;&gt;
+  就这？就这能水一篇文章？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%b0%b1%e8%bf%99%e5%b0%b1%e8%bf%99%e8%83%bd%e6%b0%b4%e4%b8%80%e7%af%87%e6%96%87%e7%ab%a0&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;咕了一个月的 bug 仅两行代码就能修好？&lt;/p&gt;
+&lt;p&gt;别急，本文标题所说的 &lt;code&gt;androiddeployqt&lt;/code&gt; 还没出场呢&lt;/p&gt;
+&lt;p&gt;在 &lt;a href=&#34;https://github.com/moodyhunter/MoodyAPI/commit/9f6512c3fb7a94e377a2a7f55ddcb5d4ef72b75e&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;commit&lt;/a&gt; 的时候，我就暗自怀疑：&amp;ldquo;Is it simple like this?&amp;quot;，哈哈事实证明：不可能的&lt;/p&gt;
+&lt;p&gt;就在两分钟后，编译机将 CI 环境下编译完成的 APK 自动发送到了 Telegram 群，我立即安装并打开，结果竟然&lt;strong&gt;又&lt;/strong&gt;闪退了&lt;/p&gt;
+&lt;p&gt;这下我人麻了，从头顶麻到脚尖。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;我之前的开发过程中可都没出现过 CI 产物没法用的问题啊&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;刨根问底&#34;&gt;
+  刨根问底
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%88%a8%e6%a0%b9%e9%97%ae%e5%ba%95&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;大概不用讲道理，Android 上调试肯定得搬出 &lt;code&gt;adb logcat&lt;/code&gt;：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-log&#34; data-lang=&#34;log&#34;&gt;26896  4836 W MoodyApp: QQmlApplicationEngine failed to load component
+26896  4836 W MoodyApp: qrc:/client/api/mooody/me/qml/main.qml:5:1: module &amp;#34;QtGraphicalEffects&amp;#34; is not installed
+26896  4836 W MoodyApp: exit app 0
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;这怎么和上面的 output 一模一样啊，不是修好了吗？&lt;/li&gt;
+&lt;li&gt;我的 QtGraphicalEffects 又去哪了？&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;拆包解压&#34;&gt;
+  拆包（解压）
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%8b%86%e5%8c%85%e8%a7%a3%e5%8e%8b&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;p&gt;稍微理解一些 Qt/QML 的读者可能会知道，一个 QML 模块其实对应了一个（或两个，或零个）动态库，而 Android 打包
+过程中是会把这些依赖的动态库打进 APK 的。&lt;/p&gt;
+&lt;p&gt;所以为了仔细研究 APK 里的内容，我选择使用 &lt;del&gt;KDE 精品压缩文件查看器&lt;/del&gt; Ark 打开 APK 一探究竟：&lt;/p&gt;
+&lt;p&gt;（图很小，理论上可以直接右键看源文件）&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;APK 内部&#34; src=&#34;https://mooody.me/posts/2022-05/android-deploy-qt/androiddeployqt-apk-1.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;打开源文件图片以后，就可以很清晰地看到 QtGraphicalEffects 并没有在 &lt;code&gt;lib/&lt;/code&gt; 文件夹内&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;啥叫 &amp;ldquo;可以很清晰地看到 xxx 没在&amp;rdquo;？&lt;/li&gt;
+&lt;li&gt;&lt;del&gt;anyway&lt;/del&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;依赖的 so 没在 APK 包里，这肯定是某些 deployment 的问题&lt;/p&gt;
+&lt;h4 id=&#34;ci-log&#34;&gt;
+  CI Log
+  &lt;a class=&#34;heading-link&#34; href=&#34;#ci-log&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;p&gt;经过对比，CMake Configure 输出和本地 build 时的输出并无区别，Qt 版本也一致，那么问题就被缩减到了 deployment 过程上。&lt;/p&gt;
+&lt;p&gt;我使用 &lt;code&gt;cmake --build . --parallel --verbose&lt;/code&gt; 让 CMake 在 build 过程中输出详细内容，大概就是每一
+步骤运行的程序，发现 Qt 在 Android 平台的 deployment 其实是一个名为 &lt;code&gt;androiddeployqt&lt;/code&gt; 的程序进行的，
+它详细的参数是：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# 稍微 format 了一下，不然没法给人看&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# 部分内容做了 placeholder 处理，因为源目录太长了&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# BUILDDIR 表示 build 目录&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# PATH_TO_QT 表示 Qt （host 版本） 安装路径（不是 Android）&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;/PATH_TO_QT/bin/androiddeployqt &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    --input /BUILDDIR/android-MoodyAppMain-deployment-settings.json &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    --output /BUILDDIR/android-build &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    --apk /BUILDDIR/android-build/MoodyAppMain.apk &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    --depfile /BUILDDIR/android-build/MoodyAppMain.d &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;    --builddir /BUILDDIR
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;可以明显看到传入参数是 &lt;code&gt;android-MoodyAppMain-deployment-settings.json&lt;/code&gt; 这只 JSON&lt;/p&gt;
+&lt;p&gt;大概是本能反应？打开了本地能用的 JSON 文件进行对比：&lt;/p&gt;
+&lt;p&gt;这种玩意一般人都看不懂吧：
+&lt;img alt=&#34;diff-1&#34; src=&#34;https://mooody.me/posts/2022-05/android-deploy-qt/androiddeployqt-diff-1.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;整篇都是 path 不同导致的 diff，简直要命。所以我将 JSON 里的绝对路径改为了 &lt;code&gt;/SOURCE&lt;/code&gt;, &lt;code&gt;/BUILDDIR&lt;/code&gt; 一类的 placeholder，diff 得出以下结果：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;9
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-diff&#34; data-lang=&#34;diff&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;diff ./android-MoodyAppMain-deployment-settings.json ./json2.json
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;&lt;/span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;5c5
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#f55&#34;&gt;&amp;lt;    &amp;#34;sdkBuildToolsRevision&amp;#34;: &amp;#34;33.0.0-rc2&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f55&#34;&gt;&lt;/span&gt;---
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#50fa7b;font-weight:bold&#34;&gt;&amp;gt;    &amp;#34;sdkBuildToolsRevision&amp;#34;: &amp;#34;31.0.0&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#50fa7b;font-weight:bold&#34;&gt;&lt;/span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;16d15
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#f55&#34;&gt;&amp;lt;    &amp;#34;application-binary&amp;#34;: &amp;#34;MoodyAppMain&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f55&#34;&gt;&lt;/span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;18a18
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;font-weight:bold&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#50fa7b;font-weight:bold&#34;&gt;&amp;gt;    &amp;#34;application-binary&amp;#34;: &amp;#34;MoodyAppMain&amp;#34;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;忽略 16/18 行的顺序问题，我发现 sdk 版本出现了不一致。但在 CI 机器上安装同样版本的 Android SDK 后，
+build 出来的 APK 仍然不包含 QtGraphicalEffects 模块。&lt;/p&gt;
+&lt;h3 id=&#34;咋回事呢&#34;&gt;
+  咋回事呢？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%92%8b%e5%9b%9e%e4%ba%8b%e5%91%a2&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;检查了 &lt;code&gt;androiddeployqt&lt;/code&gt; 的参数，是不是该检查一下输出了：&lt;/p&gt;
+&lt;p&gt;似乎没有什么有意义的：&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;diff-2&#34; src=&#34;https://mooody.me/posts/2022-05/android-deploy-qt/androiddeployqt-diff-2.png&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;--verbose&#34;&gt;
+  &lt;code&gt;--verbose&lt;/code&gt;？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#--verbose&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;p&gt;无意间发现 &lt;code&gt;androiddeployqt&lt;/code&gt; 有 &lt;code&gt;--verbose&lt;/code&gt; 选项，打开 verbose 后，事情出现了转机：&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;diff-3&#34; src=&#34;https://mooody.me/posts/2022-05/android-deploy-qt/androiddeployqt-diff-3.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;什么叫 &lt;code&gt;is in QML root path&lt;/code&gt;，当我回去检查 &lt;code&gt;android-MoodyAppMain-deployment-settings.json&lt;/code&gt; 时发现：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;CI 环境的 build 目录在 &lt;code&gt;SOURCE/build&lt;/code&gt;，很明显 &lt;code&gt;SOURCE&lt;/code&gt; 就是 QML root path；&lt;/li&gt;
+&lt;li&gt;而本地开发环境，由于统一管理了 build 产物，默认的 &lt;code&gt;CMAKE_BINARY_DIR&lt;/code&gt; 位于 &lt;code&gt;~/.local/build_temp&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这就导致 &lt;code&gt;BUILDDIR/QtGraphicalEffects&lt;/code&gt; 在 CI 环境和开发环境处于了不同的相对位置：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;CI 环境下，位于 QML root path 子目录&lt;/li&gt;
+&lt;li&gt;开发环境下，反之，处于别的地方&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;核心问题&#34;&gt;
+  核心问题
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%a0%b8%e5%bf%83%e9%97%ae%e9%a2%98&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;位于 &lt;a href=&#34;https://github.com/qt/qtbase/blob/dev/src/tools/androiddeployqt/main.cpp#L2103&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;src/tools/androiddeployqt/main.cpp:L2011&lt;/a&gt; 调用的 &lt;code&gt;checkQmlFileInRootPaths(const Options*, const QString &amp;amp;)&lt;/code&gt; 可知：&lt;/p&gt;
+&lt;p&gt;这个函数无脑（只）检查了子目录，而并检查「即使 module 位于子目录，能否通过 import URI 导入此 module」，因此
+导致 SOURCE 下的所有 QML module 都会被认为 &amp;ldquo;位于 QML import path 内&amp;rdquo;，但事实并非如此：&lt;/p&gt;
+&lt;p&gt;这个 QML import path 不会被 deploy 到 APK 里面，那自然里面的 QML module 就全丢了：）&lt;/p&gt;
+&lt;h3 id=&#34;后续&#34;&gt;
+  后续
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%90%8e%e7%bb%ad&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;给 Qt 发了个 patch &lt;a href=&#34;https://codereview.qt-project.org/c/qt/qtbase/&amp;#43;/411805&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;qtbase@411805&lt;/a&gt;，
+希望能帮上忙，&lt;del&gt;但说实话我也不确定是否应该这样修&lt;/del&gt;&lt;/p&gt;
+&lt;h2 id=&#34;结语&#34;&gt;
+  结语
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e7%bb%93%e8%af%ad&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;睡觉，晚安&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Qt 6.3 中的一些 CMake 函数</title>
+      <link>https://mooody.me/posts/2022-02/qt-6.3-cmakefunctions/</link>
+      <pubDate>Thu, 24 Feb 2022 22:56:28 +0000</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-02/qt-6.3-cmakefunctions/</guid>
+      <description>&lt;h2 id=&#34;写在前面&#34;&gt;
+  写在前面
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%86%99%e5%9c%a8%e5%89%8d%e9%9d%a2&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;今天心血来潮想写点东西，发现之前挖的各种大坑都没填好…… dbq）&lt;/p&gt;
+&lt;h2 id=&#34;说点什么呢&#34;&gt;
+  说点什么呢
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e8%af%b4%e7%82%b9%e4%bb%80%e4%b9%88%e5%91%a2&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;翻消息记录突然看到下面这条评论：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;作者写的挺好的，如果能把下面这个官网上面对这个模块功能描述加进去完美了&amp;hellip;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;哇） 居然在认真的看我的 Blog，&lt;del&gt;突然有点被感动到&lt;/del&gt;。 那么今天就先来聊 Qt 6.3 中的 CMake 函数&lt;/p&gt;
+&lt;h3 id=&#34;1-qt6_add_qml_module&#34;&gt;
+  1. qt6_add_qml_module
+  &lt;a class=&#34;heading-link&#34; href=&#34;#1-qt6_add_qml_module&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;先来说说大名鼎鼎（？）的 &lt;code&gt;qt6_add_qml_module&lt;/code&gt;：&lt;/p&gt;
+&lt;p&gt;细数近期的 Qt Declarative 库中的 &lt;a href=&#34;https://github.com/qt/qtdeclarative/blame/9b56042f8445fa8c8119cf2d980d8a1698950483/src/qml/Qt6QmlMacros.cmake&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;commits&lt;/a&gt; 不难发现，Qt 还在给这个本就已经很复杂的函数添加参数：&lt;code&gt;FOLLOW_FOREIGN_VERSIONING&lt;/code&gt;，&lt;code&gt;SKIP_TYPE_REGISTRATION&lt;/code&gt;，&lt;code&gt;NO_IMPORT_SCAN&lt;/code&gt;，&lt;code&gt;NO_RESOURCE_TARGET_PATH&lt;/code&gt;，&lt;code&gt;NO_PLUGIN&lt;/code&gt;&lt;/p&gt;
+&lt;h4 id=&#34;这都啥玩意&#34;&gt;
+  这都啥玩意？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e8%bf%99%e9%83%bd%e5%95%a5%e7%8e%a9%e6%84%8f&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;h5 id=&#34;a-follow_foreign_versioning&#34;&gt;
+  a. FOLLOW_FOREIGN_VERSIONING
+  &lt;a class=&#34;heading-link&#34; href=&#34;#a-follow_foreign_versioning&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h5&gt;
+&lt;blockquote&gt;
+&lt;p&gt;没用过，也没看懂 Doc 在说什么&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h5 id=&#34;b-skip_type_registration&#34;&gt;
+  b. SKIP_TYPE_REGISTRATION
+  &lt;a class=&#34;heading-link&#34; href=&#34;#b-skip_type_registration&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h5&gt;
+&lt;p&gt;震惊！这个函数居然没有对应官方文档！&lt;/p&gt;
+&lt;p&gt;根据相关 &lt;a href=&#34;https://github.com/qt/qtdeclarative/commit/caa062e30a719911d88c9197c4783f5bff50f044#diff-73cbd2ad4c1d08551953953d4a049d0673d3ec1041c1e2acbd77536896c93bf0R64&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;commit&lt;/a&gt; 记载：
+如果指定了参数，那么生成出的 &lt;code&gt;qmldir&lt;/code&gt; 文件中将不会出现任何 QML 文件中的类型。&lt;/p&gt;
+&lt;p&gt;意思就是运行时 &amp;ldquo;我想手动注册自己的类型&amp;rdquo; （使用 &lt;code&gt;qmlRegister[Anonymous|Singleton]Type&amp;lt;T&amp;gt;(...)&lt;/code&gt; 一类的函数）&lt;/p&gt;
+&lt;h5 id=&#34;c-no_import_scan&#34;&gt;
+  c. NO_IMPORT_SCAN
+  &lt;a class=&#34;heading-link&#34; href=&#34;#c-no_import_scan&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h5&gt;
+&lt;p&gt;理论上只适用于静态编译的 Qt （因为 Shared Qt 是支持加载动态链接的插件的（QML 组件高强度依赖 Qt Plugin System），而静态无法进行运行时加载 DLLs）&lt;/p&gt;
+&lt;p&gt;默认情况下，静态编译的 Qt 会在执行 CMake 时运行 &lt;code&gt;qmlimportscanner&lt;/code&gt; 扫描指定目录下所有 &lt;code&gt;qml&lt;/code&gt; 文件的 &lt;code&gt;import&lt;/code&gt; 列表，从而列出需要进行链接的库
+（比如 QtCharts, QtWebEngine, QtPositioning, &lt;del&gt;QtGraphicalEffects&lt;/del&gt;），这些库将会以 &lt;code&gt;target_link_libraries&lt;/code&gt; 的形式链接到依赖他们的
+QML 模块中，从而进行 「另一种形式的运行时加载」（可能会再水一篇说这个？）&lt;/p&gt;
+&lt;p&gt;加了 &lt;code&gt;NO_IMPORT_SCAN&lt;/code&gt; 就不一样了，啥也不干，全靠自己（所以完全有可能在运行时产生 &lt;code&gt;Module .... is not installed.&lt;/code&gt; 错误）。&lt;/p&gt;
+&lt;h5 id=&#34;d-no_resource_target_path&#34;&gt;
+  d. NO_RESOURCE_TARGET_PATH
+  &lt;a class=&#34;heading-link&#34; href=&#34;#d-no_resource_target_path&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h5&gt;
+&lt;p&gt;&lt;del&gt;是一个偷懒小技巧&lt;/del&gt;：仅适用于 Executable Target&lt;/p&gt;
+&lt;p&gt;一般情况下，假设有一个 QML Module 的 URI 是 &lt;code&gt;mymodule.mooody.me&lt;/code&gt;，那么对应的 QML 文件应该位于 &lt;code&gt;Prefix/mymodule/mooody/me/*.qml&lt;/code&gt;。
+（也就是将 URI 中的 &lt;code&gt;.&lt;/code&gt; 替换为目录分隔符），加了此参数后，所有的 QML 文件将会直接被放到 &lt;code&gt;Prefix/&lt;/code&gt; （没有很长一段 URI 了）&lt;/p&gt;
+&lt;p&gt;Qt 文档说：&lt;code&gt;...which may only be used if the backing target is an executable...&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;确实如此，在调用 &lt;code&gt;QQmlApplicationEngine::load(const [QUrl|QString] &amp;amp;)&lt;/code&gt; 时，不再需要指定过于冗长的 URI 了。&lt;/p&gt;
+&lt;h5 id=&#34;e-no_plugin&#34;&gt;
+  e. NO_PLUGIN
+  &lt;a class=&#34;heading-link&#34; href=&#34;#e-no_plugin&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h5&gt;
+&lt;p&gt;前一篇文似乎说过 Backing Target 和 Plugin Target 的区别，此参数会让 Qt &amp;ldquo;不再&amp;rdquo; 生成一个 Plugin Target，并且直接链接到 Backing Target&lt;/p&gt;
+&lt;h3 id=&#34;2-qt_android_abis&#34;&gt;
+  2. QT_ANDROID_ABIS
+  &lt;a class=&#34;heading-link&#34; href=&#34;#2-qt_android_abis&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;经历了万水千山，从 Qt5 中加入 MultiAbi 到 Qt6 &lt;code&gt;qmake&lt;/code&gt; 转 CMake 时万不得已 Drop 掉 MultiAbi&lt;/p&gt;
+&lt;p&gt;现在多 ABI 支持又回来了（以一种看起来极为 Hacky 的方式……）&lt;/p&gt;
+&lt;p&gt;&lt;del&gt;不太干净，不想说&lt;/del&gt;&lt;/p&gt;
+&lt;h3 id=&#34;3-qt_target_compile_qml_to_cpp&#34;&gt;
+  3. qt_target_compile_qml_to_cpp
+  &lt;a class=&#34;heading-link&#34; href=&#34;#3-qt_target_compile_qml_to_cpp&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;是 &lt;code&gt;qmltc&lt;/code&gt;！&lt;/p&gt;
+&lt;p&gt;用法大概就是 &lt;code&gt;qt_target_compile_qml_to_cpp(qmltc_test FILES item.qml)&lt;/code&gt; 能将 QML 文件生成为 C++ 类，并从 C++ side 创建和修改&lt;/p&gt;
+&lt;p&gt;注意：在一月份测试时，QMLTC 生成的类并不能正常操作从 &lt;code&gt;QQmlApplicationEngine&lt;/code&gt; （也就是常规方式）初始化的 QML 对象&lt;/p&gt;
+&lt;p&gt;不过还是蛮好玩的&lt;/p&gt;
+&lt;h3 id=&#34;4-qt_standard_project_setup&#34;&gt;
+  4. qt_standard_project_setup
+  &lt;a class=&#34;heading-link&#34; href=&#34;#4-qt_standard_project_setup&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;顾名思义：&lt;code&gt;Qt 标准项目设置&lt;/code&gt;&lt;/p&gt;
+&lt;h4 id=&#34;设置啥了&#34;&gt;
+  设置啥了？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e8%ae%be%e7%bd%ae%e5%95%a5%e4%ba%86&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;ol&gt;
+&lt;li&gt;导入了 &lt;code&gt;GNUInstallDirs&lt;/code&gt; （也就是 &lt;code&gt;CMAKE_INSTALL_??DIR&lt;/code&gt;）&lt;/li&gt;
+&lt;li&gt;对非 Windows 亦或 macOS （Linux / Android / iOS / WASM / ……） 设置合理的 RPATH&lt;/li&gt;
+&lt;li&gt;设置了 &lt;code&gt;CMAKE_AUTOMOC&lt;/code&gt; 和 &lt;code&gt;CMAKE_AUTOUIC&lt;/code&gt; 为 &lt;code&gt;TRUE&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;问：怎么没有 &lt;code&gt;CMAKE_AUTORCC&lt;/code&gt;？
+答：新时代了，快去用 &lt;code&gt;qt_add_resources&lt;/code&gt;，别手写 &lt;code&gt;qrc&lt;/code&gt; 了&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;今天大概就罗嗦这么多，愿天下太平&lt;/p&gt;
+&lt;p&gt;Seeya &lt;code&gt;:)&lt;/code&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Qt 6 Porting Guide - CMake</title>
+      <link>https://mooody.me/posts/2021-09/qt6-cmake-porting-guide/</link>
+      <pubDate>Mon, 20 Sep 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://mooody.me/posts/2021-09/qt6-cmake-porting-guide/</guid>
+      <description>&lt;p&gt;&lt;del&gt;随着 Qt6.2 进入 rc 阶段&lt;/del&gt; (Update: 24 Feb 2022: 其实现在 6.3 都出 Beta 了)，标志着 Qt6 各模块已经趋近完整，可以看到身边越来越多的项目开始了从 Qt5 迁移到 Qt6 &lt;del&gt;繁重工作&lt;/del&gt;，
+作为从 Qt6 alpha 还没发就尝试迁移的&lt;del&gt;资深人员&lt;/del&gt;。鄙人自认为在 Qt6 / CMake 方面算是比较了解。&lt;/p&gt;
+&lt;h2 id=&#34;直入主题&#34;&gt;
+  直入主题
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e7%9b%b4%e5%85%a5%e4%b8%bb%e9%a2%98&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;不同于 6.0，Qt 6.2 包含了更多的 CMake API，本文就要说说个人认为最晦涩难懂的 &lt;a href=&#34;https://doc-snapshots.qt.io/qt6-dev/qt-add-qml-module.html#qt6-add-qml-module&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;code&gt;qt_add_qml_module&lt;/code&gt;&lt;/a&gt;：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;qt_add_qml_module&lt;/code&gt; 非常复杂，单参数就有 26 个，首先来看一下这个巨大函数的 signature&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cmake&#34; data-lang=&#34;cmake&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;qt_add_qml_module&lt;/span&gt;(
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#6272a4&#34;&gt;# 必需参数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#f1fa8c&#34;&gt;target&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f1fa8c&#34;&gt;URI&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;uri&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f1fa8c&#34;&gt;VERSION&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;version&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#6272a4&#34;&gt;# 可选参数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#f1fa8c&#34;&gt;[PAST_MAJOR_VERSIONS&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;...]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[STATIC&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;|&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;SHARED]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[PLUGIN_TARGET&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;plugin_target]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f1fa8c&#34;&gt;[OUTPUT_DIRECTORY&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;output_dir]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[RESOURCE_PREFIX&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;resource_prefix]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[CLASS_NAME&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;class_name]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f1fa8c&#34;&gt;[TYPEINFO&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;typeinfo]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[IMPORTS&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;...]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[OPTIONAL_IMPORTS&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;...]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[DEPENDENCIES&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;...]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[IMPORT_PATH&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;...]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f1fa8c&#34;&gt;[SOURCES&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;...]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[QML_FILES&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;...]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[OUTPUT_TARGETS&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;out_targets_var]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[DESIGNER_SUPPORTED]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#6272a4&#34;&gt;# No 系列可选参数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#f1fa8c&#34;&gt;[NO_PLUGIN_OPTIONAL]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[NO_CREATE_PLUGIN_TARGET]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[NO_GENERATE_PLUGIN_SOURCE]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[NO_GENERATE_QMLTYPES]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f1fa8c&#34;&gt;[NO_GENERATE_QMLDIR]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[NO_LINT]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[NO_CACHEGEN]&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;[NO_RESOURCE_TARGET_PATH]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;hr&gt;
+&lt;h3 id=&#34;必需参数&#34;&gt;
+  必需参数
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%bf%85%e9%9c%80%e5%8f%82%e6%95%b0&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;在这 26 个奇奇怪怪的参数中，有 3 个必需参数（&lt;code&gt;target&lt;/code&gt;，&lt;code&gt;uri&lt;/code&gt;，&lt;code&gt;version&lt;/code&gt;）&lt;/p&gt;
+&lt;h4 id=&#34;target&#34;&gt;
+  Target
+  &lt;a class=&#34;heading-link&#34; href=&#34;#target&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;p&gt;对于这个 Target 参数，要提供的是一个符合 CMake 命名规范的 target name，这个 target 既可以是一个已经存在的 library（别跟我说 INTERFACE library），也可以是一个现存 executable target，甚至也可以不存在（如果不存在的话，此函数会以此名称创建一个 library）&lt;/p&gt;
+&lt;p&gt;有关这个 Target 的作用与他和我们 QML module 的关系，将在下文慢慢讲解&lt;/p&gt;
+&lt;h4 id=&#34;uri&#34;&gt;
+  URI
+  &lt;a class=&#34;heading-link&#34; href=&#34;#uri&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;p&gt;一个很通俗易懂的参数（吧？），就是这个 QML 模块的 uri （可以为 &lt;code&gt;qml.myapp.me&lt;/code&gt; 这样的域名形式，也可以是 &lt;code&gt;MyApp&lt;/code&gt; 一类）&lt;/p&gt;
+&lt;p&gt;所以你可以用这个 URI 来导入此 QML module 到任何其他程序（还记得 &lt;code&gt;import QtQuick.Controls&lt;/code&gt; 吧，你现在可以 &lt;code&gt;import qml.myapp.me&lt;/code&gt; 了）&lt;/p&gt;
+&lt;h4 id=&#34;version&#34;&gt;
+  VERSION
+  &lt;a class=&#34;heading-link&#34; href=&#34;#version&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;p&gt;大概用不着多说，此 QML module 的版本号，遵循 &lt;code&gt;MAJOR.MINOR&lt;/code&gt; 格式（但其实你可以偷偷写 &lt;code&gt;MAJOR.MINOR.PATCH&lt;/code&gt;，只不过是没用罢了）&lt;/p&gt;
+&lt;hr&gt;
+&lt;h3 id=&#34;可选参数&#34;&gt;
+  可选参数
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%8f%af%e9%80%89%e5%8f%82%e6%95%b0&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;再来说说不带 &lt;code&gt;NO_&lt;/code&gt; 开头的那些可选参数：&lt;/p&gt;
+&lt;h4 id=&#34;past_major_versions&#34;&gt;
+  PAST_MAJOR_VERSIONS
+  &lt;a class=&#34;heading-link&#34; href=&#34;#past_major_versions&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;p&gt;在 Qt5 时代，一个 QML module 里是可以包含很多小版本（大版本）的，这也就是 &lt;code&gt;import Something 1.15&lt;/code&gt; 中最后版本号的由来，而这在 Qt6 中变了，一个不带版本号的 &lt;code&gt;import&lt;/code&gt; 语句默认导入的是最新版本的 module。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;如果我的 module 里有多个版本呢？&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;那就通过 &lt;code&gt;PAST_MAJOR_VERSIONS 1 2 3 4 5&lt;/code&gt; 来告诉函数你的 module 包含五个之前的版本，另外，你需要给对应版本的 &lt;code&gt;qml&lt;/code&gt; 文件添加 &lt;code&gt;properties&lt;/code&gt; （&lt;code&gt;QT_QML_SOURCE_VERSIONS&lt;/code&gt;）来标记此文件输入哪个版本的 module&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;我觉得用到这个参数的人不多吧&lt;/em&gt;&lt;/p&gt;
+&lt;h4 id=&#34;static--shared&#34;&gt;
+  [STATIC | SHARED]
+  &lt;a class=&#34;heading-link&#34; href=&#34;#static--shared&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;p&gt;这个选项指定了此 QML module 将会是一个静态库还是一个动态库，与 CMake 中 &lt;code&gt;add_library&lt;/code&gt; 时使用的 &lt;code&gt;STATIC&lt;/code&gt; 或 &lt;code&gt;SHARED&lt;/code&gt; 是同一效果&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;要注意的是，这一参数只适用于给定 Target 不存在（即当此函数负责创建 target）的时候，如果必需参数 Target 已经存在，则不能指定这个参数&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h4 id=&#34;plugin_target&#34;&gt;
+  PLUGIN_TARGET
+  &lt;a class=&#34;heading-link&#34; href=&#34;#plugin_target&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h4&gt;
+&lt;p&gt;&lt;em&gt;建议放松心情慢慢看&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;在 Qt QML 系统中，一个 &lt;em&gt;&amp;ldquo;模块&amp;rdquo;&lt;/em&gt; 是以 &lt;code&gt;QQml*Plugin&lt;/code&gt; （&lt;code&gt;QQmlExtensionPlugin&lt;/code&gt;，&lt;code&gt;QQmlEngineExtensionPlugin&lt;/code&gt;） 插件形式存在的&lt;/p&gt;
+&lt;p&gt;此参数中要填写的就是这个 Plugin 的 CMake target 名称，这时会出现以下几种情况：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;必需参数 &lt;code&gt;Target&lt;/code&gt; 为非 executable 或不存在，且 &lt;code&gt;PLUGIN_TARGET&lt;/code&gt; 与 &lt;code&gt;Target&lt;/code&gt; 相同&lt;/li&gt;
+&lt;li&gt;必需参数 &lt;code&gt;Target&lt;/code&gt; 为非 executable 或不存在，且 &lt;code&gt;PLUGIN_TARGET&lt;/code&gt; 与 &lt;code&gt;Target&lt;/code&gt; 不相同或未指定&lt;/li&gt;
+&lt;li&gt;必需参数 &lt;code&gt;Target&lt;/code&gt; 为 executable&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h5 id=&#34;情况-1-必需参数-target-为非-executable-或不存在且-plugin_target-与-target-相同&#34;&gt;
+  情况 1: 必需参数 &lt;code&gt;Target&lt;/code&gt; 为非 executable 或不存在，且 &lt;code&gt;PLUGIN_TARGET&lt;/code&gt; 与 &lt;code&gt;Target&lt;/code&gt; 相同
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%83%85%e5%86%b5-1-%e5%bf%85%e9%9c%80%e5%8f%82%e6%95%b0-target-%e4%b8%ba%e9%9d%9e-executable-%e6%88%96%e4%b8%8d%e5%ad%98%e5%9c%a8%e4%b8%94-plugin_target-%e4%b8%8e-target-%e7%9b%b8%e5%90%8c&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h5&gt;
+&lt;p&gt;在这种情况下，如果 &lt;code&gt;Target&lt;/code&gt; 不存在，则会创建一个 library target，其动态或静态跟随上一个参数&lt;/p&gt;
+&lt;h5 id=&#34;情况-2-必需参数-target-为非-executable-或不存在且-plugin_target-与-target-不相同或未指定&#34;&gt;
+  情况 2: 必需参数 &lt;code&gt;Target&lt;/code&gt; 为非 executable 或不存在，且 &lt;code&gt;PLUGIN_TARGET&lt;/code&gt; 与 &lt;code&gt;Target&lt;/code&gt; 不相同或未指定
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%83%85%e5%86%b5-2-%e5%bf%85%e9%9c%80%e5%8f%82%e6%95%b0-target-%e4%b8%ba%e9%9d%9e-executable-%e6%88%96%e4%b8%8d%e5%ad%98%e5%9c%a8%e4%b8%94-plugin_target-%e4%b8%8e-target-%e4%b8%8d%e7%9b%b8%e5%90%8c%e6%88%96%e6%9c%aa%e6%8c%87%e5%ae%9a&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h5&gt;
+&lt;p&gt;在这种情况下，本函数将会创建一个名称为 &lt;code&gt;${PLUGIN_TARGET}&lt;/code&gt; 的 library，如果 &lt;code&gt;PLUGIN_TARGET&lt;/code&gt; 未指定，则会重置为默认值 &lt;code&gt;${Target}plugin&lt;/code&gt;，动态或静态跟随上一个参数，并生成一个 class 作为此 library 的实现，这部分代码实现了一个 &lt;code&gt;QQmlEngineExtensionPlugin&lt;/code&gt; （文件名为 &lt;code&gt;${Target}plugin_${URI}Plugin.cpp&lt;/code&gt;），此类将自动在运行时进行 QML 类型注册（具体注册流程可能要等下一篇文章了）。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>从源码编译 Qt6 for WASM - Part 2</title>
+      <link>https://mooody.me/posts/2021-05/qt-build-from-source-2/</link>
+      <pubDate>Sun, 30 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://mooody.me/posts/2021-05/qt-build-from-source-2/</guid>
+      <description>&lt;p&gt;&lt;del&gt;时间过得好快，自从上次发 post 已经过了一周&lt;/del&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;趁着深夜停电正好能总结一下这周掉进的坑（我保证没有咕咕咕）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;1-qt-host-build&#34;&gt;
+  1. &amp;ldquo;Qt Host Build&amp;rdquo;?
+  &lt;a class=&#34;heading-link&#34; href=&#34;#1-qt-host-build&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;你看：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;-- Searching for tool &amp;#39;Qt6::moc&amp;#39; in package Qt6CoreTools.
+CMake Warning at cmake/QtToolHelpers.cmake:83 (find_package):
+  Could not find a configuration file for package &amp;#34;Qt6CoreTools&amp;#34; that is
+  compatible with requested version &amp;#34;6.2.0&amp;#34;.
+
+  The following configuration files were considered but not accepted:
+
+    /lib/cmake/Qt6CoreTools/Qt6CoreToolsConfig.cmake, version: 6.1.0
+
+Call Stack (most recent call first):
+  src/tools/moc/CMakeLists.txt:8 (qt_internal_add_tool)
+
+
+CMake Error at cmake/QtToolHelpers.cmake:109 (message):
+  The tool &amp;#34;Qt6::moc&amp;#34; was not found in the Qt6CoreTools package.  Package
+  found: 0
+Call Stack (most recent call first):
+  src/tools/moc/CMakeLists.txt:8 (qt_internal_add_tool)
+
+
+-- Configuring incomplete, errors occurred!
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;看到这么一大串错误信息我一下子就慌了，CMake 告诉我 &lt;code&gt;Could not find &amp;quot;Qt6CoreTools&amp;quot; .... with requested version &amp;quot;6.2.0&amp;quot;, The following configuration files were considered but not accepted .... version: 6.1.0&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;好家伙那看来我还需要一个 Qt6 的 Host Build&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;所谓 Host Build 即为本地编译平台环境下的 Qt 编译，或者可以称为 &amp;ldquo;原生平台&amp;rdquo;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这个可怕的事实告诉我： &lt;strong&gt;我还需要编译一个 6.2 的 Linux 版 Qt&lt;/strong&gt;&lt;/p&gt;
+&lt;h2 id=&#34;2-to-build-qt-build-qt-first&#34;&gt;
+  2. &lt;del&gt;To Build Qt, Build Qt First&lt;/del&gt;
+  &lt;a class=&#34;heading-link&#34; href=&#34;#2-to-build-qt-build-qt-first&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;既然 Qt 6.1 无法满足编译的要求，那么就得整一个 6.2 版本 Native Platform 的 Qt 当 Host&lt;/p&gt;
+&lt;p&gt;首先使用 &lt;strong&gt;传 统 艺 能&lt;/strong&gt;： &lt;code&gt;mkdir build; cd build; cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=host_installed&lt;/code&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&amp;hellip;&amp;hellip;
+💥 BOOM 💥
+&amp;hellip;&amp;hellip;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;QtGraphicalEffects 和 Qt5Compat 里面的 GraphicalEffects 撞了 Target&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;手动删掉了 qt5/qt5compat 文件夹来避免被 build&lt;/li&gt;
+&lt;li&gt;或许正赶上 Qt 在进行 repo 转移，后续尝试的时候就没有出现这个错误了&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;第一次尝试的时候忘记加 ccache，编译一次大概半个小时，用 ccache 能节约至少三分之一&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Qt 的编译参数很人性化，直接一个 &lt;code&gt;-DQT_USE_CCACHE=ON&lt;/code&gt; 就完事了&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;因为在 &lt;a href=&#34;https://github.com/qt/qtbase/blob/9db7cc79a26ced4997277b5c206ca15949133240/cmake/QtSetup.cmake#L217&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;这个地方&lt;/a&gt; 会自动查找 ccache&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;根据 QtCreator 的 CI 配置来看，ccache 要加一些 sloppiness 设置（比如 &lt;code&gt;time_macros&lt;/code&gt;, &lt;code&gt;pch_defines&lt;/code&gt; 和 &lt;code&gt;file_macro&lt;/code&gt;）于是照搬了过来&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;3-重新编译-wasm-版本&#34;&gt;
+  3. 重新编译 WASM 版本
+  &lt;a class=&#34;heading-link&#34; href=&#34;#3-%e9%87%8d%e6%96%b0%e7%bc%96%e8%af%91-wasm-%e7%89%88%e6%9c%ac&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;经过了千辛万苦，终于成功编译出了 Native Platform Qt，下面就要进行紧张刺激的 Cross-Compile 环节&lt;/p&gt;
+&lt;h3 id=&#34;31-错误的编译参数&#34;&gt;
+  3.1 错误的编译参数
+  &lt;a class=&#34;heading-link&#34; href=&#34;#31-%e9%94%99%e8%af%af%e7%9a%84%e7%bc%96%e8%af%91%e5%8f%82%e6%95%b0&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;使用上一篇文章中的 CMake 参数，并修改对应 &lt;code&gt;QT_HOST_PATH&lt;/code&gt;：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cmake ~/Work/qt5/qtbase/ &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -GNinja &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DFEATURE_developer_build&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;ON &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DFEATURE_headersclean&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;OFF &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DFEATURE_precompile_header&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;OFF &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DWARNINGS_ARE_ERRORS&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;OFF &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DBUILD_EXAMPLES&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;OFF &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DBUILD_TESTING&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;OFF &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DCMAKE_INSTALL_PREFIX&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;~/Work/qt-build/wasm-installed &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DCMAKE_TOOLCHAIN_FILE&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;~/.local/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DQT_HOST_PATH&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;~/Work/qt-build/host-installed
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;看这节标题就能猜到了，CMake 抱怨 &lt;code&gt;ERROR: Static builds don&#39;t support RPATH&lt;/code&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;喵？ 都 Target WASM 了还不知道自己关掉 RPATH？&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;于是搜索相关参数： &lt;code&gt;-DFEATURE_rpath=OFF&lt;/code&gt;，并清除 CMake 缓存重新编译&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;漫长的一个小时过去了，QtBase 模块终于编译完，心情激动直接当场 &lt;code&gt;cmake --install .&lt;/code&gt; 并开始编译其他模块：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;QtShaderTools&lt;/li&gt;
+&lt;li&gt;QtSvg&lt;/li&gt;
+&lt;li&gt;QtImageFormats&lt;/li&gt;
+&lt;li&gt;QtDeclarative&lt;/li&gt;
+&lt;li&gt;QtCharts&lt;/li&gt;
+&lt;li&gt;QtRemoteObjects&lt;/li&gt;
+&lt;li&gt;QtWebSocket&lt;/li&gt;
+&lt;li&gt;QtQuick3D、&lt;/li&gt;
+&lt;li&gt;QtQuickTimeLine&lt;/li&gt;
+&lt;li&gt;QtDataVisualization&lt;/li&gt;
+&lt;li&gt;&amp;hellip;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Qt Company 很人性化的提供了 &lt;code&gt;$QT_INSTALL_DIR/bin/qt-configure-modules&lt;/code&gt; 于是直接带着源代码文件夹当作参数用就完事了&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;$QT_INSTALL_DIR&lt;/span&gt;/bin/qt-configure-modules ~/Work/qt5/-MODULE_NAME-
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;就这样编译好了所有需要的 Modules 却在使用上遇到了一些问题&lt;/p&gt;
+&lt;p&gt;⬅️ To Be Continued&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>从源码编译 Qt6 for WASM - Part 1</title>
+      <link>https://mooody.me/posts/2021-05/qt-build-from-source/</link>
+      <pubDate>Mon, 24 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://mooody.me/posts/2021-05/qt-build-from-source/</guid>
+      <description>&lt;h2 id=&#34;1-qt6&#34;&gt;
+  1. Qt6
+  &lt;a class=&#34;heading-link&#34; href=&#34;#1-qt6&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;时光荏苒，&lt;a href=&#34;https://www.qt.io/blog/qt-6.0-released&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Qt6 发布&lt;/a&gt; 已经是去年的事情，截止到写文章的时候 Qt 6.1 都已经发布很久&lt;/p&gt;
+&lt;p&gt;Qt5 和 6 之间一个重大的改变就是 Build System 从 qmake 转向了 CMake （太好了！），而后者有更多的 C/C++ 项目支持。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;在 GitHub 搜索 qmake&#34; src=&#34;https://mooody.me/posts/2021-05/qt-build-from-source/search-qmake.png&#34;&gt; &lt;img alt=&#34;在 GitHub 搜索 CMake&#34; src=&#34;https://mooody.me/posts/2021-05/qt-build-from-source/search-cmake.png&#34;&gt;&lt;/p&gt;
+&lt;p&gt;（这数量级之差不用我多说啥了吧）&lt;/p&gt;
+&lt;p&gt;Qt 6.0 主要的目标是 &amp;ldquo;能用就行&amp;rdquo;，因此他们只在 release 里面包含了&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;qtbase&lt;/code&gt;，&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;qtdeclarative&lt;/code&gt;，&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;qt5compat&lt;/code&gt;，&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;qtshadertools&lt;/code&gt;，&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;qtwayland&lt;/code&gt; 和 &lt;code&gt;qtquick3d&lt;/code&gt; 这些相对基础的组件。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Qt 6.1 在此基础上又增加了&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;qtcharts&lt;/code&gt;，&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;qtdatavis3d&lt;/code&gt;，&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;qtimageformats&lt;/code&gt;，&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;qtnetworkauth&lt;/code&gt;，&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;qtvirtualkeyboard&lt;/code&gt; 和 &lt;code&gt;qtlottie&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;相比之下 6.1 包含的组件已经很多了&lt;/p&gt;
+&lt;h2 id=&#34;2-wasm&#34;&gt;
+  2. WASM
+  &lt;a class=&#34;heading-link&#34; href=&#34;#2-wasm&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;我心心念念的 Qt for WASM 还是没来。&lt;/p&gt;
+&lt;p&gt;后来看到 &lt;em&gt;&lt;a href=&#34;https://bugreports.qt.io/browse/QTBUG-87471&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;QTBUG-87471&lt;/a&gt;&lt;/em&gt; 才知道还得等到 Qt 6.2，这让我萌生了从源码编译的&lt;del&gt;冲动&lt;/del&gt;&lt;/p&gt;
+&lt;h2 id=&#34;3-能编译了吗&#34;&gt;
+  3. “能编译了吗？”
+  &lt;a class=&#34;heading-link&#34; href=&#34;#3-%e8%83%bd%e7%bc%96%e8%af%91%e4%ba%86%e5%90%97&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;因为要编译的是 dev 分支的 Qt6，我决定用 git 拉源码，还能随时 &lt;code&gt;git pull&lt;/code&gt; 到最新的版本，于是开始 clone&lt;/p&gt;
+&lt;p&gt;试了一圈发现 GitHub 的 &lt;a href=&#34;https://github.com/qt/qt5&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;mirror&lt;/a&gt; 比较快 &lt;del&gt;(虽然 repo 叫 qt5 但他其实里面是 qt 的 dev 分支，简直太迷惑了)&lt;/del&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ git clone https://github.com/qt/qt5 --recursive &lt;span style=&#34;color:#6272a4&#34;&gt;# 使用 recursive 把所有 submodules 都拉下来！&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;「&lt;em&gt;哦淦，dev 分支没有文档啊&lt;/em&gt;」&lt;/p&gt;
+&lt;p&gt;…… （冷场）&lt;/p&gt;
+&lt;h2 id=&#34;4-藏在角落的编译文档&#34;&gt;
+  4. 藏在角落的编译文档
+  &lt;a class=&#34;heading-link&#34; href=&#34;#4-%e8%97%8f%e5%9c%a8%e8%a7%92%e8%90%bd%e7%9a%84%e7%bc%96%e8%af%91%e6%96%87%e6%a1%a3&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;经过了 114514 小时的高强度搜索，终于在 &lt;a href=&#34;https://bugreports.qt.io/browse/QTBUG-78647#comment-539018&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;QTBUG-78647&lt;/a&gt; 评论区找到了一点点编译参数的 Hints&lt;/p&gt;
+&lt;p&gt;于是立即开始 build, 看了看两个 notes 都跟我没关系嘛&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&amp;ldquo;&lt;em&gt;NOTE You need an ultra recent version of cmake&lt;/em&gt;&amp;rdquo;
+&lt;ul&gt;
+&lt;li&gt;Arch 用户从来不担心版本太旧&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&amp;ldquo;&lt;em&gt;NOTE You will need to host build of Qt 6.0.x, easiest to download the binary release for your desktop platform. Building from git also works.&lt;/em&gt;&amp;rdquo;
+&lt;ul&gt;
+&lt;li&gt;喵？ 那我 &lt;code&gt;pacman -S qt6&lt;/code&gt; 不就好了&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;5-开搞&#34;&gt;
+  5. 开搞！
+  &lt;a class=&#34;heading-link&#34; href=&#34;#5-%e5%bc%80%e6%90%9e&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;拿来评论区的编译参数，稍微改了改，就变成了&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cmake ~/Work/qt5/qtbase/ &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -GNinja &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DFEATURE_developer_build&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;ON &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DFEATURE_headersclean&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;OFF &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DFEATURE_precompile_header&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;OFF &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DWARNINGS_ARE_ERRORS&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;OFF &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DBUILD_EXAMPLES&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;OFF &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DBUILD_TESTING&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;OFF &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DCMAKE_INSTALL_PREFIX&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;~/Work/qt-build/wasm-installed &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DCMAKE_TOOLCHAIN_FILE&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;~/.local/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake &lt;span style=&#34;color:#f1fa8c&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f1fa8c&#34;&gt;&lt;/span&gt;  -DQT_HOST_PATH&lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt;/
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;Qt 的 CMake Configure 过程异常地耗时，于是漫长的等待开始了&lt;/p&gt;
+&lt;p&gt;⬅️ To Be Continued&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

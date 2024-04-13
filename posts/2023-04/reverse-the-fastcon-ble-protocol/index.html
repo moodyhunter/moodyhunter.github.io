@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+  <title>
+  逆向 Fastcon BLE 协议 - 1 · Moody&#39;s
+</title>
+  <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+
+
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; block-all-mixed-content; default-src 'self'; child-src 'self'; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; form-action 'self' https://utteranc.es; frame-src 'self' https://utteranc.es; img-src 'self' https:; object-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://utteranc.es; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://utteranc.es https://static.cloudflareinsights.com https://js.monitor.azure.com; connect-src 'self' https://utteranc.es https://uksouth-1.in.applicationinsights.azure.com;">
+
+
+
+
+<meta name="author" content="Moody">
+<meta name="description" content="本文内容不得用于商业用途
+前情提要 链接到标题 MoodyAPI 里面有一个组件 LightController
+TlDr：控制一个 BLE 灯泡。
+可惜的是，之前那只灯泡坏了（都是去年的事了）。鄙人只好又在 Amazon 上重新 买了另一只同样的：
+去年 12 月 18 买的，没两天就收到了。收到灯泡之后整个人就傻掉了。
+同一款灯泡，为什么通信协议完全不一样了呢？
+上次的灯泡使用的是蓝牙 BLE GATT 协议，其暴露了两个 Service 用于控制颜色，亮度等参数。
+但这次的灯泡完全不一样，甚至连用于控制的 App 都无法通用。
+查询了各大论坛，也发现这种新型 Fastcon 协议并没有开源实现
+那么，是退货，还是逆向这个闭源协议呢？
+你猜？ 链接到标题 当然是逆向了 1. 获取 APK 链接到标题 这第一步自然是相当容易，有什么好说的
+2. 反编译 Java 类 链接到标题 这一步也很简单，甚至随便找了个 online 的 decompiler 就 拿到（部分）源码了。
+3. 源码分析 链接到标题 在解包 APK 的时候，我意外发现了一个 native 库，libbroadlink_ble.so。
+看到 JNI，我的脑子就开始发毛，这不是要逆向 C/C&#43;&#43; 代码了吗？（悲）
+3.1 Java 类 链接到标题 程序里有数个名称带有 Fastcon 的类，其中 BLEFastconHelper 似乎是最重要的一个，包含所有 Fastcon 设备无关的逻辑，BLSBleLight 似乎是专门用于智能灯泡的封装类。">
+<meta name="keywords" content="blog,personal,中文,个人">
+
+<meta name="twitter:card" content="summary"/><meta name="twitter:title" content="逆向 Fastcon BLE 协议 - 1"/>
+<meta name="twitter:description" content="本文内容不得用于商业用途
+前情提要 链接到标题 MoodyAPI 里面有一个组件 LightController
+TlDr：控制一个 BLE 灯泡。
+可惜的是，之前那只灯泡坏了（都是去年的事了）。鄙人只好又在 Amazon 上重新 买了另一只同样的：
+去年 12 月 18 买的，没两天就收到了。收到灯泡之后整个人就傻掉了。
+同一款灯泡，为什么通信协议完全不一样了呢？
+上次的灯泡使用的是蓝牙 BLE GATT 协议，其暴露了两个 Service 用于控制颜色，亮度等参数。
+但这次的灯泡完全不一样，甚至连用于控制的 App 都无法通用。
+查询了各大论坛，也发现这种新型 Fastcon 协议并没有开源实现
+那么，是退货，还是逆向这个闭源协议呢？
+你猜？ 链接到标题 当然是逆向了 1. 获取 APK 链接到标题 这第一步自然是相当容易，有什么好说的
+2. 反编译 Java 类 链接到标题 这一步也很简单，甚至随便找了个 online 的 decompiler 就 拿到（部分）源码了。
+3. 源码分析 链接到标题 在解包 APK 的时候，我意外发现了一个 native 库，libbroadlink_ble.so。
+看到 JNI，我的脑子就开始发毛，这不是要逆向 C/C&#43;&#43; 代码了吗？（悲）
+3.1 Java 类 链接到标题 程序里有数个名称带有 Fastcon 的类，其中 BLEFastconHelper 似乎是最重要的一个，包含所有 Fastcon 设备无关的逻辑，BLSBleLight 似乎是专门用于智能灯泡的封装类。"/>
+
+<meta property="og:title" content="逆向 Fastcon BLE 协议 - 1" />
+<meta property="og:description" content="本文内容不得用于商业用途
+前情提要 链接到标题 MoodyAPI 里面有一个组件 LightController
+TlDr：控制一个 BLE 灯泡。
+可惜的是，之前那只灯泡坏了（都是去年的事了）。鄙人只好又在 Amazon 上重新 买了另一只同样的：
+去年 12 月 18 买的，没两天就收到了。收到灯泡之后整个人就傻掉了。
+同一款灯泡，为什么通信协议完全不一样了呢？
+上次的灯泡使用的是蓝牙 BLE GATT 协议，其暴露了两个 Service 用于控制颜色，亮度等参数。
+但这次的灯泡完全不一样，甚至连用于控制的 App 都无法通用。
+查询了各大论坛，也发现这种新型 Fastcon 协议并没有开源实现
+那么，是退货，还是逆向这个闭源协议呢？
+你猜？ 链接到标题 当然是逆向了 1. 获取 APK 链接到标题 这第一步自然是相当容易，有什么好说的
+2. 反编译 Java 类 链接到标题 这一步也很简单，甚至随便找了个 online 的 decompiler 就 拿到（部分）源码了。
+3. 源码分析 链接到标题 在解包 APK 的时候，我意外发现了一个 native 库，libbroadlink_ble.so。
+看到 JNI，我的脑子就开始发毛，这不是要逆向 C/C&#43;&#43; 代码了吗？（悲）
+3.1 Java 类 链接到标题 程序里有数个名称带有 Fastcon 的类，其中 BLEFastconHelper 似乎是最重要的一个，包含所有 Fastcon 设备无关的逻辑，BLSBleLight 似乎是专门用于智能灯泡的封装类。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://mooody.me/posts/2023-04/reverse-the-fastcon-ble-protocol/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-04-06T00:00:00+00:00" />
+<meta property="article:modified_time" content="2023-04-06T00:00:00+00:00" />
+
+
+
+
+<link rel="canonical" href="https://mooody.me/posts/2023-04/reverse-the-fastcon-ble-protocol/">
+
+
+<link rel="preload" href="/fonts/fa-brands-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+
+
+  
+  
+  <link rel="stylesheet" href="/css/coder.min.38c4552ac40f9ae3408bad40358f654ebd8804412fe74ed56f2d6c8a7af82dd3.css" integrity="sha256-OMRVKsQPmuNAi61ANY9lTr2IBEEv507Vby1sinr4LdM=" crossorigin="anonymous" media="screen" />
+
+
+
+
+
+
+  
+    
+    
+    <link rel="stylesheet" href="/css/coder-dark.min.a00e6364bacbc8266ad1cc81230774a1397198f8cfb7bcba29b7d6fcb54ce57f.css" integrity="sha256-oA5jZLrLyCZq0cyBIwd0oTlxmPjPt7y6KbfW/LVM5X8=" crossorigin="anonymous" media="screen" />
+  
+
+
+
+ 
+
+
+  
+  
+    
+    <link rel="stylesheet" href="/scss/cards.min.66689eb6794f4d37bf49748d47a91d8dc5918d78d800a8fae4f1a9649ce35145.css" integrity="sha256-ZmietnlPTTe/SXSNR6kdjcWRjXjYAKj65PGpZJzjUUU=" crossorigin="anonymous" media="screen" />
+  
+
+  
+  
+    
+    <link rel="stylesheet" href="/scss/spoiler.min.6758d9b6919e25bb0a3c105fb53c53d4329838c7c3c6c41a4443a232bcca0886.css" integrity="sha256-Z1jZtpGeJbsKPBBftTxT1DKYOMfDxsQaREOiMrzKCIY=" crossorigin="anonymous" media="screen" />
+  
+
+
+
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg" sizes="any">
+<link rel="icon" type="image/png" href="/images/favicon.ico" sizes="32x32">
+<link rel="icon" type="image/png" href="/images/favicon.ico" sizes="16x16">
+
+<link rel="apple-touch-icon" href="/images/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/favicon.ico">
+
+<link rel="manifest" href="/site.webmanifest">
+<link rel="mask-icon" href="/images/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+
+
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"
+/>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"
+></script>
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"
+></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+      ],
+    });
+  });
+</script>
+
+
+
+</head>
+
+
+
+
+
+
+<body class="preload-transitions colorscheme-auto">
+  
+<div class="float-container">
+    <a id="dark-mode-toggle" class="colorscheme-toggle">
+        <i class="fa-solid fa-adjust fa-fw" aria-hidden="true"></i>
+    </a>
+</div>
+
+
+  <main class="wrapper">
+    <nav class="navigation">
+  <section class="container">
+    
+    <a class="navigation-title" href="https://mooody.me/">
+      Moody&#39;s
+    </a>
+    
+    
+      <input type="checkbox" id="menu-toggle" />
+      <label class="menu-button float-right" for="menu-toggle">
+        <i class="fa-solid fa-bars fa-fw" aria-hidden="true"></i>
+      </label>
+      <ul class="navigation-list">
+        
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/">主页</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/posts/">文章</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/friends/">友链</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="/about/">我</a>
+            </li>
+          
+            <li class="navigation-item">
+              <a class="navigation-link " href="https://g.mooody.me/public-dashboards/305e9305e46240eb80345e055738c236?orgId=1&amp;theme=light&amp;refresh=10s">服务状态</a>
+            </li>
+          
+        
+        
+          
+          
+          
+            
+          
+            
+              
+                <li class="navigation-item menu-separator">
+                  <span>|</span>
+                </li>
+                
+              
+              <li class="navigation-item">
+                <a href="/en/">🇬🇧</a>
+              </li>
+            
+          
+        
+      </ul>
+    
+  </section>
+</nav>
+
+
+    <div class="content">
+      
+  <section class="container post">
+    <article>
+      <header>
+        <div class="post-title">
+          <h1 class="title">
+            <a class="title-link" href="https://mooody.me/posts/2023-04/reverse-the-fastcon-ble-protocol/">
+              逆向 Fastcon BLE 协议 - 1
+            </a>
+          </h1>
+        </div>
+        <div class="post-meta">
+          <div class="date">
+            <span class="posted-on">
+              <i class="fa-solid fa-calendar" aria-hidden="true"></i>
+              <time datetime="2023-04-06T00:00:00Z">
+                April 6, 2023
+              </time>
+            </span>
+            <span class="reading-time">
+              <i class="fa-solid fa-clock" aria-hidden="true"></i>
+              阅读时间：3 分钟
+            </span>
+          </div>
+          
+          
+          <div class="tags">
+  <i class="fa-solid fa-tag" aria-hidden="true"></i>
+    <span class="tag">
+      <a href="/tags/reverse-engineering/">Reverse Engineering</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/ble/">BLE</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/fastcon/">Fastcon</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/android/">Android</a>
+    </span>
+      <span class="separator">•</span>
+    <span class="tag">
+      <a href="/tags/bluetooth/">Bluetooth</a>
+    </span></div>
+
+        </div>
+      </header>
+
+      <div class="post-content">
+        
+        <p><strong>本文内容不得用于商业用途</strong></p>
+<h2 id="前情提要">
+  前情提要
+  <a class="heading-link" href="#%e5%89%8d%e6%83%85%e6%8f%90%e8%a6%81">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p><a href="https://github.com/moodyhunter/MoodyAPI"  class="external-link" target="_blank" rel="noopener">MoodyAPI</a> 里面有一个组件 <code>LightController</code></p>
+<p>TlDr：控制一个 BLE 灯泡。</p>
+<p>可惜的是，之前那只灯泡坏了<span class="spoiler" title="你知道的太多了"
+  >（<del>都是去年的事了</del>）</span
+>。鄙人只好又在 Amazon 上重新
+买了<a href="https://www.amazon.co.uk/gp/product/B07RL79ZDS"  class="external-link" target="_blank" rel="noopener">另一只同样的</a>：</p>
+<p><img alt="amazon" src="/posts/2023-04/reverse-the-fastcon-ble-protocol/amazon.png"></p>
+<p>去年 12 月 18 买的，没两天就收到了。收到灯泡之后整个人就傻掉了。</p>
+<blockquote>
+<p>同一款灯泡，为什么通信协议完全不一样了呢？</p>
+</blockquote>
+<p>上次的灯泡使用的是蓝牙 BLE GATT 协议，其<a href="https://github.com/moodyhunter/MoodyAPI/blob/b8870165546dcb390b674a9a1229f88af6e3a3d0/LightControl/src/main.rs#L43-L52"  class="external-link" target="_blank" rel="noopener">暴露了两个 Service 用于控制颜色，亮度等参数</a>。</p>
+<p>但这次的灯泡完全不一样，甚至连<a href="https://play.google.com/store/apps/details?id=com.xiaoyu.hlight"  class="external-link" target="_blank" rel="noopener">用于控制的 App</a>
+都<a href="https://play.google.com/store/apps/details?id=com.brgd.brblmesh"  class="external-link" target="_blank" rel="noopener">无法通用</a>。</p>
+<p>查询了各大论坛，也发现这种新型 Fastcon 协议<a href="https://community.home-assistant.io/t/broadlink-fastcon-ble-support/486815/6"  class="external-link" target="_blank" rel="noopener">并没有</a><a href="https://www.reddit.com/r/homeassistant/comments/znj7aq/broadlink_fastcon_ble_support_yet/"  class="external-link" target="_blank" rel="noopener">开源实现</a></p>
+<p>那么，是退货，还是逆向这个闭源协议呢？</p>
+<h2 id="hahahugoshortcode25s1hbhb">
+  <span class="spoiler" title="你知道的太多了"
+  >你猜？</span
+>
+  <a class="heading-link" href="#hahahugoshortcode25s1hbhb">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<span class="spoiler" title="你知道的太多了"
+  >当然是逆向了</span
+>
+<h2 id="1-获取-apk">
+  1. 获取 APK
+  <a class="heading-link" href="#1-%e8%8e%b7%e5%8f%96-apk">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>这第一步自然是相当容易，有什么好说的</p>
+<h2 id="2-反编译-java-类">
+  2. 反编译 Java 类
+  <a class="heading-link" href="#2-%e5%8f%8d%e7%bc%96%e8%af%91-java-%e7%b1%bb">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>这一步也很简单，甚至随便找了个 <a href="http://www.javadecompilers.com/"  class="external-link" target="_blank" rel="noopener">online 的 decompiler</a> 就
+拿到（部分）源码了。</p>
+<h2 id="3-源码分析">
+  3. 源码分析
+  <a class="heading-link" href="#3-%e6%ba%90%e7%a0%81%e5%88%86%e6%9e%90">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>在解包 APK 的时候，我意外发现了一个 native 库，<code>libbroadlink_ble.so</code>。</p>
+<p>看到 JNI，我的脑子就开始发毛，这不是要逆向 C/C++ 代码了吗？（悲）</p>
+<h3 id="31-java-类">
+  3.1 Java 类
+  <a class="heading-link" href="#31-java-%e7%b1%bb">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>程序里有数个名称带有 <code>Fastcon</code> 的类，其中 <code>BLEFastconHelper</code> 似乎是最重要的一个，包含所有
+<code>Fastcon</code> 设备无关的逻辑，<code>BLSBleLight</code> 似乎是专门用于智能灯泡的封装类。</p>
+<p>另外，程序内还有一个 <code>cn.com.broadlink.blelight.jni.BLEUtil</code> 类，里面全都是 native 方法
+的声明。</p>
+<h3 id="32-libbroadlink_bleso">
+  3.2 <code>libbroadlink_ble.so</code>
+  <a class="heading-link" href="#32-libbroadlink_bleso">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>一个神秘 native 库，看了看里面有 47 个 JNI 函数，多数都是用于数据的打包：</p>
+<p><img alt="package" src="/posts/2023-04/reverse-the-fastcon-ble-protocol/native_symbols.png"></p>
+<h2 id="4-开始分析-blefastconhelper-的扫描设备逻辑">
+  4. 开始分析 <code>BLEFastconHelper</code> 的扫描设备逻辑
+  <a class="heading-link" href="#4-%e5%bc%80%e5%a7%8b%e5%88%86%e6%9e%90-blefastconhelper-%e7%9a%84%e6%89%ab%e6%8f%8f%e8%ae%be%e5%a4%87%e9%80%bb%e8%be%91">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h2>
+<p>这个长达两千多行的类里面的函数名倒是很 self-explanatory，但其中函数的参数名则是一团乱麻。</p>
+<p><img alt="arguments" src="/posts/2023-04/reverse-the-fastcon-ble-protocol/bad_arguments.png"></p>
+<h3 id="41-如何扫描设备">
+  4.1 如何扫描设备
+  <a class="heading-link" href="#41-%e5%a6%82%e4%bd%95%e6%89%ab%e6%8f%8f%e8%ae%be%e5%a4%87">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p><code>BLEFastconHelper</code> 里面有一个 <code>startScanBLEDevices</code> 函数，用于（开始）扫描设备。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">public</span> <span style="color:#8be9fd">boolean</span> <span style="color:#50fa7b">startScanBLEDevices</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    stopCloseBLETimer();
+</span></span><span style="display:flex;"><span>    BluetoothAdapter bluetoothAdapter <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">this</span>.<span style="color:#50fa7b">myAdapter</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> (bluetoothAdapter <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">null</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">false</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">boolean</span> started <span style="color:#ff79c6">=</span> bluetoothAdapter.<span style="color:#50fa7b">startLeScan</span>(<span style="color:#ff79c6">this</span>.<span style="color:#50fa7b">mCallback</span>);
+</span></span><span style="display:flex;"><span>    Log.<span style="color:#50fa7b">w</span>(TAG, <span style="color:#f1fa8c">&#34;start LeScanCmd: &#34;</span> <span style="color:#ff79c6">+</span> started);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">true</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>没啥用，但 <code>bluetoothAdapter.startLeScan</code> 就直接进入 Android 的蓝牙 API 了，所以
+查看一下 <code>this.mCallback</code> 的值。</p>
+<p><img alt="mCallback" src="/posts/2023-04/reverse-the-fastcon-ble-protocol/mCallback.png"></p>
+<p>上面代码是分析过后，包含了合理变量名和注释的版本，可以看到在 <code>mCallback</code> 内比较了蓝牙 Advertising
+数据的长度和第 7-11 个字节（<code>13fff0ff</code>），如果相等则进行下一步处理。</p>
+<p>那么我能不能在电脑上也进行这样的扫描，并直接获取到这些数据呢？</p>
+<hr>
+<p><strong>A Million Years Later</strong></p>
+<hr>
+<p>答案是不行。在电脑，树莓派以及手机的某<strong>些</strong> BLE Scanner 上都无法扫描到这个设备。</p>
+<h3 id="42-scan-request">
+  4.2 &ldquo;Scan Request&rdquo;
+  <a class="heading-link" href="#42-scan-request">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>在这种情况下，扫描器会主动向设备发送一个请求，然后设备才会返回数据。</p>
+<p>我需要看看在调用 <code>startLeScan</code> 之前，扫描器是否有发送过这样的请求。</p>
+<p>果不其然，在 <code>ScanDeviceActivity</code> 中发现了玄机：</p>
+<p><img alt="scan device" src="/posts/2023-04/reverse-the-fastcon-ble-protocol/ScanDeviceActivity.png"></p>
+<p>在这个函数的最后，他启动了一个 <code>AddDevThread</code> 线程，在后者的 <code>run</code> 函数中，扫描器会
+向设备发送一个 <code>Scan Request</code>：</p>
+<p><img alt="adddevthread" src="/posts/2023-04/reverse-the-fastcon-ble-protocol/AddDevThread.png"></p>
+<p>其中：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">public</span> <span style="color:#8be9fd">boolean</span> <span style="color:#50fa7b">sendStartScan</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">byte</span><span style="color:#ff79c6">[]</span> bArr <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">new</span> <span style="color:#8be9fd">byte</span><span style="color:#ff79c6">[</span>12<span style="color:#ff79c6">]</span>;
+</span></span><span style="display:flex;"><span>    bArr<span style="color:#ff79c6">[</span>0<span style="color:#ff79c6">]</span> <span style="color:#ff79c6">=</span> 0;
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">return</span> sendCommand(0, bArr, (<span style="color:#8be9fd">byte</span><span style="color:#ff79c6">[]</span>) <span style="color:#ff79c6">null</span>, BLE_CMD_RETRY_CNT,
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">-</span>1, <span style="color:#ff79c6">false</span>, <span style="color:#ff79c6">false</span>, <span style="color:#ff79c6">false</span>, 0);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>🤡 <code>-1</code>, <code>false</code>, <code>false</code>, <code>false</code>, <code>0</code> 🤡</p>
+<p>函数层层调用，一团乱麻般的参数，最终会被传递到 <code>doSendCommand</code> 函数中：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>sendStartScan()
+</span></span><span style="display:flex;"><span>sendCommand(0, bArr, (<span style="color:#8be9fd">byte</span><span style="color:#ff79c6">[]</span>) <span style="color:#ff79c6">null</span>, 1, <span style="color:#ff79c6">-</span>1, <span style="color:#ff79c6">false</span>, <span style="color:#ff79c6">false</span>, <span style="color:#ff79c6">false</span>, 0);
+</span></span><span style="display:flex;"><span>sendCommand(0, data, <span style="color:#ff79c6">null</span>, 1, <span style="color:#ff79c6">-</span>1, <span style="color:#ff79c6">false</span>, <span style="color:#ff79c6">false</span>, 0, <span style="color:#ff79c6">false</span>, <span style="color:#ff79c6">false</span>, 0);
+</span></span><span style="display:flex;"><span>doSendCommand(0, data, <span style="color:#ff79c6">null</span>, 1, <span style="color:#ff79c6">-</span>1, <span style="color:#ff79c6">false</span>, <span style="color:#ff79c6">false</span>, <span style="color:#ff79c6">false</span>, <span style="color:#ff79c6">false</span>, 0);
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>doSendCommand</code> 函数再次调用 <code>getPayloadWithInnerRetry</code> 函数，这个函数进而调用了
+native 方法 <code>package_ble_fastcon_body</code>，返回的数据被传递到一个名叫 <code>sHandler</code>
+的 <code>Handler</code> 中。</p>
+<p><code>sHandler</code> 获取到数据后，调用另一个函数签名的 <code>doSendCommand</code> 函数，在这里我将其重命名为
+<code>XdoSendCommand</code>，在这个函数中，数据包被再次传递到 native 库函数 <code>get_rf_payload</code>，
+并最终使用 <code>bluetoothLeAdvertiser2.startAdvertising</code> 被发送出去。</p>
+<h3 id="43-scan-response">
+  4.3 &ldquo;Scan Response&rdquo;
+  <a class="heading-link" href="#43-scan-response">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>只有理论分析当然不够，我还需要进行真正的测试。</p>
+<p>于是把代码 Ctrl+C/Ctrl+V 到了一个新的 Android 项目中，然后改改改改改改改改改改改改改改改改改改一些
+编译错误，终于可以运行了。</p>
+<p><img alt="scan response" src="/posts/2023-04/reverse-the-fastcon-ble-protocol/myapp_main.png"></p>
+<p>我在 MainActivity 手动添加了一个 <code>BLEFastconHelper.getInstance().sendStartScan();</code> 调用，
+然后运行程序，果然在电脑上收到了设备发来的响应：</p>
+<pre tabindex="0"><code class="language-log" data-lang="log">Manufacturer data: {65520: [
+    78, 109, 122, 172, 236, 11, 241,  15,
+     0, 233, 161, 168,  94, 54, 123, 196
+]}
+</code></pre><p>因此推测，Fastcon 设备对应的 Manufacturer ID 是 <code>0xfff0</code>，所以上文中的 <code>13fff0ff</code> 应该是
+<code>0x13</code> + <code>0xfff0</code>。</p>
+<p>那么回到 <code>mCallback</code> 函数中，我们可以看到，如果扫描到的设备的 Manufacturer ID 与 <code>0xfff0</code> 相等，
+则会继续调用 <code>BLEUtil.parse_ble_broadcast</code> 这个 native 方法：</p>
+<p><img alt="parse_ble_broadcast" src="/posts/2023-04/reverse-the-fastcon-ble-protocol/mCallback_native.png"></p>
+<p>可以看到，这个函数接受一个 <code>copyOfRange</code> 数组，它的长度，一个 <code>mPhoneKey</code> 和一个<strong>巨大的</strong>
+<code>BLEScanCallback</code> 类实例。</p>
+<p>实例中使用三个不同函数来处理不同的数据包类型：</p>
+<ul>
+<li><code>onDevCallback</code>：看起来是我们需要的 <code>Scan Response</code></li>
+<li><code>onTimerListCallback</code>：这个智能灯泡支持定时功能，这个函数应该是用来处理定时数据包的</li>
+<li><code>onHeartBeat</code>：不太清楚这个是什么。有一段时间，我的灯完全停止响应，但只有在那时我才能收到
+大量的心跳包，其他正常时间我收不到。</li>
+</ul>
+<h3 id="44-进入-native-函数-parse_ble_broadcast">
+  4.4 进入 native 函数 <code>parse_ble_broadcast</code>
+  <a class="heading-link" href="#44-%e8%bf%9b%e5%85%a5-native-%e5%87%bd%e6%95%b0-parse_ble_broadcast">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>在 Binary Ninja 中打开这个 <code>so</code>，并使用 JNI 插件分析 JNI 所需的第一个和第二个参数（<code>jEnv</code> 和 <code>obj</code>）：</p>
+<p>首先是一大堆 FindClass 和 GetFieldID：</p>
+<p><img alt="parse_ble_broadcast_jni" src="/posts/2023-04/reverse-the-fastcon-ble-protocol/parse_ble_broadcast-part1.png"></p>
+<p>随后进行了 Header 的 &ldquo;解密&rdquo;：</p>
+<ul>
+<li><code>bl_ble_fastcon_header_encrty</code> 是不是拼错了呢？</li>
+</ul>
+<p>再之后进行 header 的解析，包括检查一些可能的 type，并最终进入到我们关注的分支，创建新对象并进行赋值：</p>
+<p><img alt="parse_ble_broadcast_jni_2" src="/posts/2023-04/reverse-the-fastcon-ble-protocol/parse_ble_broadcast-part2-3.png"></p>
+<p>最终调用 <code>_JNIEnv::CallVoidMethod</code> 并将对象传递给 <code>onDevCallback</code> 函数。</p>
+<h3 id="45-回到-java-代码">
+  4.5 回到 Java 代码
+  <a class="heading-link" href="#45-%e5%9b%9e%e5%88%b0-java-%e4%bb%a3%e7%a0%81">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">public</span> <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">onDevCallback</span>(BLEDeviceInfo bLEDeviceInfo)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">this</span>.<span style="color:#50fa7b">mOnDevScanCallback</span> <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">null</span>)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        bLEDeviceInfo.<span style="color:#50fa7b">name</span> <span style="color:#ff79c6">=</span> BLEFastconHelper.<span style="color:#50fa7b">genDefaultName</span>(bLEDeviceInfo);
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">this</span>.<span style="color:#50fa7b">mOnDevScanCallback</span>.<span style="color:#50fa7b">onCallback</span>(bLEDeviceInfo);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>没啥好说的，如果 <code>mOnDevScanCallback</code> 存在，就调用它的 <code>onCallback</code> 函数。</p>
+<p>做到这里，我已经能在理论上发送 <code>Scan Request</code> 并接收到 <code>Scan Response</code> 了，接下来需要
+的就是将其使用 C 或 Rust 重写实现。</p>
+<h3 id="46-重写-parse-ble-broadcast-和-send-start-scan">
+  4.6 重写 <code>Parse BLE Broadcast</code> 和 <code>Send Start Scan</code>
+  <a class="heading-link" href="#46-%e9%87%8d%e5%86%99-parse-ble-broadcast-%e5%92%8c-send-start-scan">
+    <i class="fa-solid fa-link" aria-hidden="true" title="链接到标题"></i>
+    <span class="sr-only">链接到标题</span>
+  </a>
+</h3>
+<p>以上内容其实在一月份就理解了，但是我一直没有动手实现，因为在写 MOS。</p>
+<p>而接下来的内容几乎花了我整整一周的时间，因为内容涉及到 ARM64 汇编以及 native 调试，并且还
+顺便学了一些 Rust。</p>
+<span class="spoiler" title="你知道的太多了"
+  >所以下一篇再写。</span
+>
+
+      </div>
+
+
+      <footer>
+        
+
+
+        
+        
+        <div class="comments">
+  <script>
+
+    let getTheme = window.localStorage && window.localStorage.getItem("colorscheme");
+    let themeInParams = '';
+
+    if (getTheme == null) {
+      if (themeInParams !== '' && themeInParams !== 'auto') {
+        getTheme = themeInParams;
+      }
+      else {
+        getTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light";
+      }
+    }
+
+    let theme = getTheme === 'dark' ? 'github-dark' : 'github-light';
+    let s = document.createElement('script');
+    s.src = 'https://utteranc.es/client.js';
+    s.setAttribute('repo', 'moodyhunter\/moodyhunter.github.io');
+    s.setAttribute('issue-term', 'pathname');
+    s.setAttribute('theme', theme);
+    s.setAttribute('crossorigin', 'anonymous');
+    s.setAttribute('async', '');
+    document.querySelector('div.comments').innerHTML = '';
+    document.querySelector('div.comments').appendChild(s);
+
+  </script>
+</div>
+        
+        
+
+        
+      </footer>
+    </article>
+
+    
+  </section>
+
+    </div>
+
+    <footer class="footer">
+  <section class="container">
+    ©
+    
+      2021 -
+    
+    2024
+     Moody 
+    ·
+    
+      许可依据 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA-4.0</a>
+    ·
+    
+    技术支持 <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/" target="_blank" rel="noopener">Coder</a>.
+    
+  </section>
+</footer>
+
+  </main>
+
+  
+
+  
+  
+  <script src="/js/coder.min.6ae284be93d2d19dad1f02b0039508d9aab3180a12a06dcc71b0b0ef7825a317.js" integrity="sha256-auKEvpPS0Z2tHwKwA5UI2aqzGAoSoG3McbCw73gloxc="></script>
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  <script type="text/javascript">
+    !function(T,l,y){var S=T.location,k="script",D="connectionString",C="ingestionendpoint",I="disableExceptionTracking",E="ai.device.",b="toLowerCase",w="crossOrigin",N="POST",e="appInsightsSDK",t=y.name||"appInsights";(y.name||T[e])&&(T[e]=t);var n=T[t]||function(d){var g=!1,f=!1,m={initialize:!0,queue:[],sv:"5",version:2,config:d};function v(e,t){var n={},a="Browser";return n[E+"id"]=a[b](),n[E+"type"]=a,n["ai.operation.name"]=S&&S.pathname||"_unknown_",n["ai.internal.sdkVersion"]="javascript:snippet_"+(m.sv||m.version),{time:function(){var e=new Date;function t(e){var t=""+e;return 1===t.length&&(t="0"+t),t}return e.getUTCFullYear()+"-"+t(1+e.getUTCMonth())+"-"+t(e.getUTCDate())+"T"+t(e.getUTCHours())+":"+t(e.getUTCMinutes())+":"+t(e.getUTCSeconds())+"."+((e.getUTCMilliseconds()/1e3).toFixed(3)+"").slice(2,5)+"Z"}(),name:"Microsoft.ApplicationInsights."+e.replace(/-/g,"")+"."+t,sampleRate:100,tags:n,data:{baseData:{ver:2}}}}var h=d.url||y.src;if(h){function a(e){var t,n,a,i,r,o,s,c,u,p,l;g=!0,m.queue=[],f||(f=!0,t=h,s=function(){var e={},t=d.connectionString;if(t)for(var n=t.split(";"),a=0;a<n.length;a++){var i=n[a].split("=");2===i.length&&(e[i[0][b]()]=i[1])}if(!e[C]){var r=e.endpointsuffix,o=r?e.location:null;e[C]="https://"+(o?o+".":"")+"dc."+(r||"services.visualstudio.com")}return e}(),c=s[D]||d[D]||"",u=s[C],p=u?u+"/v2/track":d.endpointUrl,(l=[]).push((n="SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details)",a=t,i=p,(o=(r=v(c,"Exception")).data).baseType="ExceptionData",o.baseData.exceptions=[{typeName:"SDKLoadFailed",message:n.replace(/\./g,"-"),hasFullStack:!1,stack:n+"\nSnippet failed to load ["+a+"] -- Telemetry is disabled\nHelp Link: https://go.microsoft.com/fwlink/?linkid=2128109\nHost: "+(S&&S.pathname||"_unknown_")+"\nEndpoint: "+i,parsedStack:[]}],r)),l.push(function(e,t,n,a){var i=v(c,"Message"),r=i.data;r.baseType="MessageData";var o=r.baseData;return o.message='AI (Internal): 99 message:"'+("SDK LOAD Failure: Failed to load Application Insights SDK script (See stack for details) ("+n+")").replace(/\"/g,"")+'"',o.properties={endpoint:a},i}(0,0,t,p)),function(e,t){if(JSON){var n=T.fetch;if(n&&!y.useXhr)n(t,{method:N,body:JSON.stringify(e),mode:"cors"});else if(XMLHttpRequest){var a=new XMLHttpRequest;a.open(N,t),a.setRequestHeader("Content-type","application/json"),a.send(JSON.stringify(e))}}}(l,p))}function i(e,t){f||setTimeout(function(){!t&&m.core||a()},500)}var e=function(){var n=l.createElement(k);n.src=h;var e=y[w];return!e&&""!==e||"undefined"==n[w]||(n[w]=e),n.onload=i,n.onerror=a,n.onreadystatechange=function(e,t){"loaded"!==n.readyState&&"complete"!==n.readyState||i(0,t)},n}();y.ld<0?l.getElementsByTagName("head")[0].appendChild(e):setTimeout(function(){l.getElementsByTagName(k)[0].parentNode.appendChild(e)},y.ld||0)}try{m.cookie=l.cookie}catch(p){}function t(e){for(;e.length;)!function(t){m[t]=function(){var e=arguments;g||m.queue.push(function(){m[t].apply(m,e)})}}(e.pop())}var n="track",r="TrackPage",o="TrackEvent";t([n+"Event",n+"PageView",n+"Exception",n+"Trace",n+"DependencyData",n+"Metric",n+"PageViewPerformance","start"+r,"stop"+r,"start"+o,"stop"+o,"addTelemetryInitializer","setAuthenticatedUserContext","clearAuthenticatedUserContext","flush"]),m.SeverityLevel={Verbose:0,Information:1,Warning:2,Error:3,Critical:4};var s=(d.extensionConfig||{}).ApplicationInsightsAnalytics||{};if(!0!==d[I]&&!0!==s[I]){var c="onerror";t(["_"+c]);var u=T[c];T[c]=function(e,t,n,a,i){var r=u&&u(e,t,n,a,i);return!0!==r&&m["_"+c]({message:e,url:t,lineNumber:n,columnNumber:a,error:i}),r},d.autoExceptionInstrumented=!0}return m}(y.cfg);function a(){y.onInit&&y.onInit(n)}(T[t]=n).queue&&0===n.queue.length?(n.queue.push(a),n.trackPageView({})):a()}(window,document,{
+    src: "https://js.monitor.azure.com/scripts/b/ai.2.min.js", 
+    
+    
+    
+    crossOrigin: "anonymous", 
+    
+    cfg: { 
+        connectionString: "InstrumentationKey=5a5bbde5-faba-4982-8376-789e51b32d12;IngestionEndpoint=https:\/\/uksouth-1.in.applicationinsights.azure.com\/;LiveEndpoint=https:\/\/uksouth.livediagnostics.monitor.azure.com\/"
+         
+    }});
+    </script>    
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+
+</html>

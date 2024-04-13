@@ -1,0 +1,705 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>ArchRV on Moody&#39;s</title>
+    <link>https://mooody.me/tags/archrv/</link>
+    <description>Recent content in ArchRV on Moody&#39;s</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 28 Apr 2022 15:44:00 +0100</lastBuildDate><atom:link href="https://mooody.me/tags/archrv/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>QProcess in Qemu - A Detailed Explanation</title>
+      <link>https://mooody.me/posts/2022-04/qprocess-in-qemu/</link>
+      <pubDate>Thu, 28 Apr 2022 15:44:00 +0100</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-04/qprocess-in-qemu/</guid>
+      <description>&lt;p&gt;It&amp;rsquo;s been a long time since my promise to publish a detailed write-up on what the hell was
+actually going on inside qemu.&lt;/p&gt;
+&lt;p&gt;Qt, for its Unix QProcess implementation, utilises &lt;a href=&#34;https://doc.qt.io/qt-6/qtcore-attribution-forkfd.html&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;forkfd library&lt;/a&gt;, (See also: &lt;a href=&#34;https://github.com/qt/qtbase/tree/dev/src/3rdparty/forkfd&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://github.com/qt/qtbase/tree/dev/src/3rdparty/forkfd&lt;/a&gt;) as a helper library to fork subprocess.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;pidfd&lt;/code&gt; is a new kernel feature, which has just been added to the kernel upon v5.2.&lt;/p&gt;
+&lt;p&gt;Since &lt;a href=&#34;https://codereview.qt-project.org/c/qt/qtbase/&amp;#43;/313894&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;this merge&lt;/a&gt;, Qt added a new
+configuration feature (&lt;code&gt;forkfd_pidfd&lt;/code&gt;, &amp;ldquo;CLONE_PIDFD support in forkfd&amp;rdquo;) and it was default
+to ON on Linux.&lt;/p&gt;
+&lt;p&gt;When this feature is ON, Qt does nothing special, forkfd library selectively uses either
+&lt;code&gt;forkfd()&lt;/code&gt; or &lt;code&gt;fork()&lt;/code&gt; based on kernel version: (it goes into
+&lt;a href=&#34;https://github.com/qt/qtbase/blob/dev/src/3rdparty/forkfd/forkfd.c#L654-L656&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;this branch&lt;/a&gt;
+and then
+&lt;a href=&#34;https://github.com/qt/qtbase/blob/dev/src/3rdparty/forkfd/forkfd_linux.c#L150&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;sets CLONE_PIDFD here&lt;/a&gt;
+before calling
+&lt;a href=&#34;https://github.com/qt/qtbase/blob/dev/src/3rdparty/forkfd/forkfd_linux.c#L68&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;clone&lt;/a&gt;)&lt;/p&gt;
+&lt;p&gt;OTOH, if the feature is OFF, Qt sets the &lt;code&gt;FFD_USE_FORK&lt;/code&gt; flag (say: forkfd please use &lt;code&gt;fork&lt;/code&gt;
+anyway) when calling &lt;code&gt;::forkfd()&lt;/code&gt;, which will cause forkfd to use &lt;code&gt;fork()&lt;/code&gt; direcly.&lt;/p&gt;
+&lt;p&gt;Under regular circumstances, this works well, forkfd is smart enough to correctly detect the
+kernel version and use the correct syscall, however, things go south fast when &lt;code&gt;qemu-user&lt;/code&gt;
+steps in:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Qt has no &lt;code&gt;FFD_USE_FORK&lt;/code&gt; set, and&lt;/li&gt;
+&lt;li&gt;forkfd thinks the kernel has correct &lt;code&gt;forkfd&lt;/code&gt; syscall implementation (because it should have), and&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;QEMU has no support for &lt;code&gt;clone&lt;/code&gt;-ing with &lt;code&gt;CLONE_PIDFD&lt;/code&gt; yet (there&amp;rsquo;s a &lt;a href=&#34;https://patchew.org/QEMU/mvm4kadwyrm.fsf@suse.de/&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;possibly abandoned patch&lt;/a&gt;)&lt;/strong&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;(original blog post: &lt;a href=&#34;https://mooody.me/posts/2022-04/archrv-qmake6/&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;记一次-debug-qmake&lt;/a&gt;)&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>ArchRV - BuggyFFI</title>
+      <link>https://mooody.me/posts/2022-04/archrv-libffi/</link>
+      <pubDate>Tue, 19 Apr 2022 23:09:10 +0100</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-04/archrv-libffi/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;EXPAND MY INTEGER!&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/libffi/libffi&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;code&gt;libffi&lt;/code&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;libffi-是什么&#34;&gt;
+  libffi 是什么？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#libffi-%e6%98%af%e4%bb%80%e4%b9%88&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;blockquote&gt;
+&lt;p&gt;A portable foreign-function interface library.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;说人话就是：&lt;a href=&#34;https://github.com/libffi/libffi#what-is-libffi&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;……算了你自己去看吧&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;libffi-怎么了&#34;&gt;
+  libffi 怎么了？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#libffi-%e6%80%8e%e4%b9%88%e4%ba%86&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;TLDR：测试炸了&lt;/li&gt;
+&lt;li&gt;or, 单元测试文件 &lt;code&gt;./testsuite/libffi.call/strlen.c&lt;/code&gt; 第 32 行&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C++&#34; data-lang=&#34;C++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bd93f9&#34;&gt;30&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;:&lt;/span&gt;  s &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;&amp;#34;a&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bd93f9&#34;&gt;31&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;:&lt;/span&gt;  ffi_call(&lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;cif, FFI_FN(my_strlen), &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;rint, values);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bd93f9&#34;&gt;32&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;:&lt;/span&gt;  CHECK(rint &lt;span style=&#34;color:#ff79c6&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;的 &lt;code&gt;CHECK&lt;/code&gt; 失败了（ &lt;code&gt;rint&lt;/code&gt; 不等于 &lt;code&gt;1&lt;/code&gt; 了）&lt;/p&gt;
+&lt;h2 id=&#34;libffi-测试为什么炸了&#34;&gt;
+  libffi 测试为什么炸了？
+  &lt;a class=&#34;heading-link&#34; href=&#34;#libffi-%e6%b5%8b%e8%af%95%e4%b8%ba%e4%bb%80%e4%b9%88%e7%82%b8%e4%ba%86&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;首先来看代码（经过简化）：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C++&#34; data-lang=&#34;C++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;// testsuite/libffi.call/strlen.c
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;size_t ABI_ATTR &lt;span style=&#34;color:#50fa7b&#34;&gt;my_strlen&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;s) { &lt;span style=&#34;color:#ff79c6&#34;&gt;return&lt;/span&gt; (strlen(s)); }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8be9fd&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#50fa7b&#34;&gt;main&lt;/span&gt; (&lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#6272a4&#34;&gt;// 省略了部分无关代码
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#8be9fd&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;s &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f1fa8c&#34;&gt;&amp;#34;a&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;values[MAX_ARGS];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  values[&lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;] &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; (&lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;) &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;s;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ffi_arg rint;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ffi_call(&lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;cif, FFI_FN(my_strlen), &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;rint, values);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  CHECK(rint &lt;span style=&#34;color:#ff79c6&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;1&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;观测&#34;&gt;
+  观测
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e8%a7%82%e6%b5%8b&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;经过两分钟的代码观测，从以上代码块 L12 来看，&lt;code&gt;rint&lt;/code&gt; 是一个 &lt;code&gt;ffi_arg&lt;/code&gt; 类型的变量，经过阅读 header 可以得知，&lt;code&gt;ffi_arg&lt;/code&gt; 是一个 64 位无符号整数类型：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C++&#34; data-lang=&#34;C++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;// src/riscv/ffitarget.h
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;unsigned&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;long&lt;/span&gt; ffi_arg;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;typedef&lt;/span&gt;   &lt;span style=&#34;color:#8be9fd&#34;&gt;signed&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;long&lt;/span&gt; ffi_sarg;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;首先使用 &lt;code&gt;gdb&lt;/code&gt; 在对应的 main 函数打断点并尝试复现问题：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Breakpoint 1, main &lt;span style=&#34;color:#ff79c6&#34;&gt;()&lt;/span&gt; at ./strlen.c:16
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; n // 狂躁的几次 n
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; p rint
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# 从 c 源码可以看出，这个 rint 在调用前是一个没经过 0 初始化的变量&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# 因此内存里面有脏东西很正常&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;$1&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;72057593903531392&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; p s
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;$2&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; 0xaaaaaaaaaaab78 &lt;span style=&#34;color:#f1fa8c&#34;&gt;&amp;#34;a&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; n
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bd93f9&#34;&gt;31&lt;/span&gt;        ffi_call&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;&amp;amp;cif, FFI_FN&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;my_strlen&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt;, &amp;amp;rint, values&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; n
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; p rint
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# 但如此看来，调用后的 rint 则不应该出现这么大的 length，毕竟我们的 s 只有一个字符 &amp;#34;a&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;$3&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;72057589742960641&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;看来问题核心出在了 &lt;code&gt;ffi_call&lt;/code&gt; 函数里。&lt;/p&gt;
+&lt;p&gt;重启调试，使用 s 指令进入 &lt;code&gt;ffi_call&lt;/code&gt; 函数继续跟进。发现这东西转头调用了 &lt;code&gt;ffi_call_int&lt;/code&gt;，而
+&lt;code&gt;ffi_call_int&lt;/code&gt; 是个不短的函数，&lt;del&gt;于是决定，还是先看代码再跑 gdb&lt;/del&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/libffi/libffi/blob/464b4b66e3cf3b5489e730c1466ee1bf825560e0/src/riscv/ffi.c#L331&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://github.com/libffi/libffi/blob/464b4b66e3cf3b5489e730c1466ee1bf825560e0/src/riscv/ffi.c#L331&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;仔细看下来，与 &lt;code&gt;rvalue&lt;/code&gt; 相关的几段代码只有以下内容：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;36
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;37
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;38
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C++&#34; data-lang=&#34;C++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#50fa7b&#34;&gt;passed_by_ref&lt;/span&gt;(call_builder &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;cb, ffi_type &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;type, &lt;span style=&#34;color:#8be9fd&#34;&gt;int&lt;/span&gt; var) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#if ABI_FLEN
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;   &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#ff79c6&#34;&gt;!&lt;/span&gt;var &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; type&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;type &lt;span style=&#34;color:#ff79c6&#34;&gt;==&lt;/span&gt; FFI_TYPE_STRUCT) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;       float_struct_info fsi &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; struct_passed_as_elements(cb, type);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;       &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (fsi.as_elements) &lt;span style=&#34;color:#ff79c6&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;   }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#endif
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;   &lt;span style=&#34;color:#ff79c6&#34;&gt;return&lt;/span&gt; type&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;size &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt; __SIZEOF_POINTER__;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#50fa7b&#34;&gt;ffi_call_int&lt;/span&gt; (
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#6272a4&#34;&gt;// 省略了无关参数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;rvalue,       &lt;span style=&#34;color:#6272a4&#34;&gt;// 返回值（需要关注）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#6272a4&#34;&gt;// 省略了部分无关代码
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;    size_t rval_bytes &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (rvalue &lt;span style=&#34;color:#ff79c6&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;NULL&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; cif&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;rtype&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;size &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;2&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;__SIZEOF_POINTER__)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        rval_bytes &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; FFI_ALIGN(cif&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;rtype&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;size, STKALIGN);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#6272a4&#34;&gt;// ......
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (rval_bytes)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        rvalue &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; (&lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)(alloc_base &lt;span style=&#34;color:#ff79c6&#34;&gt;+&lt;/span&gt; arg_bytes);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#6272a4&#34;&gt;// ......
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8be9fd&#34;&gt;int&lt;/span&gt; return_by_ref &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; passed_by_ref(&lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;cb, cif&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;rtype, &lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (return_by_ref)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        marshal(&lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;cb, &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;ffi_type_pointer, &lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;rvalue);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#6272a4&#34;&gt;// 省略准备参数的一个 for 循环...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ffi_call_asm ((&lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;) alloc_base, cb.aregs, fn, closure);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#ff79c6&#34;&gt;!&lt;/span&gt;return_by_ref &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; rvalue)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        unmarshal(&lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;cb, cif&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;rtype, &lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;, rvalue);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;即使是省略了其他内容，这段代码，一眼看下去还是感觉很难入手……&lt;/p&gt;
+&lt;p&gt;但有两点值得注意：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;在上文 L17 定义的 &lt;code&gt;rval_bytes&lt;/code&gt; 在本次测试中会恒等于 &lt;code&gt;0&lt;/code&gt;，因为
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;rvalue&lt;/code&gt; 传入值不会是 &lt;code&gt;NULL&lt;/code&gt;（我们知道调用方给了地址的）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;passed_by_ref&lt;/code&gt; 恒返回 0，因为
+&lt;ul&gt;
+&lt;li&gt;那个 ABI_FLEN 宏究竟是多少不重要（因为我们的 &lt;code&gt;type-&amp;gt;type&lt;/code&gt; 不是 &lt;code&gt;FFI_TYPE_STRUCT&lt;/code&gt;）&lt;/li&gt;
+&lt;li&gt;同时 &lt;code&gt;type-&amp;gt;size &amp;gt; 2 * __SIZEOF_POINTER__&lt;/code&gt; 不成立（因为我们的 &lt;code&gt;type&lt;/code&gt; 是 &lt;code&gt;ffi_arg&lt;/code&gt;）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;基于以上两点，&lt;code&gt;ffi_call_int&lt;/code&gt; 函数还就被简化为了以下两行：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C++&#34; data-lang=&#34;C++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;// 实际进行调用：
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;ffi_call_asm ((&lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;) alloc_base, cb.aregs, fn, closure);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;unmarshal(&lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;amp;&lt;/span&gt;cb, cif&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;rtype, &lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;, rvalue);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;上面那个 &lt;code&gt;ffi_call_asm&lt;/code&gt; 定义在一个 assembly 文件里，由于并不是所有的单元测试都炸，我暂且先 assume 其能工作，因此来看 &lt;code&gt;unmarshal&lt;/code&gt; 函数：&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/libffi/libffi/blob/464b4b66e3cf3b5489e730c1466ee1bf825560e0/src/riscv/ffi.c#L254&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://github.com/libffi/libffi/blob/464b4b66e3cf3b5489e730c1466ee1bf825560e0/src/riscv/ffi.c#L254&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;以下内容仍有省略，源文件在&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C++&#34; data-lang=&#34;C++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;// 这段内容不在 c 文件里，为了方便阅读贴过来了
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#if __SIZEOF_POINTER__ == 8
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;#define IS_INT(type) ((type) &amp;gt;= FFI_TYPE_UINT8 &amp;amp;&amp;amp; (type) &amp;lt;= FFI_TYPE_SINT64)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#else
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;#define IS_INT(type) ((type) &amp;gt;= FFI_TYPE_UINT8 &amp;amp;&amp;amp; (type) &amp;lt;= FFI_TYPE_SINT32)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#endif
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#50fa7b&#34;&gt;unmarshal&lt;/span&gt;(call_builder &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;cb, ffi_type &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;type, &lt;span style=&#34;color:#8be9fd&#34;&gt;int&lt;/span&gt; var, &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;data) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    size_t realign[&lt;span style=&#34;color:#bd93f9&#34;&gt;2&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;pointer;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#6272a4&#34;&gt;// ...省略了对于 FFI_TYPE_STRUCT 和浮点小数点的处理
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (type&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;size &lt;span style=&#34;color:#ff79c6&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt; __SIZEOF_POINTER__) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#6272a4&#34;&gt;// 省略了对于大数据类型的处理（我们的 `type` 是 `ffi_arg`，不够大）
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;    } &lt;span style=&#34;color:#ff79c6&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (IS_INT(type&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;type) &lt;span style=&#34;color:#ff79c6&#34;&gt;||&lt;/span&gt; type&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;type &lt;span style=&#34;color:#ff79c6&#34;&gt;==&lt;/span&gt; FFI_TYPE_POINTER) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        unmarshal_atom(cb, type&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;type, data);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;return&lt;/span&gt; data;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    } &lt;span style=&#34;color:#ff79c6&#34;&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#6272a4&#34;&gt;// 整个 else 不会执行，因为上面的 if 已经满足了：IS_INT(type-&amp;gt;type)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;这个 &lt;code&gt;unmarshal&lt;/code&gt; 函数似乎没有什么值得关注的，因此继续进入 &lt;code&gt;unmarshal_atom&lt;/code&gt;：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-C++&#34; data-lang=&#34;C++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#50fa7b&#34;&gt;unmarshal_atom&lt;/span&gt;(call_builder &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;cb, &lt;span style=&#34;color:#8be9fd&#34;&gt;int&lt;/span&gt; type, &lt;span style=&#34;color:#8be9fd&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;data) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    size_t value;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#6272a4&#34;&gt;// 省略浮点小数点的处理
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;if&lt;/span&gt; (cb&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;used_integer &lt;span style=&#34;color:#ff79c6&#34;&gt;==&lt;/span&gt; NARGREG) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        value &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;cb&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;used_stack&lt;span style=&#34;color:#ff79c6&#34;&gt;++&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    } &lt;span style=&#34;color:#ff79c6&#34;&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        value &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; cb&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;aregs&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;a[cb&lt;span style=&#34;color:#ff79c6&#34;&gt;-&amp;gt;&lt;/span&gt;used_integer&lt;span style=&#34;color:#ff79c6&#34;&gt;++&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ff79c6&#34;&gt;switch&lt;/span&gt; (type) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_UINT8&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;uint8_t&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_SINT8&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;uint8_t&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_UINT16&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;uint16_t&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_SINT16&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;uint16_t&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_UINT32&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;uint32_t&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_SINT32&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;uint32_t&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#if __SIZEOF_POINTER__ == 8
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_UINT64&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;uint64_t&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_SINT64&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(&lt;span style=&#34;color:#8be9fd&#34;&gt;uint64_t&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#endif
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;FFI_TYPE_POINTER&lt;/span&gt;: &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;(size_t &lt;span style=&#34;color:#ff79c6&#34;&gt;*&lt;/span&gt;)data &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ff79c6&#34;&gt;default&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;:&lt;/span&gt; FFI_ASSERT(&lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;); &lt;span style=&#34;color:#ff79c6&#34;&gt;break&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;注意 &lt;code&gt;data&lt;/code&gt; 是指向 &lt;code&gt;ffi_arg&lt;/code&gt; 类型的指针，也就是一个 64 位无符号整数，但在实际的调用中：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; s
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bd93f9&#34;&gt;192&lt;/span&gt;         switch &lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;type&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; s
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#bd93f9&#34;&gt;198&lt;/span&gt;             &lt;span style=&#34;color:#ff79c6&#34;&gt;case&lt;/span&gt; FFI_TYPE_SINT32: *&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;uint32_t *&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;data&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; value; break;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;(&lt;/span&gt;gdb&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt; p &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;type&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;$1&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;10&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;被当作是一个指向 &lt;code&gt;uint32_t&lt;/code&gt; 的指针了，在接下来的写入操作中，只写入了 32 bits 的数据。&lt;/p&gt;
+&lt;p&gt;根据 &lt;code&gt;switch&lt;/code&gt; 可以清楚得知：&lt;code&gt;type&lt;/code&gt; 变量在此处的值为 10，对应的宏是 &lt;code&gt;FFI_TYPE_SINT32&lt;/code&gt; 而不是我们预期的 &lt;code&gt;FFI_TYPE_UINT64&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;通过查阅相关 man page 可以得知，在使用 libffi 调用函数时，负责接收函数返回值的类型（&lt;code&gt;rint&lt;/code&gt; 的类型）需要至少 &lt;code&gt;sizeof(ffi_arg)&lt;/code&gt; 大小
+（也就是 &lt;code&gt;FFI_TYPE_UINT64&lt;/code&gt; 或 &lt;code&gt;FFI_TYPE_SINT64&lt;/code&gt;）。&lt;/p&gt;
+&lt;h3 id=&#34;结论&#34;&gt;
+  结论
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e7%bb%93%e8%ae%ba&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;此处 RISC-V port 的 libffi 内部并未合理处理 「被调用函数」 返回值不足 &lt;code&gt;sizeof(ffi_arg)&lt;/code&gt; 的情况。导致向一块 64bits 内存（调用方）写入了
+32bits 的数字（被调用方）：&lt;/p&gt;
+&lt;p&gt;可以看到高位部分包含之前未初始化的垃圾数据，只有低位被写入了 1：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-txt&#34; data-lang=&#34;txt&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;调用前 rint = 72057593903531392 也就是 0xFFFFFFF7FD4580
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;调用后 rint = 72057589742960641 也就是 0xFFFFFF00000001
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h2 id=&#34;修&#34;&gt;
+  修
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e4%bf%ae&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;那么现在就要修改代码，使其使用正确的返回值类型，发现已经有人 PR：&lt;br&gt;
+&lt;a href=&#34;https://github.com/libffi/libffi/pull/680&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://github.com/libffi/libffi/pull/680&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;这个 PR 添加了判断「被调用函数返回值类型」的符号性&lt;br&gt;
+并根据系统 bits 数，规范地选用 &lt;code&gt;FFI_TYPE_{S,U}INT{32,64}&lt;/code&gt; 中的其中一种。&lt;/p&gt;
+&lt;p&gt;所以现在只需要将其 &lt;a href=&#34;https://github.com/felixonmars/archriscv-packages/pull/1182&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;backport&lt;/a&gt; 回我们正在使用的版本即可。&lt;/p&gt;
+&lt;h2 id=&#34;思考&#34;&gt;
+  思考
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%80%9d%e8%80%83&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;在后期调试的过程中，我忘记看 manual page，不清楚「函数返回值 convention」 （也就是，显式规定返回值：需要至少能放下一个 &lt;code&gt;ffi_arg&lt;/code&gt; 这一部分）。
+使得后续 debug 过程遇到阻碍，在后续的工作中要注意查阅相关文档。&lt;/p&gt;
+&lt;p&gt;以及，他们自己不跑单元测试的吗？&lt;/p&gt;
+&lt;p&gt;这篇文章咕咕咕了大概俩月才终于写完 :） 🎉🎉🎉&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>记一次 debug qmake</title>
+      <link>https://mooody.me/posts/2022-04/archrv-qmake6/</link>
+      <pubDate>Thu, 14 Apr 2022 00:32:37 +0100</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-04/archrv-qmake6/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;原本想甩锅 Qt，但后来发现&lt;del&gt;小丑竟是 qemu&lt;/del&gt; :)&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;正片开始&#34;&gt;
+  正片开始
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%ad%a3%e7%89%87%e5%bc%80%e5%a7%8b&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;初来乍到 &lt;code&gt;PLCT::archrv-pkg&lt;/code&gt;，作为新人总想快点贡献点什么，于是各种翻 build log。&lt;/p&gt;
+&lt;p&gt;qalculate-qt:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-log&#34; data-lang=&#34;log&#34;&gt;/usr/lib/qt6/mkspecs/features/toolchain.prf:76: Variable QMAKE_CXX.COMPILER_MACROS is not defined.
+Project ERROR: failed to parse default search paths from compiler output
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;打包机扔出了这么个错误，深受 qmake 其害的我看到这就准备开 &lt;a href=&#34;https://bugreports.qt.io&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;bugreports.qt.io&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;但是转头一想：肯定群里的大佬早就看到了这个问题，应该已经在 WIP 了吧，于是在群消息记录里搜了一下，
+发现果然早在上个月 24 号（两周前左右）就在讨论这个问题了。&lt;/p&gt;
+&lt;p&gt;可惜没能解决，翻记录说是 qemu 里独有的问题，换到物理机上就没事了。&lt;/p&gt;
+&lt;p&gt;抱着试一试万一能给 Qt 水个 bugreport 的心态，我打开了这个文件：&lt;code&gt;features/toolchain.prf&lt;/code&gt; 并找到第 76 行：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-qmake&#34; data-lang=&#34;qmake&#34;&gt;73:         cache($${target_prefix}.$$v, set stash, $$v)
+74:         $${target_prefix}.COMPILER_MACROS += $$v
+75:     }
+76:     cache($${target_prefix}.COMPILER_MACROS, set stash) &amp;lt;- 这里
+77: } else {
+78:     # load from the cache
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;很明显是一个 qmake 变量 &amp;ldquo;&lt;code&gt;某些东西.COMPILER_MACROS&lt;/code&gt;&amp;rdquo; 的解引用（取值）。&lt;/p&gt;
+&lt;p&gt;根据报错能看出 &lt;code&gt;某些东西&lt;/code&gt; 应该是 &lt;code&gt;QMAKE_CXX&lt;/code&gt;，于是继续向上翻：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-qmake&#34; data-lang=&#34;qmake&#34;&gt;66: for (v, vars) {
+67:    !contains(v, &amp;#34;[A-Z_]+ = .*&amp;#34;): next()
+68:     # Set both &amp;lt;varname&amp;gt; for the outer scope ...
+69:     eval($$v)
+70:     v ~= s/ .*//
+71:     isEmpty($$v): error(&amp;#34;Compiler produced empty value for $${v}.&amp;#34;)
+72:     # ... and save QMAKE_(HOST_)?CXX.&amp;lt;varname&amp;gt; in the cache.
+73:     cache($${target_prefix}.$$v, set stash, $$v)
+74:     $${target_prefix}.COMPILER_MACROS += $$v
+75: }
+76: cache($${target_prefix}.COMPILER_MACROS, set stash) &amp;lt;- 核爆中心
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;稍有常识的人都知道这是个 for loop，根据 L74 可以看出这个循环是用来向
+&lt;code&gt;COMPILER_MACROS&lt;/code&gt; append 一些值，我想起了 log 调试大法，于是眼疾手快就在这附近加了
+几个 &lt;code&gt;message(&amp;quot;....&amp;quot;)&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;随着 qmake6 重新运行，我发现在 &lt;code&gt;for&lt;/code&gt; 循环里并没有任何输出出现，这使人不禁怀疑这个
+&lt;code&gt;for&lt;/code&gt; 循环究竟有没有跑。带着这个问题，又在 &lt;code&gt;for&lt;/code&gt; 上面一行输出 &lt;code&gt;vars&lt;/code&gt;，也就是循环对象。&lt;/p&gt;
+&lt;p&gt;我还特地打了引号，避免输出的是个空格然后消失在 Konsole 大海中，结果发现这个 &lt;code&gt;var&lt;/code&gt; 里啥也
+没有。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;咋就成空的了？&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;继续向上翻，整段代码被包在了一个 &lt;code&gt;isEmpty($${target_prefix}.COMPILER_MACROS) {&lt;/code&gt;
+分支，说明这个变量为空，其实是在预期情况内。紧接着是两个分支：&lt;code&gt;msvc&lt;/code&gt; 和 &lt;code&gt;gcc|ghs&lt;/code&gt; 很明显
+应该是走 &lt;code&gt;gcc&lt;/code&gt; 分支：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-qmake&#34; data-lang=&#34;qmake&#34;&gt;63: } else: gcc|ghs {
+64:     vars = $$qtVariablesFromGCC($$QMAKE_CXX)
+65: }
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;找到 &lt;code&gt;vars&lt;/code&gt; 的来源了！这里调用了一个名为 &lt;code&gt;qtVariablesFromGCC&lt;/code&gt; 的函数，传入单个参数
+&lt;code&gt;$$QMAKE_CXX&lt;/code&gt;，返回一个 list （也就是 &lt;code&gt;vars&lt;/code&gt;），于是继续跟进函数去 debug。&lt;/p&gt;
+&lt;p&gt;函数定义很简单（节省地方稍微改了下缩进）：&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-qmake&#34; data-lang=&#34;qmake&#34;&gt;37: defineReplace(qtVariablesFromGCC) {
+38:   ret = $$system(&amp;#34;$$1 -E $$system_quote($$PWD/data/macros.cpp) \
+39:     2&amp;gt;$$QMAKE_SYSTEM_NULL_DEVICE&amp;#34;, lines, ec)
+40:   !equals(ec, 0): qtCompilerError($$1, $$ret)
+41:   return($$ret)
+42: }
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;函数开头第一句话一个 &lt;code&gt;system&lt;/code&gt;，意思是要调用个子进程，然后读取输出。40 行的判断 ec 按照
+标准缩写应该是 &lt;code&gt;error code&lt;/code&gt;，先猜应该是个返回值。&lt;/p&gt;
+&lt;p&gt;于是开始 &lt;code&gt;message()&lt;/code&gt; 大法。&lt;/p&gt;
+&lt;p&gt;于是发现这 &lt;code&gt;ret&lt;/code&gt; 为空，我将 &lt;code&gt;system()&lt;/code&gt; 的参数单独拿出来跑：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# $$1 -E $$system_quote($$PWD/data/macros.cpp) 2&amp;gt;$$QMAKE_SYSTEM_NULL_DEVICE&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;# 参数替换可得&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ c++ -E &lt;span style=&#34;color:#ff79c6&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;pwd&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;)&lt;/span&gt;/data/macros.cpp 2&amp;gt;/dev/null
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 0 &amp;#34;./macros.cpp&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 0 &amp;#34;&amp;lt;built-in&amp;gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 0 &amp;#34;&amp;lt;command-line&amp;gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 1 &amp;#34;/usr/include/stdc-predef.h&amp;#34; 1 3 4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 0 &amp;#34;&amp;lt;command-line&amp;gt;&amp;#34; 2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 1 &amp;#34;./macros.cpp&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;QT_COMPILER_STDCXX&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; 201703L
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#6272a4&#34;&gt;# 26 &amp;#34;./macros.cpp&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;QMAKE_GCC_MAJOR_VERSION&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;11&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;QMAKE_GCC_MINOR_VERSION&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; &lt;span style=&#34;color:#8be9fd;font-style:italic&#34;&gt;QMAKE_GCC_PATCH_VERSION&lt;/span&gt; &lt;span style=&#34;color:#ff79c6&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#bd93f9&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;就是预处理结果嘛。。。&lt;/p&gt;
+&lt;p&gt;在进行了两分钟（没计时）的思考后，我认为是 qmake 没能正确执行 &lt;code&gt;system&lt;/code&gt; 函数，于是还是去
+了 &lt;a href=&#34;https://bugreports.qt.io&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;bugreports.qt.io&lt;/a&gt; 搜索 &lt;code&gt;qmake system&lt;/code&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;a href=&#34;https://bugreports.qt.io/browse/QTBUG-98951&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;&lt;strong&gt;QTBUG-98951: qmake system() does not work under qemu-user&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;这不就是我遇到的问题吗？正文里说：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;work-around: configure with -no-feature-forkfd_pidfd&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;code&gt;no-feature-forkfd_pidfd&lt;/code&gt; 是什么 feature？ 于是我继续按关键字搜索，找到了 &lt;a href=&#34;https://codereview.qt-project.org/c/qt/qtbase/&amp;#43;/313894&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Make usage of forkfd_pidfd in QProcess a configurable feature (#313894)&lt;/a&gt; 中的一处改动：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;;width:100%&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;// QTBUG-86285
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#6272a4&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#if !QT_CONFIG(forkfd_pidfd)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;&lt;/span&gt;    ffdflags &lt;span style=&#34;color:#ff79c6&#34;&gt;|=&lt;/span&gt; FFD_USE_FORK;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ff79c6&#34;&gt;#endif
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;那么关掉 &lt;code&gt;forkfd_pidfd&lt;/code&gt; 就使 &lt;code&gt;!QT_CONFIG(forkfd_pidfd)&lt;/code&gt; 为 &lt;code&gt;TRUE&lt;/code&gt;，从而强制添加
+&lt;code&gt;FFD_USE_FORK&lt;/code&gt; flag 给了 &lt;code&gt;ffdflags&lt;/code&gt;，而这就应该是避开了 qemu 未能实现的一个功能吧。&lt;/p&gt;
+&lt;p&gt;另外感谢肥猫找到了对应给 qemu 的 &lt;a href=&#34;https://patchew.org/QEMU/mvm4kadwyrm.fsf@suse.de/&#34;  class=&#34;external-link&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;patch&lt;/a&gt;，但很可惜的是没能合并。&lt;/p&gt;
+&lt;p&gt;在经历了一番折腾后，我在本机应用了给 qemu 的 patch，发现 qmake 的 &lt;code&gt;system&lt;/code&gt; 果然能正确执行了。&lt;/p&gt;
+&lt;p&gt;至此，一个由 &lt;code&gt;qalculate-qt&lt;/code&gt; 引发的，被以为是 Qt bug 的，但实际上是 qemu 的问题终于
+真相大白 :) 撒花！&lt;/p&gt;
+&lt;h2 id=&#34;小结&#34;&gt;
+  小结
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%b0%8f%e7%bb%93&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;以后遇到问题还是要先搜索，虽说本次 qmake 属于极端边角问题：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;首先是 qmake 现在（应该？）很少人用了吧？&lt;/li&gt;
+&lt;li&gt;其次还是 qemu-user （非 system，上篇文章说道 ArchRV 还没有能跑的 img）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;但确实仍然有人先遇到了，而且进行了汇报和 patch&lt;/p&gt;
+&lt;p&gt;下一篇文章（可能）写写 Qt Webengine 的 patch 过程（如果我能打出来的话）&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>PLCT 初体验</title>
+      <link>https://mooody.me/posts/2022-04/plct-experience-1/</link>
+      <pubDate>Thu, 14 Apr 2022 00:07:37 +0100</pubDate>
+      
+      <guid>https://mooody.me/posts/2022-04/plct-experience-1/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;&amp;ldquo;啊？ 系统镜像还没有啊？&amp;rdquo;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;本篇文章记录的是我在 PLCT &lt;del&gt;实习&lt;/del&gt;当工具人的初体验&lt;/p&gt;
+&lt;h2 id=&#34;开端&#34;&gt;
+  《开端》
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e5%bc%80%e7%ab%af&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;就是羡慕。&lt;/p&gt;
+&lt;p&gt;有一著名人士曾经说过：&lt;code&gt;群我不 plct&lt;/code&gt;，有一瞬间我确实感觉到: &amp;ldquo;怎么他们都在？&amp;quot;，于是我开始
+四处调查，我想起之前在 B 站看过 PLCT 编译器小组的 Report 感觉非常厉害，在内心里一瞬间燃
+起了一株小小的火苗：&amp;ldquo;我也想像他们一样&amp;rdquo;。&lt;/p&gt;
+&lt;p&gt;在经过了长达（一天）的调查以后，我终于全面了解了实习的不同种类，（身为 Arch 用户外加身边很多朋友都在 Arch RISC-V 打包小组），我也就选择了这里。我还了解到了 ArchRV 小组的申请要求
+： 一个 &lt;code&gt;addpkg&lt;/code&gt; PR 和简历（据说不看？，但还是战战兢兢地完善了一下），一篇不长于 300
+汉字的小短文。&lt;/p&gt;
+&lt;p&gt;花了一晚上时间准备好资料，终于把邮件发了出去（几个 addpkg 的包也都合并了，都是很简单的修复
+简直不敢说是 fix），关机睡觉&lt;/p&gt;
+&lt;h3 id=&#34;第二天&#34;&gt;
+  第二天
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e7%ac%ac%e4%ba%8c%e5%a4%a9&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;KMail 坑我 :) 明明已经收到了回邮，但是并未提醒我新邮件，直接咕了&lt;/p&gt;
+&lt;h3 id=&#34;第三天&#34;&gt;
+  第三天
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e7%ac%ac%e4%b8%89%e5%a4%a9&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h3&gt;
+&lt;p&gt;&lt;del&gt;一个自称 Wu Wei&lt;/del&gt; 的人联系到了我：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;我: 我想问一下，有面试环节什么的吗？&lt;/p&gt;
+&lt;p&gt;对面：面试了，面试通过了&lt;/p&gt;
+&lt;p&gt;我: ？？？？？&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;接下来就是各种资料的填写，签字，提交一系列 paperwork，很标准地走个流程。&lt;/p&gt;
+&lt;h2 id=&#34;我的第一个正经的-fix&#34;&gt;
+  我的第一个正经的 fix
+  &lt;a class=&#34;heading-link&#34; href=&#34;#%e6%88%91%e7%9a%84%e7%ac%ac%e4%b8%80%e4%b8%aa%e6%ad%a3%e7%bb%8f%e7%9a%84-fix&#34;&gt;
+    &lt;i class=&#34;fa-solid fa-link&#34; aria-hidden=&#34;true&#34; title=&#34;链接到标题&#34;&gt;&lt;/i&gt;
+    &lt;span class=&#34;sr-only&#34;&gt;链接到标题&lt;/span&gt;
+  &lt;/a&gt;
+&lt;/h2&gt;
+&lt;p&gt;下一篇再说&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
